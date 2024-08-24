@@ -8,7 +8,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import kotlinx.serialization.*
 
 fun Application.configureSecurity() {
     data class MySession(val count: Int = 0)
@@ -41,7 +40,7 @@ fun Application.configureSecurity() {
                 call.respondText("Counter is ${session.count}. Refresh to increment.")
             }
         authenticate("auth-oauth-google") {
-                    get("login") {
+                    get("auth") { //login->auth
                         call.respondRedirect("/callback")
                     }
         

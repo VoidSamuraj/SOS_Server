@@ -29,6 +29,11 @@ body{
   position: fixed;
   top:calc((62px - 48px) / 2);
   right:0;
+  transition: drop-shadow 0.2s ease-in-out;
+}
+
+#barDropdown:hover{
+  filter: drop-shadow(0 0 25px white);
 }
 #dropdownMenu{
   z-index: 1;
@@ -53,7 +58,12 @@ body{
    border-top: 1px solid white;
    background-color: transparent;
 }
-
+.icon-button{
+  transition: background-color 0.2s ease-in-out;
+  }
+.icon-button:hover,#patrolsClose:hover, #statsClose:hover, #settingsMenu > img:hover{
+    background-color: #fff2
+ }
 .icon-button>img{
   width: 36px;
   height:36px;
@@ -76,6 +86,7 @@ body{
   width: 100%;
   height: 45.8px;
   align-self: center;
+  transition: background-color 0.2s ease-in-out;
 }
 #settingsMenu>.slider-container{
   padding: 5px 2px;
@@ -98,6 +109,11 @@ body{
   width: 48px;
   height: 48px;
   margin: 10px 20px 10px 10px;
+  transition: drop-shadow 0.2s ease-in-out;
+}
+
+#patrolsButton>img:hover{
+  filter: drop-shadow(0 0 25px white);
 }
 
 #patrolsMenu{
@@ -118,7 +134,9 @@ body{
   width: 100%;
   height: 48px;
   padding: 5px 0;
+  transition: background-color 0.2s ease-in-out;
 }
+
 #patrolsMenu>div:first-of-type{
   display: inline-flex;
   flex-direction: row;
@@ -147,12 +165,14 @@ body{
   display: flex;
   justify-content: center;
   align-items: center;
+  visibility: hidden;
 }
 #statsOverlay>div{
   position: relative;
   width: 80%;
   height: 80%;
   border: 1px solid white;
+  background-color: #232b54;
 }
 #statsLegend{
   position: absolute;
@@ -165,6 +185,7 @@ body{
   padding: 5px;
   border-top: 1px solid white;
   border-left: 1px solid white;
+  font-size: 0.7rem;
 }
 #statsClose{
   position: absolute;
@@ -176,6 +197,7 @@ body{
   background-color: #232b54;
   border-left: 1px solid white;
   border-bottom: 1px solid white;
+  transition: background-color 0.2s ease-in-out;
 }
 
 

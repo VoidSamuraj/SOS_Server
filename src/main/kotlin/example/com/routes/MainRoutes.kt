@@ -21,4 +21,10 @@ fun Route.mainRoutes(){
 
         }
     }
+    route("/login"){
+        get{
+            println("Login route accessed")
+            call.respondTemplate(template = "login.ftl")
+        }
+    }
 }
