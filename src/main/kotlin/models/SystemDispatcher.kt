@@ -3,8 +3,12 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 @Serializable
-data class SystemDispatcher(val id:Int,val name: String, val surname: String,val phone: String, val roleCode:Short): Principal{
-
+data class SystemDispatcher(val id:Int,val name: String, val surname: String, val password: String,val phone: String, val roleCode:Short): Principal{
+    /**
+     * Enum representing role of worker.
+     *
+     * Contains 3 Roles: [Role.DISPATCHER], [Role.MANAGER], [Role.ADMIN]
+     */
     enum class Role(val role:Int) {
         DISPATCHER(0),
         MANAGER(1),
@@ -30,6 +34,7 @@ object SystemDispatchers : Table() {
     val id = integer("id").autoIncrement()
     val name = varchar("name",40)
     val surname = varchar("surname", 40)
+    val password = varchar("password", 40)
     val phone =  varchar("phone", 20).uniqueIndex()
     val role = short("role")
     override val primaryKey = PrimaryKey(id)

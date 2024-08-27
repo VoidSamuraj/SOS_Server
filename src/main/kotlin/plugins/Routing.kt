@@ -1,7 +1,7 @@
-package example.com.plugins
+package plugins
 
-import example.com.routes.mainRoutes
-import example.com.routes.staticRoutes
+import routes.mainRoutes
+import routes.staticRoutes
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 

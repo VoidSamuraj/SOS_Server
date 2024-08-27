@@ -11,7 +11,7 @@ plugins {
     kotlin("plugin.serialization") version "2.0.10"
 }
 
-group = "example.com"
+group = ""
 version = "0.0.1"
 
 application {

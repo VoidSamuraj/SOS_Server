@@ -1,4 +1,4 @@
-package example.com.plugins
+package plugins
 
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*

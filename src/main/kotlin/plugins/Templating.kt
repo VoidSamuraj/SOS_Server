@@ -1,4 +1,4 @@
-package example.com.plugins
+package plugins
 
 import freemarker.cache.*
 import io.ktor.server.application.*

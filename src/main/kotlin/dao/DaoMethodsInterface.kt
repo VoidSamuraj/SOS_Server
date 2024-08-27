@@ -37,9 +37,9 @@ interface DaoMethodsInterface {
     suspend fun getAllGuards(page:Int, pageSize: Int):List<Guard>
 
     //Dispatcher
-    suspend fun addDispatcher(name: String,surname: String,phone: String, role:SystemDispatcher.Role):Boolean
+    suspend fun addDispatcher(name: String,surname: String,password: String,phone: String, role:SystemDispatcher.Role):Boolean
     suspend fun deleteDispatcher(id:Int):Boolean
-    suspend fun editDispatcher(id:Int, name: String?=null,surname: String?=null,phone: String?=null, role:SystemDispatcher.Role?=null):Boolean
+    suspend fun editDispatcher(id:Int, name: String?=null,surname: String?=null,password: String?=null,phone: String?=null, role:SystemDispatcher.Role?=null):Boolean
     suspend fun getDispatcher(id:Int):SystemDispatcher?
     suspend fun getAlDispatchers(page:Int, pageSize: Int):List<SystemDispatcher>
 }

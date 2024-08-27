@@ -4,7 +4,7 @@
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>System SOS</title>
-      <link rel="stylesheet" href="static/login.css">
+      <link rel="stylesheet" href="static/style/login.css">
    </head>
    <body>
        <div>
@@ -23,6 +23,6 @@
                 <input type="submit" id="recoverPasswordButton" value="Odzyskaj hasło" placeholder="Recover password">
           </form>
        </div>
-       <script type="module" src="static/login.js"></script>
+       <script type="module" src="static/script/login.js"></script>
    </body>
 </html>

@@ -15,7 +15,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class DaoMethods:DaoMethodsInterface {
+object DaoMethods:DaoMethodsInterface {
 
     private fun resultRowToUser(row: ResultRow) = SystemClient(
         id = row[SystemClients.id],
@@ -56,6 +56,7 @@ class DaoMethods:DaoMethodsInterface {
         id = row[SystemDispatchers.id],
         name = row[SystemDispatchers.name],
         surname = row[SystemDispatchers.surname],
+        password = row[SystemDispatchers.password],
         phone = row[SystemDispatchers.phone],
         roleCode = row[SystemDispatchers.role]
     )
@@ -300,11 +301,12 @@ class DaoMethods:DaoMethodsInterface {
 
     //Dispatcher
 
-    override suspend fun addDispatcher(name: String, surname: String, phone: String, role: SystemDispatcher.Role): Boolean {
+    override suspend fun addDispatcher(name: String, surname: String, password: String, phone: String, role: SystemDispatcher.Role): Boolean {
         return transaction {
             val insertStatement = SystemDispatchers.insert {
                 it[SystemDispatchers.name] = name
                 it[SystemDispatchers.surname] = surname
+                it[SystemDispatchers.password] = password
                 it[SystemDispatchers.phone] = phone
                 it[SystemDispatchers.role] = role.role.toShort()
             }
@@ -316,11 +318,12 @@ class DaoMethods:DaoMethodsInterface {
         return transaction { SystemDispatchers.deleteWhere { SystemDispatchers.id eq id } > 0}
     }
 
-    override suspend fun editDispatcher(id: Int, name: String?, surname: String?, phone: String?, role:SystemDispatcher.Role?): Boolean {
+    override suspend fun editDispatcher(id: Int, name: String?, surname: String?,password: String?, phone: String?, role:SystemDispatcher.Role?): Boolean {
         return transaction {
             SystemDispatchers.update({ SystemDispatchers.id eq id }) {
                 name?.let { name -> it[SystemDispatchers.name] = name }
                 surname?.let { surname -> it[SystemDispatchers.surname] = surname }
+                password?.let { password -> it[SystemDispatchers.password] = password }
                 phone?.let { phone -> it[SystemDispatchers.phone] = phone }
                 role?.let{role-> it[SystemDispatchers.role] = role.role.toShort()}
             } > 0
@@ -346,4 +349,5 @@ class DaoMethods:DaoMethodsInterface {
 
         }
     }
+
 }
