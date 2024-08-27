@@ -53,7 +53,7 @@ document.getElementById('statsClose').addEventListener('click', function() {
 
 var assignTaskButton = document.getElementById('assignTaskButton');
 var assignTaskMenu = document.getElementById('assignTaskMenu');
-var bell = document.getElementById('bell');
+export var bell = document.getElementById('bell');
 var assignBack = document.getElementById('assignBack');
 var assignClose = document.getElementById('assignClose');
 var assignItems = document.getElementById('assignItems');

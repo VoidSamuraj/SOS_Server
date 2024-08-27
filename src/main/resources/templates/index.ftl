@@ -65,7 +65,6 @@
 </gmp-map>
 -->
 <div id="map"></div>
-<button id="marker" style="z-index: 5; position: absolute;">ADD MARKER</button>
 
 
 <div id="statsOverlay">
