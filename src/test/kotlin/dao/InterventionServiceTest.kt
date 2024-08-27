@@ -19,20 +19,19 @@ import kotlin.test.assertTrue
 class InterventionServiceTest {
 
     companion object{
-        private val service = DaoMethods()
         private  val  db: Database = DatabaseFactory.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver")
         @BeforeClass
         @JvmStatic
         fun setupOnce(){
             CoroutineScope(Dispatchers.IO).launch {
-                service.addClient("login1", "password1", "123456789", "12345678901", "email@test.com")
-                service.addClient("login2", "password2", "987654321", "12345678902", "email2@test.com")
-                service.addGuard("John", "Doe", "123456789")
-                service.addGuard("Jane", "Doe", "987654321")
-                service.addDispatcher("John", "Doe", "123456789", SystemDispatcher.Role.DISPATCHER)
-                service.addDispatcher("Jane", "Doe", "987654321", SystemDispatcher.Role.DISPATCHER)
-                service.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
-                service.addReport(2, "Location2",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.IN_PROGRESS)
+                DaoMethods.addClient("login1", "password1", "123456789", "12345678901", "email@test.com")
+                DaoMethods.addClient("login2", "password2", "987654321", "12345678902", "email2@test.com")
+                DaoMethods.addGuard("John", "Doe", "123456789")
+                DaoMethods.addGuard("Jane", "Doe", "987654321")
+                DaoMethods.addDispatcher("John", "Doe", "qwerty", "123456789", SystemDispatcher.Role.DISPATCHER)
+                DaoMethods.addDispatcher("Jane", "Doe", "qwerty", "987654321", SystemDispatcher.Role.DISPATCHER)
+                DaoMethods.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
+                DaoMethods.addReport(2, "Location2",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.IN_PROGRESS)
             }
         }
     }
@@ -46,7 +45,7 @@ class InterventionServiceTest {
 
     @Test
     fun `should add intervention`() = runTest {
-        val result = service.addIntervention(1, 1, 1, 101)
+        val result = DaoMethods.addIntervention(1, 1, 1, 101)
         assertTrue(result)
 
         val intervention = transaction { Interventions.selectAll().singleOrNull() }
@@ -57,18 +56,18 @@ class InterventionServiceTest {
 
     @Test
     fun `should get intervention by id`() = runTest {
-        service.addIntervention(1, 1, 1, 101)
-        val intervention = service.getIntervention(1)
+        DaoMethods.addIntervention(1, 1, 1, 101)
+        val intervention = DaoMethods.getIntervention(1)
         assertNotNull(intervention)
         assertEquals(1, intervention.report_id)
     }
 
     @Test
     fun `should get all interventions`() = runTest {
-        service.addIntervention(1, 1, 1, 101)
-        service.addIntervention(2, 2, 2, 102)
+        DaoMethods.addIntervention(1, 1, 1, 101)
+        DaoMethods.addIntervention(2, 2, 2, 102)
 
-        val interventions = service.getAllInterventions(page = 1, pageSize = 10)
+        val interventions = DaoMethods.getAllInterventions(page = 1, pageSize = 10)
         assertEquals(2, interventions.size)
     }
 }

@@ -10,7 +10,6 @@ import kotlin.test.*
 class DispatcherServiceTest {
 
     private  val  db: Database = DatabaseFactory.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver")
-    private val service = DaoMethods()
 
     @BeforeTest
     fun setup() {
@@ -22,7 +21,7 @@ class DispatcherServiceTest {
 
     @Test
     fun `should add dispatcher`() = runTest {
-        val result = service.addDispatcher("John", "Doe", "123456789", SystemDispatcher.Role.DISPATCHER)
+        val result = DaoMethods.addDispatcher("John", "Doe", "qwerty","123456789", SystemDispatcher.Role.DISPATCHER)
         assertTrue(result)
 
         val dispatcher = transaction { SystemDispatchers.selectAll().singleOrNull() }
@@ -32,8 +31,8 @@ class DispatcherServiceTest {
 
     @Test
     fun `should edit dispatcher`() = runTest {
-        service.addDispatcher("John", "Doe", "123456789", SystemDispatcher.Role.DISPATCHER)
-        val result = service.editDispatcher(1, name = "Jane")
+        DaoMethods.addDispatcher("John", "Doe", "qwerty","123456789", SystemDispatcher.Role.DISPATCHER)
+        val result = DaoMethods.editDispatcher(1, name = "Jane")
         assertTrue(result)
 
         val dispatcher = transaction { SystemDispatchers.selectAll().singleOrNull() }
@@ -43,28 +42,28 @@ class DispatcherServiceTest {
 
     @Test
     fun `should delete dispatcher`() = runTest {
-        service.addDispatcher("John", "Doe", "123456789", SystemDispatcher.Role.DISPATCHER)
-        val result = service.deleteDispatcher(1)
+        DaoMethods.addDispatcher("John", "Doe", "qwerty","123456789", SystemDispatcher.Role.DISPATCHER)
+        val result = DaoMethods.deleteDispatcher(1)
         assertTrue(result)
 
-        val dispatcher = service.getDispatcher(1)
+        val dispatcher = DaoMethods.getDispatcher(1)
         assertNull(dispatcher)
     }
 
     @Test
     fun `should get dispatcher by id`() = runTest {
-        service.addDispatcher("John", "Doe", "123456789", SystemDispatcher.Role.DISPATCHER)
-        val dispatcher = service.getDispatcher(1)
+        DaoMethods.addDispatcher("John", "Doe", "qwerty","123456789", SystemDispatcher.Role.DISPATCHER)
+        val dispatcher = DaoMethods.getDispatcher(1)
         assertNotNull(dispatcher)
         assertEquals("John", dispatcher.name)
     }
 
     @Test
     fun `should get all dispatchers`() = runTest {
-        service.addDispatcher("John", "Doe", "123456789", SystemDispatcher.Role.DISPATCHER)
-        service.addDispatcher("Jane", "Doe", "987654321", SystemDispatcher.Role.DISPATCHER)
+        DaoMethods.addDispatcher("John", "Doe", "qwerty","123456789", SystemDispatcher.Role.DISPATCHER)
+        DaoMethods.addDispatcher("Jane", "Doe", "qwerty","987654321", SystemDispatcher.Role.DISPATCHER)
 
-        val dispatchers = service.getAlDispatchers(page = 1, pageSize = 10)
+        val dispatchers = DaoMethods.getAlDispatchers(page = 1, pageSize = 10)
         assertEquals(2, dispatchers.size)
     }
 }
