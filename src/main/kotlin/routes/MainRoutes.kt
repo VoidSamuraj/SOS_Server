@@ -5,6 +5,7 @@ import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import security.Keys
+import java.io.File
 
 fun Route.mainRoutes(){
     get(){
@@ -15,6 +16,8 @@ fun Route.mainRoutes(){
 /*
             checkPermission(token = call.sessions.get("TOKEN")as MyToken?,
                 onSuccess = {*/
+
+            /*
             val googleKey = Keys.googleApiKey
             val mapId = Keys.googleMapId
 
@@ -27,6 +30,8 @@ fun Route.mainRoutes(){
             )
 
             call.respondTemplate(template = "index.ftl", model =model)
+            */    call.respondFile(File("src/main/resources/react/build/index.html"))
+
               /*  },
                 onFailure = { call.respondRedirect("/user/login")}
             )*/

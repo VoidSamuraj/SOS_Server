@@ -19,7 +19,7 @@ fun Application.module() {
         if(DaoMethods.getAlDispatchers(1, 10).isEmpty())
             DaoMethods.addDispatcher("Jan", "Kowalski", "qwerty","123456789", SystemDispatcher.Role.DISPATCHER)
     }
-    configureTemplating()
+    //configureTemplating()
     configureSockets()
     configureHTTP()
     configureSecurity()
