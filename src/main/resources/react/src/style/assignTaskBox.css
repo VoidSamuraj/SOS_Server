@@ -1,0 +1,57 @@
+
+#bell{
+  background-color: #F008;
+  border-radius: 50%;
+  border: 2px solid black;
+  width: 48px;
+  height: 48px;
+  padding: 5px;
+  text-align: center;
+}
+
+#bell>img{
+  width: 48px;
+  height: 48px;
+}
+
+#assignTaskBox{
+  position: absolute;
+  z-index: 6;
+  top: 80px;
+  left: 50%;
+  transform: translate(-100%, 0);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#assignTaskButton{
+  background-color: #232b54 !important;
+  display:none;
+}
+
+#assignTaskBox button{
+  width: 200px;
+  background-color: transparent;
+  border: 1px solid #fff;
+  border-radius: 0;
+  color: #fff;
+  padding: 10px;
+  outline: none;
+}
+
+#assignTaskMenu{
+  display: none;
+  flex-direction: column;
+  background-color: #232b54;
+  align-items: center;
+  padding: 10px;
+}
+
+#assignItems{
+  display: flex;
+  flex-direction: column;
+}
+
+#assignItems>button{
+  padding: 3px 0;
+}

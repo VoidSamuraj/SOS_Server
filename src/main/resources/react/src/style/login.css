@@ -34,7 +34,6 @@ input {
     outline: none;
 }
 #recoverPasswordForm{
-  display: none;
   margin: 35px 10px;
 }
 #loginForm{
