@@ -1,10 +1,8 @@
 package routes
 
 import io.ktor.server.application.*
-import io.ktor.server.freemarker.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import security.Keys
 import java.io.File
 
 fun Route.mainRoutes(){
@@ -41,7 +39,6 @@ fun Route.mainRoutes(){
     route("/login"){
         get{
             println("Login route accessed")
-            call.respondTemplate(template = "login.ftl")
         }
     }
 }

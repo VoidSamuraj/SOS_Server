@@ -6,7 +6,6 @@ import io.ktor.server.routing.*
 
 fun Application.staticRoutes(){
     routing {
-        staticResources("icons/","files/icons")
         staticResources("/static","react/build/static")
     }
 }

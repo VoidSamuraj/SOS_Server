@@ -1,26 +1,3 @@
-document.getElementById('barDropdown').addEventListener('click', function() {
-  var menu = document.getElementById('dropdownMenu');
-  var menuSettings = document.getElementById('settingsMenu');
-
-  if (menuSettings.style.right === '150px') {
-    menuSettings.style.right = '-100%';
-  }
-
-  if (menu.style.top === '62px') {
-    menu.style.top = '-100%';
-  } else {
-    menu.style.top = '62px';
-  }
-});
-document.getElementById('settingsButton').addEventListener('click', function() {
-  var menu = document.getElementById('settingsMenu');
-
-  if (menu.style.right === '150px') {
-    menu.style.right = '-100%';
-  } else {
-    menu.style.right = '150px';
-  }
-});
 
 document.getElementById('statsButton').addEventListener('click', function() {
   var menu = document.getElementById('statsOverlay');

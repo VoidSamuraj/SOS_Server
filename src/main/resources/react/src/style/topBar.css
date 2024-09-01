@@ -1,0 +1,35 @@
+
+#topBar{
+  position: absolute;
+  z-index: 5;
+  width: 100%;
+  height: 62px;
+  background-color: #232b54;
+  color: white;
+  display: flex;
+  flex-direction: row;
+}
+#infoBox{
+  padding: 5px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+}
+#infoBox>div{
+  text-align: center;
+  margin: 2px 0;
+}
+
+#barDropdown{
+  width: 48px;
+  height: 48px;
+  position: fixed;
+  top:calc((62px - 48px) / 2);
+  right:0;
+  transition: drop-shadow 0.2s ease-in-out;
+}
+
+#barDropdown:hover{
+  filter: drop-shadow(0 0 25px white);
+}
