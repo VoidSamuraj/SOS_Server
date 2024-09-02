@@ -64,3 +64,23 @@
 #patrolsMenu>div:first-of-type>button:first-of-type{
   margin-right: 0;
 }
+#patrolsList{
+    display:flex;
+    flex-direction: column;
+}
+#patrolsList>div{
+    display:flex;
+    margin:4px 8px;
+    padding:15px;
+    border-radius:5px;
+    justify-content:center;
+    color:black;
+    font-weight: bold;
+}
+#patrolsMenu button{
+    border-radius:5px;
+}
+#patrolsMenu button.checked{
+    background-color: #535770;
+    border-color: #535770;
+}

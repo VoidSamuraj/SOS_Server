@@ -1,5 +1,6 @@
 
 #bell{
+  display:none;
   background-color: #F008;
   border-radius: 50%;
   border: 2px solid black;
@@ -54,4 +55,7 @@
 
 #assignItems>button{
   padding: 3px 0;
+}
+#assignTaskBox .visible{
+  display:block;
 }
