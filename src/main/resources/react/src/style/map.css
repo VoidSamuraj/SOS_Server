@@ -5,20 +5,22 @@
     z-index: 1;
 }
 
-#map svg{
+.mapMarker svg{
     position:absolute;
     width:100%;
     height:100%;
 }
-gmp-advanced-marker>div{
+.mapMarker{
    position: absolute;
-    transform: translate(-50%, -50%);
+   transform: translate(-50%, -50%);
 
 }
-
-gmp-advanced-marker{
-    z-index: 1;
+.yNHHyP-marker-view{
+    z-index: 5;
 }
-gmp-advanced-marker:hover{
-    z-index: 2;
+.yNHHyP-marker-view:hover {
+    z-index: 6;
+}
+.yNHHyP-marker-view>div>div{
+    pointer-events: auto !important;
 }
