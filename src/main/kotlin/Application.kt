@@ -16,8 +16,8 @@ fun main(args: Array<String>) {
 fun Application.module() {
     DatabaseFactory.init("jdbc:h2:file:./build/db", "org.h2.Driver", "root", "password")
     CoroutineScope(Dispatchers.IO).launch {
-        if(DaoMethods.getAlDispatchers(1, 10).isEmpty())
-            DaoMethods.addDispatcher("Jan", "Kowalski", "qwerty","123456789", Employee.Role.DISPATCHER)
+        if(DaoMethods.getAllEmployees(1, 10).isEmpty())
+            DaoMethods.addEmployee("Jan", "Kowalski", "qwerty","123456789", Employee.Role.DISPATCHER)
     }
     //configureTemplating()
     configureSockets()

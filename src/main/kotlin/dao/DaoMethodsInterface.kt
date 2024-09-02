@@ -17,7 +17,7 @@ interface DaoMethodsInterface {
     suspend fun getAllClients(page:Int, pageSize:Int):List<Customer>
 
     //Intervention
-    suspend fun addIntervention(reportId: Int, guardId: Int, dispatcherId: Int, patrolNumber: Int):Boolean
+    suspend fun addIntervention(reportId: Int, guardId: Int, EmployeeId: Int, patrolNumber: Int):Boolean
     suspend fun getIntervention(id:Int):Intervention?
     suspend fun getAllInterventions(page: Int, pageSize: Int):List<Intervention>
 
@@ -36,10 +36,10 @@ interface DaoMethodsInterface {
     suspend fun getGuard(id:Int):Guard?
     suspend fun getAllGuards(page:Int, pageSize: Int):List<Guard>
 
-    //Dispatcher
-    suspend fun addDispatcher(name: String,surname: String,password: String,phone: String, role:Employee.Role):Boolean
-    suspend fun deleteDispatcher(id:Int):Boolean
-    suspend fun editDispatcher(id:Int, name: String?=null,surname: String?=null,password: String?=null,phone: String?=null, role:Employee.Role?=null):Boolean
-    suspend fun getDispatcher(id:Int):Employee?
-    suspend fun getAlDispatchers(page:Int, pageSize: Int):List<Employee>
+    //Employee
+    suspend fun addEmployee(name: String,surname: String,password: String,phone: String, role:Employee.Role):Boolean
+    suspend fun deleteEmployee(id:Int):Boolean
+    suspend fun editEmployee(id:Int, name: String?=null,surname: String?=null,password: String?=null,phone: String?=null, role:Employee.Role?=null):Boolean
+    suspend fun getEmployee(id:Int):Employee?
+    suspend fun getAllEmployees(page:Int, pageSize: Int):List<Employee>
 }

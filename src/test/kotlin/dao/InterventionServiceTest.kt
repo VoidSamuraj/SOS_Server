@@ -28,8 +28,8 @@ class InterventionServiceTest {
                 DaoMethods.addClient("login2", "password2", "987654321", "12345678902", "email2@test.com")
                 DaoMethods.addGuard("John", "Doe", "123456789")
                 DaoMethods.addGuard("Jane", "Doe", "987654321")
-                DaoMethods.addDispatcher("John", "Doe", "qwerty", "123456789", Employee.Role.DISPATCHER)
-                DaoMethods.addDispatcher("Jane", "Doe", "qwerty", "987654321", Employee.Role.DISPATCHER)
+                DaoMethods.addEmployee("John", "Doe", "qwerty", "123456789", Employee.Role.DISPATCHER)
+                DaoMethods.addEmployee("Jane", "Doe", "qwerty", "987654321", Employee.Role.DISPATCHER)
                 DaoMethods.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
                 DaoMethods.addReport(2, "Location2",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.IN_PROGRESS)
             }

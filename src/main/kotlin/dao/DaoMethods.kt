@@ -31,7 +31,7 @@ object DaoMethods:DaoMethodsInterface {
         id = row[Interventions.id],
         report_id = row[Interventions.reportId],
         guard_id = row[Interventions.guardId],
-        dispatcher_id = row[Interventions.dispatcherId],
+        employee_id = row[Interventions.employeeId],
         patrol_number = row[Interventions.patrolNumber]
     )
 
@@ -52,7 +52,7 @@ object DaoMethods:DaoMethodsInterface {
         location = ""
     )
 
-    private fun resultRowToDispatcher(row: ResultRow) = Employee(
+    private fun resultRowToEmployee(row: ResultRow) = Employee(
         id = row[Employees.id],
         name = row[Employees.name],
         surname = row[Employees.surname],
@@ -140,12 +140,12 @@ object DaoMethods:DaoMethodsInterface {
 
     //Intervention
 
-    override suspend fun addIntervention(reportId: Int, guardId: Int, dispatcherId: Int, patrolNumber: Int): Boolean {
+    override suspend fun addIntervention(reportId: Int, guardId: Int, EmployeeId: Int, patrolNumber: Int): Boolean {
         return transaction {
             val insertStatement = Interventions.insert {
                 it[Interventions.reportId] = reportId
                 it[Interventions.guardId] = guardId
-                it[Interventions.dispatcherId] = dispatcherId
+                it[Interventions.employeeId] = EmployeeId
                 it[Interventions.patrolNumber] = patrolNumber
             }
             insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToIntervention) != null
@@ -299,9 +299,9 @@ object DaoMethods:DaoMethodsInterface {
 
 
 
-    //Dispatcher
+    //Employee
 
-    override suspend fun addDispatcher(name: String, surname: String, password: String, phone: String, role: Employee.Role): Boolean {
+    override suspend fun addEmployee(name: String, surname: String, password: String, phone: String, role: Employee.Role): Boolean {
         return transaction {
             val insertStatement = Employees.insert {
                 it[Employees.name] = name
@@ -310,15 +310,15 @@ object DaoMethods:DaoMethodsInterface {
                 it[Employees.phone] = phone
                 it[Employees.role] = role.role.toShort()
             }
-            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToDispatcher) != null
+            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToEmployee) != null
         }
     }
 
-    override suspend fun deleteDispatcher(id: Int): Boolean {
+    override suspend fun deleteEmployee(id: Int): Boolean {
         return transaction { Employees.deleteWhere { Employees.id eq id } > 0}
     }
 
-    override suspend fun editDispatcher(id: Int, name: String?, surname: String?,password: String?, phone: String?, role:Employee.Role?): Boolean {
+    override suspend fun editEmployee(id: Int, name: String?, surname: String?,password: String?, phone: String?, role:Employee.Role?): Boolean {
         return transaction {
             Employees.update({ Employees.id eq id }) {
                 name?.let { name -> it[Employees.name] = name }
@@ -330,22 +330,22 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getDispatcher(id: Int): Employee? {
+    override suspend fun getEmployee(id: Int): Employee? {
         return transaction {
             Employees
                 .selectAll().where { Employees.id eq id }
-                .mapNotNull(::resultRowToDispatcher)
+                .mapNotNull(::resultRowToEmployee)
                 .singleOrNull()
         }
     }
 
-    override suspend fun getAlDispatchers(page:Int, pageSize: Int): List<Employee> {
+    override suspend fun getAllEmployees(page:Int, pageSize: Int): List<Employee> {
         return transaction {
             val offset = (page - 1) * pageSize
 
             Employees.selectAll()
                 .limit(pageSize, offset.toLong())
-                .map(::resultRowToDispatcher).toList()
+                .map(::resultRowToEmployee).toList()
 
         }
     }
