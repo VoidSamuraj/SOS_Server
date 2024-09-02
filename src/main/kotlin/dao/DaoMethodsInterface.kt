@@ -1,7 +1,7 @@
 package dao
 
-import SystemClient
-import SystemDispatcher
+import Customer
+import Employee
 import Guard
 import Intervention
 import Report
@@ -13,8 +13,8 @@ interface DaoMethodsInterface {
     suspend fun addClient(login: String, password: String, phone: String, pesel: String, email: String):Boolean
     suspend fun editClient(id:Int, login: String?=null, password: String?=null, phone: String?=null, pesel: String?=null, email: String?=null):Boolean
     suspend fun deleteClient(id:Int):Boolean
-    suspend fun getClient(id:Int):SystemClient?
-    suspend fun getAllClients(page:Int, pageSize:Int):List<SystemClient>
+    suspend fun getClient(id:Int):Customer?
+    suspend fun getAllClients(page:Int, pageSize:Int):List<Customer>
 
     //Intervention
     suspend fun addIntervention(reportId: Int, guardId: Int, dispatcherId: Int, patrolNumber: Int):Boolean
@@ -37,9 +37,9 @@ interface DaoMethodsInterface {
     suspend fun getAllGuards(page:Int, pageSize: Int):List<Guard>
 
     //Dispatcher
-    suspend fun addDispatcher(name: String,surname: String,password: String,phone: String, role:SystemDispatcher.Role):Boolean
+    suspend fun addDispatcher(name: String,surname: String,password: String,phone: String, role:Employee.Role):Boolean
     suspend fun deleteDispatcher(id:Int):Boolean
-    suspend fun editDispatcher(id:Int, name: String?=null,surname: String?=null,password: String?=null,phone: String?=null, role:SystemDispatcher.Role?=null):Boolean
-    suspend fun getDispatcher(id:Int):SystemDispatcher?
-    suspend fun getAlDispatchers(page:Int, pageSize: Int):List<SystemDispatcher>
+    suspend fun editDispatcher(id:Int, name: String?=null,surname: String?=null,password: String?=null,phone: String?=null, role:Employee.Role?=null):Boolean
+    suspend fun getDispatcher(id:Int):Employee?
+    suspend fun getAlDispatchers(page:Int, pageSize: Int):List<Employee>
 }

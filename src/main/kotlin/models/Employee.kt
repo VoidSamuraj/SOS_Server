@@ -3,7 +3,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 @Serializable
-data class SystemDispatcher(val id:Int,val name: String, val surname: String, val password: String,val phone: String, val roleCode:Short): Principal{
+data class Employee(val id:Int,val name: String, val surname: String, val password: String,val phone: String, val roleCode:Short): Principal{
     /**
      * Enum representing role of worker.
      *
@@ -30,7 +30,7 @@ data class SystemDispatcher(val id:Int,val name: String, val surname: String, va
         get() = Role.fromInt(roleCode.toInt())
 }
 
-object SystemDispatchers : Table() {
+object Employees : Table() {
     val id = integer("id").autoIncrement()
     val name = varchar("name",40)
     val surname = varchar("surname", 40)

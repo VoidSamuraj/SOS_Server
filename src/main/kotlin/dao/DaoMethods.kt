@@ -1,15 +1,15 @@
 package dao
 
-import SystemClient
+import Customer
 import Guard
 import Guards
 import Intervention
 import Interventions
 import Report
 import Reports
-import SystemClients
-import SystemDispatcher
-import SystemDispatchers
+import Customers
+import Employee
+import Employees
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -17,14 +17,14 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object DaoMethods:DaoMethodsInterface {
 
-    private fun resultRowToUser(row: ResultRow) = SystemClient(
-        id = row[SystemClients.id],
-        login = row[SystemClients.login],
-        password = row[SystemClients.password],
-        phone = row[SystemClients.phone],
-        pesel = row[SystemClients.pesel],
-        email = row[SystemClients.email],
-        account_deleted = row[SystemClients.account_deleted]
+    private fun resultRowToUser(row: ResultRow) = Customer(
+        id = row[Customers.id],
+        login = row[Customers.login],
+        password = row[Customers.password],
+        phone = row[Customers.phone],
+        pesel = row[Customers.pesel],
+        email = row[Customers.email],
+        account_deleted = row[Customers.account_deleted]
     )
 
     private fun resultRowToIntervention(row: ResultRow) = Intervention(
@@ -52,13 +52,13 @@ object DaoMethods:DaoMethodsInterface {
         location = ""
     )
 
-    private fun resultRowToDispatcher(row: ResultRow) = SystemDispatcher(
-        id = row[SystemDispatchers.id],
-        name = row[SystemDispatchers.name],
-        surname = row[SystemDispatchers.surname],
-        password = row[SystemDispatchers.password],
-        phone = row[SystemDispatchers.phone],
-        roleCode = row[SystemDispatchers.role]
+    private fun resultRowToDispatcher(row: ResultRow) = Employee(
+        id = row[Employees.id],
+        name = row[Employees.name],
+        surname = row[Employees.surname],
+        password = row[Employees.password],
+        phone = row[Employees.phone],
+        roleCode = row[Employees.role]
     )
 
 
@@ -74,13 +74,13 @@ object DaoMethods:DaoMethodsInterface {
         email: String
     ): Boolean {
         return transaction {
-            val insertStatement = SystemClients.insert {
-                it[SystemClients.login] = login
-                it[SystemClients.password] = password
-                it[SystemClients.phone] = phone
-                it[SystemClients.pesel] = pesel
-                it[SystemClients.email] = email
-                it[SystemClients.account_deleted] = false
+            val insertStatement = Customers.insert {
+                it[Customers.login] = login
+                it[Customers.password] = password
+                it[Customers.phone] = phone
+                it[Customers.pesel] = pesel
+                it[Customers.email] = email
+                it[Customers.account_deleted] = false
             }
             insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToUser) != null
         }
@@ -95,38 +95,38 @@ object DaoMethods:DaoMethodsInterface {
         email: String?
     ): Boolean {
         return transaction {
-            SystemClients.update({ SystemClients.id eq id }) {
-                login?.let { firstName -> it[SystemClients.login] = firstName }
-                password?.let { password -> it[SystemClients.password] = password }
-                phone?.let { phone -> it[SystemClients.phone] = phone }
-                pesel?.let { pesel -> it[SystemClients.pesel] = pesel }
-                email?.let { email -> it[SystemClients.email] = email }
+            Customers.update({ Customers.id eq id }) {
+                login?.let { firstName -> it[Customers.login] = firstName }
+                password?.let { password -> it[Customers.password] = password }
+                phone?.let { phone -> it[Customers.phone] = phone }
+                pesel?.let { pesel -> it[Customers.pesel] = pesel }
+                email?.let { email -> it[Customers.email] = email }
             } > 0
         }
     }
 
     override suspend fun deleteClient(id: Int): Boolean {
         return transaction {
-            SystemClients.update({ SystemClients.id eq id }) {
-                it[SystemClients.account_deleted] = true
+            Customers.update({ Customers.id eq id }) {
+                it[Customers.account_deleted] = true
             } > 0
         }
     }
 
-    override suspend fun getClient(id: Int): SystemClient? {
+    override suspend fun getClient(id: Int): Customer? {
         return transaction {
-            SystemClients
-                .selectAll().where { SystemClients.id eq id }
+            Customers
+                .selectAll().where { Customers.id eq id }
                 .mapNotNull(::resultRowToUser)
                 .singleOrNull()
         }
     }
 
-    override suspend fun getAllClients(page: Int, pageSize: Int): List<SystemClient>{
+    override suspend fun getAllClients(page: Int, pageSize: Int): List<Customer>{
         return transaction {
             val offset = (page - 1) * pageSize
 
-            SystemClients.selectAll()
+            Customers.selectAll()
                 .limit(pageSize, offset.toLong())
                 .map(::resultRowToUser).toList()
         }
@@ -301,49 +301,49 @@ object DaoMethods:DaoMethodsInterface {
 
     //Dispatcher
 
-    override suspend fun addDispatcher(name: String, surname: String, password: String, phone: String, role: SystemDispatcher.Role): Boolean {
+    override suspend fun addDispatcher(name: String, surname: String, password: String, phone: String, role: Employee.Role): Boolean {
         return transaction {
-            val insertStatement = SystemDispatchers.insert {
-                it[SystemDispatchers.name] = name
-                it[SystemDispatchers.surname] = surname
-                it[SystemDispatchers.password] = password
-                it[SystemDispatchers.phone] = phone
-                it[SystemDispatchers.role] = role.role.toShort()
+            val insertStatement = Employees.insert {
+                it[Employees.name] = name
+                it[Employees.surname] = surname
+                it[Employees.password] = password
+                it[Employees.phone] = phone
+                it[Employees.role] = role.role.toShort()
             }
             insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToDispatcher) != null
         }
     }
 
     override suspend fun deleteDispatcher(id: Int): Boolean {
-        return transaction { SystemDispatchers.deleteWhere { SystemDispatchers.id eq id } > 0}
+        return transaction { Employees.deleteWhere { Employees.id eq id } > 0}
     }
 
-    override suspend fun editDispatcher(id: Int, name: String?, surname: String?,password: String?, phone: String?, role:SystemDispatcher.Role?): Boolean {
+    override suspend fun editDispatcher(id: Int, name: String?, surname: String?,password: String?, phone: String?, role:Employee.Role?): Boolean {
         return transaction {
-            SystemDispatchers.update({ SystemDispatchers.id eq id }) {
-                name?.let { name -> it[SystemDispatchers.name] = name }
-                surname?.let { surname -> it[SystemDispatchers.surname] = surname }
-                password?.let { password -> it[SystemDispatchers.password] = password }
-                phone?.let { phone -> it[SystemDispatchers.phone] = phone }
-                role?.let{role-> it[SystemDispatchers.role] = role.role.toShort()}
+            Employees.update({ Employees.id eq id }) {
+                name?.let { name -> it[Employees.name] = name }
+                surname?.let { surname -> it[Employees.surname] = surname }
+                password?.let { password -> it[Employees.password] = password }
+                phone?.let { phone -> it[Employees.phone] = phone }
+                role?.let{role-> it[Employees.role] = role.role.toShort()}
             } > 0
         }
     }
 
-    override suspend fun getDispatcher(id: Int): SystemDispatcher? {
+    override suspend fun getDispatcher(id: Int): Employee? {
         return transaction {
-            SystemDispatchers
-                .selectAll().where { SystemDispatchers.id eq id }
+            Employees
+                .selectAll().where { Employees.id eq id }
                 .mapNotNull(::resultRowToDispatcher)
                 .singleOrNull()
         }
     }
 
-    override suspend fun getAlDispatchers(page:Int, pageSize: Int): List<SystemDispatcher> {
+    override suspend fun getAlDispatchers(page:Int, pageSize: Int): List<Employee> {
         return transaction {
             val offset = (page - 1) * pageSize
 
-            SystemDispatchers.selectAll()
+            Employees.selectAll()
                 .limit(pageSize, offset.toLong())
                 .map(::resultRowToDispatcher).toList()
 

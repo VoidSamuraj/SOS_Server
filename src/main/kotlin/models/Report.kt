@@ -35,7 +35,7 @@ data class Report(val id:Int,val client_id: Int,val location:String, val date:Lo
 
 object Reports : Table() {
     val id = integer("id").autoIncrement()
-    val client_id = reference("client_id", SystemClients.id, onDelete = ReferenceOption.NO_ACTION)
+    val client_id = reference("client_id", Customers.id, onDelete = ReferenceOption.NO_ACTION)
     val location = varchar("location", 255)
     val date = datetime("date")
     val status = short("status")

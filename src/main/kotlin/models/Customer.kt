@@ -3,8 +3,8 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 @Serializable
-data class SystemClient(val id:Int,val login: String,val password:String, val phone:String, val pesel:String, val email:String, val account_deleted:Boolean): Principal
-object SystemClients : Table() {
+data class Customer(val id:Int,val login: String,val password:String, val phone:String, val pesel:String, val email:String, val account_deleted:Boolean): Principal
+object Customers : Table() {
     val id = integer("id").autoIncrement()
     val login = varchar("login", 20).uniqueIndex()
     val password = varchar("password", 40)

@@ -8,7 +8,7 @@ object Interventions : Table() {
     val id = integer("id").autoIncrement()
     val reportId = reference("report_id", Reports.id, onDelete = ReferenceOption.CASCADE )
     val guardId = reference("guard_id", Guards.id, onDelete = ReferenceOption.NO_ACTION)
-    val dispatcherId = reference("dispatcher_id", SystemDispatchers.id, onDelete = ReferenceOption.NO_ACTION)
+    val dispatcherId = reference("dispatcher_id", Employees.id, onDelete = ReferenceOption.NO_ACTION)
     val patrolNumber = integer("patrol_number")
     override val primaryKey = PrimaryKey(id)
 }

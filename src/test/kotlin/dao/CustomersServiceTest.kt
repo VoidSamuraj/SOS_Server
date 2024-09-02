@@ -12,15 +12,15 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 
-class ClientServiceTest {
+class CustomersServiceTest {
 
     private  val  db: Database = DatabaseFactory.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver")
     @BeforeTest
     fun setup() {
         transaction(db) {
             //clean and recreate database before each test (in other case ids of records are different)
-            SchemaUtils.drop(Interventions,Reports,SystemClients)
-            SchemaUtils.create(SystemClients)
+            SchemaUtils.drop(Interventions,Reports,Customers)
+            SchemaUtils.create(Customers)
         }
     }
 
@@ -29,9 +29,9 @@ class ClientServiceTest {
         val result = DaoMethods.addClient("login1", "password1", "123456789", "12345678901", "email@test.com")
         assertTrue(result)
 
-        val client = transaction { SystemClients.selectAll().singleOrNull() }
+        val client = transaction { Customers.selectAll().singleOrNull() }
         assertNotNull(client)
-        assertEquals("login1", client[SystemClients.login])
+        assertEquals("login1", client[Customers.login])
     }
 
     @Test
@@ -42,9 +42,9 @@ class ClientServiceTest {
         val result = DaoMethods.editClient(1, "newLogin", null, null, null, null)
         assertTrue(result)
 
-        val client = transaction { SystemClients.selectAll().singleOrNull() }
+        val client = transaction { Customers.selectAll().singleOrNull() }
         assertNotNull(client)
-        assertEquals("newLogin", client[SystemClients.login])
+        assertEquals("newLogin", client[Customers.login])
     }
 
     @Test
