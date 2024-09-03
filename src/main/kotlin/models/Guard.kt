@@ -3,7 +3,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 @Serializable
-data class Guard(val id:Int,val name: String, val surname: String,val phone: String, val statusCode:Int, val location:String): Principal{
+data class Guard(val id:Int, val login: String,val password:String, val name: String, val surname: String,val phone: String, val statusCode:Int, val location:String, val account_deleted:Boolean): Principal{
 
         /**
          * Enum representing status of Guard.
@@ -30,8 +30,11 @@ data class Guard(val id:Int,val name: String, val surname: String,val phone: Str
 }
 object Guards : Table() {
     val id = integer("id").autoIncrement()
+    val login = varchar("login", 20).uniqueIndex()
+    val password = varchar("password", 40)
     val name = varchar("name",40)
     val surname = varchar("surname", 40)
     val phone =  varchar("phone", 20).uniqueIndex()
+    val account_deleted=bool("account_deleted")
     override val primaryKey = PrimaryKey(id)
 }

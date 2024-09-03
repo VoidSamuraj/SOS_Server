@@ -3,7 +3,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 @Serializable
-data class Employee(val id:Int,val name: String, val surname: String, val password: String,val phone: String, val roleCode:Short): Principal{
+data class Employee(val id:Int, val login: String, val password:String, val name: String, val surname: String, val phone: String, val roleCode:Short, val account_deleted:Boolean): Principal{
     /**
      * Enum representing role of worker.
      *
@@ -32,10 +32,12 @@ data class Employee(val id:Int,val name: String, val surname: String, val passwo
 
 object Employees : Table() {
     val id = integer("id").autoIncrement()
+    val login = varchar("login", 20).uniqueIndex()
+    val password = varchar("password", 40)
     val name = varchar("name",40)
     val surname = varchar("surname", 40)
-    val password = varchar("password", 40)
     val phone =  varchar("phone", 20).uniqueIndex()
     val role = short("role")
+    val account_deleted=bool("account_deleted")
     override val primaryKey = PrimaryKey(id)
 }

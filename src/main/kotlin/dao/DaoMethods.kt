@@ -45,20 +45,25 @@ object DaoMethods:DaoMethodsInterface {
 
     private fun resultRowToGuard(row: ResultRow) = Guard(
         id = row[Guards.id],
+        login = row[Guards.login],
+        password = row[Guards.password],
         name = row[Guards.name],
         surname = row[Guards.surname],
         phone = row[Guards.phone],
         statusCode = Guard.GuardStatus.UNAVAILABLE.status,
-        location = ""
+        location = "",
+        account_deleted = row[Guards.account_deleted]
     )
 
     private fun resultRowToEmployee(row: ResultRow) = Employee(
         id = row[Employees.id],
+        login = row[Employees.login],
+        password = row[Employees.password],
         name = row[Employees.name],
         surname = row[Employees.surname],
-        password = row[Employees.password],
         phone = row[Employees.phone],
-        roleCode = row[Employees.role]
+        roleCode = row[Employees.role],
+        account_deleted = row[Employees.account_deleted]
     )
 
 
@@ -72,8 +77,21 @@ object DaoMethods:DaoMethodsInterface {
         phone: String,
         pesel: String,
         email: String
-    ): Boolean {
+    ): Pair<Boolean,String> {
         return transaction {
+            if (Customers.select(Customers.login).where{ Customers.login eq login}.count() > 0) {
+                return@transaction false to "Login is already taken."
+            }
+            if (Customers.select(Customers.phone).where{ Customers.phone eq phone}.count() > 0) {
+                return@transaction false to "Phone is already taken."
+            }
+            if (Customers.select(Customers.pesel).where{ Customers.pesel eq pesel}.count() > 0) {
+                return@transaction false to "Pesel is already taken."
+            }
+            if (Customers.select(Customers.email).where{ Customers.email eq email}.count() > 0) {
+                return@transaction false to "Email is already taken."
+            }
+
             val insertStatement = Customers.insert {
                 it[Customers.login] = login
                 it[Customers.password] = password
@@ -82,26 +100,42 @@ object DaoMethods:DaoMethodsInterface {
                 it[Customers.email] = email
                 it[Customers.account_deleted] = false
             }
-            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToUser) != null
+            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToUser) != null){
+                true to "Client created successfully."
+            } else {
+                false to "Failed to create client."
+            }
         }
     }
 
     override suspend fun editClient(
         id: Int,
         login: String?,
-        password: String?,
+        password: String,
+        newPassword: String?,
         phone: String?,
         pesel: String?,
         email: String?
-    ): Boolean {
+    ): Pair<Boolean,String> {
         return transaction {
-            Customers.update({ Customers.id eq id }) {
+
+            val customerExists = Customers.select(Customers.login, Customers.password).where{(Customers.id eq id) and (Customers.password eq password)}.singleOrNull()
+            if (customerExists == null) {
+                return@transaction false to "Incorrect password for the Customer."
+            }
+
+            val result = Customers.update({ Customers.id eq id }) {
                 login?.let { firstName -> it[Customers.login] = firstName }
-                password?.let { password -> it[Customers.password] = password }
+                newPassword?.let { newPassword -> it[Customers.password] = newPassword }
                 phone?.let { phone -> it[Customers.phone] = phone }
                 pesel?.let { pesel -> it[Customers.pesel] = pesel }
                 email?.let { email -> it[Customers.email] = email }
             } > 0
+            if(result){
+                true to "Customer updated successfully."
+            } else {
+                false to "Failed to update customer."
+            }
         }
     }
 
@@ -117,6 +151,15 @@ object DaoMethods:DaoMethodsInterface {
         return transaction {
             Customers
                 .selectAll().where { Customers.id eq id }
+                .mapNotNull(::resultRowToUser)
+                .singleOrNull()
+        }
+    }
+
+    override suspend fun getClient(login:String, password: String): Customer? {
+        return transaction {
+            Customers
+                .selectAll().where { (Customers.login eq id) and (Customers.password eq password) }
                 .mapNotNull(::resultRowToUser)
                 .singleOrNull()
         }
@@ -244,34 +287,70 @@ object DaoMethods:DaoMethodsInterface {
 
     //Guard
 
-    override suspend fun addGuard(name: String, surname: String, phone: String): Boolean {
+    override suspend fun addGuard( login: String, password: String, name: String, surname: String, phone: String): Pair<Boolean, String> {
         return transaction {
+
+            if (Guards.select(Guards.login).where{ Guards.login eq login}.count() > 0) {
+                return@transaction false to "Login is already taken."
+            }
+            if (Guards.select(Guards.phone).where{ Guards.phone eq phone}.count() > 0) {
+                return@transaction false to "Phone is already taken."
+            }
+
             val insertStatement = Guards.insert {
+                it[Guards.login] = login
+                it[Guards.password] = password
                 it[Guards.name] = name
                 it[Guards.surname] = surname
                 it[Guards.phone] = phone
+                it[Guards.account_deleted] = false
             }
-            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToGuard) != null
+            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToGuard) != null){
+                true to "Guard created successfully."
+            } else {
+                false to "Failed to create guard."
+            }
         }
     }
 
     override suspend fun editGuard(
         id: Int,
+        login: String?,
+        password: String,
+        newPassword: String?,
         name: String?,
         surname: String?,
         phone: String?
-    ): Boolean {
+    ): Pair<Boolean, String> {
         return transaction {
-            Guards.update({ Guards.id eq id }) {
+
+            val guardExists = Guards.select(Guards.login, Guards.password).where {(Guards.id eq id) and (Guards.password eq password) }.singleOrNull()
+            if (guardExists == null) {
+                return@transaction false to "Incorrect password for the Guard."
+            }
+
+            val updated = Guards.update({ Guards.id eq id }) {
+                login?.let{ login -> it[Guards.login] = login}
+                newPassword?.let{ newPassword -> it[Guards.password] = newPassword}
                 name?.let { name -> it[Guards.name] = name }
                 surname?.let { surname -> it[Guards.surname] = surname }
                 phone?.let { phone -> it[Guards.phone] = phone }
             } > 0
+
+            if (updated) {
+                true to "Guard updated successfully."
+            } else {
+                false to "Failed to update guard."
+            }
         }
     }
 
     override suspend fun deleteGuard(id: Int): Boolean {
-        return transaction { Guards.deleteWhere { Guards.id eq id } > 0}
+        return transaction {
+            Guards.update({ Guards.id eq id }) {
+                it[Guards.account_deleted] = true
+            } > 0
+        }
     }
 
 
@@ -279,6 +358,16 @@ object DaoMethods:DaoMethodsInterface {
         return transaction {
             Guards
                 .selectAll().where { Guards.id eq id }
+                .mapNotNull(::resultRowToGuard)
+                .singleOrNull()
+        }
+    }
+
+
+    override suspend fun getGuard(login:String, password: String): Guard? {
+        return transaction {
+            Guards
+                .selectAll().where { (Guards.login eq login) and (Guards.password eq password) }
                 .mapNotNull(::resultRowToGuard)
                 .singleOrNull()
         }
@@ -301,32 +390,63 @@ object DaoMethods:DaoMethodsInterface {
 
     //Employee
 
-    override suspend fun addEmployee(name: String, surname: String, password: String, phone: String, role: Employee.Role): Boolean {
+    override suspend fun addEmployee(login: String, password: String, name: String, surname: String, phone: String, role: Employee.Role): Pair<Boolean,String> {
         return transaction {
+
+            if (Employees.select(Employees.login).where{ Employees.login eq login}.count() > 0) {
+                return@transaction false to "Login is already taken."
+            }
+            if (Employees.select(Employees.phone).where{ Employees.phone eq phone}.count() > 0) {
+                return@transaction false to "Phone is already taken."
+            }
+
             val insertStatement = Employees.insert {
+                it[Employees.login] = login
+                it[Employees.password] = password
                 it[Employees.name] = name
                 it[Employees.surname] = surname
-                it[Employees.password] = password
                 it[Employees.phone] = phone
                 it[Employees.role] = role.role.toShort()
+                it[Employees.account_deleted] = false
             }
-            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToEmployee) != null
+
+            if (insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToEmployee) != null) {
+                true to "Employee created successfully."
+            } else {
+                false to "Failed to create employee."
+            }
         }
     }
 
     override suspend fun deleteEmployee(id: Int): Boolean {
-        return transaction { Employees.deleteWhere { Employees.id eq id } > 0}
-    }
-
-    override suspend fun editEmployee(id: Int, name: String?, surname: String?,password: String?, phone: String?, role:Employee.Role?): Boolean {
         return transaction {
             Employees.update({ Employees.id eq id }) {
+                it[Employees.account_deleted] = true
+            } > 0
+        }
+    }
+
+    override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, role:Employee.Role?): Pair<Boolean, String> {
+        return transaction {
+
+            val employeeExists = Employees.select(Employees.id, Employees.password).where{ (Employees.id eq id) and (Employees.password eq password) }.singleOrNull()
+            if (employeeExists == null) {
+                return@transaction false to "Incorrect password for the employee."
+            }
+
+            val updated = Employees.update({ Employees.id eq id }) {
+                login?.let { login -> it[Employees.login] = login }
+                newPassword?.let { newPassword -> it[Employees.password] = newPassword }
                 name?.let { name -> it[Employees.name] = name }
                 surname?.let { surname -> it[Employees.surname] = surname }
-                password?.let { password -> it[Employees.password] = password }
                 phone?.let { phone -> it[Employees.phone] = phone }
                 role?.let{role-> it[Employees.role] = role.role.toShort()}
             } > 0
+            if (updated) {
+                true to "Employee updated successfully."
+            } else {
+                false to "Failed to update employee."
+            }
         }
     }
 
@@ -334,6 +454,15 @@ object DaoMethods:DaoMethodsInterface {
         return transaction {
             Employees
                 .selectAll().where { Employees.id eq id }
+                .mapNotNull(::resultRowToEmployee)
+                .singleOrNull()
+        }
+    }
+
+    override suspend fun getEmployee(login:String, password: String): Employee? {
+        return transaction {
+            Employees
+                .selectAll().where { (Employees.login eq login) and (Employees.password eq password) }
                 .mapNotNull(::resultRowToEmployee)
                 .singleOrNull()
         }
