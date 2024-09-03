@@ -32,6 +32,9 @@ object DaoMethods:DaoMethodsInterface {
         report_id = row[Interventions.report_id],
         guard_id = row[Interventions.guard_id],
         employee_id = row[Interventions.employee_id],
+        start_time = row[Interventions.start_time],
+        end_time = row[Interventions.end_time],
+        statusCode = row[Interventions.status],
         patrol_number = row[Interventions.patrol_number]
     )
 
@@ -183,12 +186,15 @@ object DaoMethods:DaoMethodsInterface {
 
     //Intervention
 
-    override suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, patrol_number: Int): Boolean {
+    override suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, start_time: LocalDateTime, end_time: LocalDateTime, status:Intervention.InterventionStatus, patrol_number: Int):Boolean {
         return transaction {
             val insertStatement = Interventions.insert {
                 it[Interventions.report_id] = report_id
                 it[Interventions.guard_id] = guard_id
                 it[Interventions.employee_id] = employee_id
+                it[Interventions.start_time] = start_time
+                it[Interventions.end_time] = end_time
+                it[Interventions.status] = status.status.toShort()
                 it[Interventions.patrol_number] = patrol_number
             }
             insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToIntervention) != null

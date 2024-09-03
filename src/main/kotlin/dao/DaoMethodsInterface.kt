@@ -18,7 +18,7 @@ interface DaoMethodsInterface {
     suspend fun getAllClients(page:Int, pageSize:Int):List<Customer>
 
     //Intervention
-    suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, patrol_number: Int):Boolean
+    suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, start_time: LocalDateTime, end_time: LocalDateTime, status:Intervention.InterventionStatus, patrol_number: Int):Boolean
     suspend fun getIntervention(id:Int):Intervention?
     suspend fun getAllInterventions(page: Int, pageSize: Int):List<Intervention>
 
