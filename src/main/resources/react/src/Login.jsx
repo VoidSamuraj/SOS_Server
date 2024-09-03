@@ -10,6 +10,7 @@ function Login() {
   };
   return (
     <>
+    <div className="formBox">
     {!showRecoverForm?(
       <form id="loginForm">
         <label htmlFor="login">Login</label>
@@ -65,6 +66,8 @@ function Login() {
                 </button>
       </form>
       )}
+    </div>
+     <div class="blur-overlay"></div>
     </>
   );
 }

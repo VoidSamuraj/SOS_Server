@@ -10,14 +10,15 @@ import kotlinx.datetime.LocalDateTime
 interface DaoMethodsInterface {
 
     //Client
-    suspend fun addClient(login: String, password: String, phone: String, pesel: String, email: String):Boolean
-    suspend fun editClient(id:Int, login: String?=null, password: String?=null, phone: String?=null, pesel: String?=null, email: String?=null):Boolean
+    suspend fun addClient(login: String, password: String, phone: String, pesel: String, email: String):Pair<Boolean, String>
+    suspend fun editClient(id:Int, login: String?=null, password: String, newPassword: String?=null, phone: String?=null, pesel: String?=null, email: String?=null):Pair<Boolean, String>
     suspend fun deleteClient(id:Int):Boolean
     suspend fun getClient(id:Int):Customer?
+    suspend fun getClient(login:String, password: String):Customer?
     suspend fun getAllClients(page:Int, pageSize:Int):List<Customer>
 
     //Intervention
-    suspend fun addIntervention(reportId: Int, guardId: Int, EmployeeId: Int, patrolNumber: Int):Boolean
+    suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, patrol_number: Int):Boolean
     suspend fun getIntervention(id:Int):Intervention?
     suspend fun getAllInterventions(page: Int, pageSize: Int):List<Intervention>
 
@@ -30,16 +31,18 @@ interface DaoMethodsInterface {
     suspend fun getAllReports(page:Int, pageSize: Int):List<Report>
 
     //Guard
-    suspend fun addGuard(name:String, surname:String, phone: String):Boolean
-    suspend fun editGuard(id:Int, name:String?=null, surname:String?=null, phone: String?=null):Boolean
+    suspend fun addGuard(login: String, password: String, name:String, surname:String, phone: String):Pair<Boolean, String>
+    suspend fun editGuard(id:Int, login: String?=null, password: String, newPassword: String?=null, name:String?=null, surname:String?=null, phone: String?=null):Pair<Boolean, String>
     suspend fun deleteGuard(id:Int):Boolean
     suspend fun getGuard(id:Int):Guard?
+    suspend fun getGuard(login:String, password: String):Guard?
     suspend fun getAllGuards(page:Int, pageSize: Int):List<Guard>
 
     //Employee
-    suspend fun addEmployee(name: String,surname: String,password: String,phone: String, role:Employee.Role):Boolean
     suspend fun deleteEmployee(id:Int):Boolean
-    suspend fun editEmployee(id:Int, name: String?=null,surname: String?=null,password: String?=null,phone: String?=null, role:Employee.Role?=null):Boolean
+    suspend fun editEmployee(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null,surname: String?=null, phone: String?=null, role:Employee.Role?=null):Pair<Boolean, String>
+    suspend fun addEmployee(login: String, password: String, name: String,surname: String, phone: String, role:Employee.Role): Pair<Boolean,String>
     suspend fun getEmployee(id:Int):Employee?
+    suspend fun getEmployee(login:String, password: String):Employee?
     suspend fun getAllEmployees(page:Int, pageSize: Int):List<Employee>
 }

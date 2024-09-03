@@ -20,19 +20,39 @@ class GuardServiceTest {
 
     @Test
     fun `should add guard`() = runTest {
-        val result = DaoMethods.addGuard("John", "Doe", "123456789")
-        assertTrue(result)
+        val result = DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
+        assertTrue(result.first)
 
         val guard = transaction { Guards.selectAll().singleOrNull() }
         assertNotNull(guard)
         assertEquals("John", guard[Guards.name])
     }
+    @Test
+    fun `should add only three guards`() = runTest {
+        var result = DaoMethods.addGuard("JonnnD", "zaq1@WSX","John", "Doe", "123456789")
+        assertTrue(result.first)
+
+        result = DaoMethods.addGuard("JonnnD", "zaq1@WSX2","John2", "Doe2", "1234567892")
+        assertFalse(result.first)
+
+        result = DaoMethods.addGuard("JonnnD2", "zaq1@WSX","John2", "Doe2", "1234567892")
+        assertTrue(result.first)
+
+        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX","John", "Doe3", "1234567893")
+        assertTrue(result.first)
+
+        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX","John3", "Doe", "1234567893")
+        assertFalse(result.first)
+
+        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX3","John3", "Doe3", "123456789")
+        assertFalse(result.first)
+    }
 
     @Test
     fun `should edit guard`() = runTest {
-        DaoMethods.addGuard("John", "Doe", "123456789")
-        val result = DaoMethods.editGuard(1, name = "Jane")
-        assertTrue(result)
+        DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
+        val result = DaoMethods.editGuard(1, name = "Jane", password = "zaq1@WSX")
+        assertTrue(result.first)
 
         val guard = transaction { Guards.selectAll().singleOrNull() }
         assertNotNull(guard)
@@ -40,18 +60,29 @@ class GuardServiceTest {
     }
 
     @Test
+    fun `should not edit guard`() = runTest {
+        DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
+        val result = DaoMethods.editGuard(1, name = "Jane", password = "qwerty")
+        assertFalse(result.first)
+
+        val guard = transaction { Guards.selectAll().singleOrNull() }
+        assertNotNull(guard)
+        assertNotEquals("Jane", guard[Guards.name])
+    }
+
+    @Test
     fun `should delete guard`() = runTest {
-        DaoMethods.addGuard("John", "Doe", "123456789")
+        DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
         val result = DaoMethods.deleteGuard(1)
         assertTrue(result)
-
         val guard = DaoMethods.getGuard(1)
-        assertNull(guard)
+        assertNotNull(guard)
+        assertTrue(guard.account_deleted == true)
     }
 
     @Test
     fun `should get guard by id`() = runTest {
-        DaoMethods.addGuard("John", "Doe", "123456789")
+        DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
         val guard = DaoMethods.getGuard(1)
         assertNotNull(guard)
         assertEquals("John", guard.name)
@@ -59,8 +90,8 @@ class GuardServiceTest {
 
     @Test
     fun `should get all guards`() = runTest {
-        DaoMethods.addGuard("John", "Doe", "123456789")
-        DaoMethods.addGuard("Jane", "Doe", "987654321")
+        DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
+        DaoMethods.addGuard("JaneD", "zaq1@WSX", "Jane", "Doe", "987654321")
 
         val guards = DaoMethods.getAllGuards(page = 1, pageSize = 10)
         assertEquals(2, guards.size)

@@ -15,6 +15,20 @@ function App() {
   const { patrols, setPatrols, addPatrol, removePatrol, removeFirstPatrol} = usePatrols();
   const { reports, addReport, removeReport, removeFirstReport } = useReports();
 
+
+
+   useEffect(() => {
+      document.documentElement.classList.add('indexStyle');
+      document.body.classList.add('indexStyle');
+
+      return () => {
+        document.documentElement.classList.remove('indexStyle');
+        document.body.classList.remove('indexStyle');
+      };
+    }, []);
+
+
+
     //TEST
 
   useEffect(() => {

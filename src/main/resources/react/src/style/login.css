@@ -1,11 +1,27 @@
-html, body {
+html, body, body>div {
     height: 100%;
+    width:100%;
     margin: 0;
     padding: 0;
+    display: flex;
     box-sizing: border-box;
-    background-color: gray;
 }
-div{
+body>div{
+  background-image: url('../earth.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.blur-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+.formBox{
   position: absolute;
   z-index: 2;
   left: 35%;
