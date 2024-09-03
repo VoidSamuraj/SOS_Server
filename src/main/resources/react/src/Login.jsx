@@ -1,13 +1,25 @@
-import React, { useState } from 'react';
-import './style/login.css'; // Załaduj style dla tego komponentu
+import React, { useState, useEffect } from 'react';
+import './style/login.css';
+import { useNavigate } from 'react-router-dom';
 
-function Login() {
+function Login({isLoggedIn}) {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showRecoverForm, setShowRecoverForm] = useState(false);
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
+  const login=()=>{
+    navigate('/home');
+  }
+
+    useEffect(() => {
+    if (isLoggedIn) {
+      navigate('/home');
+    }
+  }, [isLoggedIn]);
+
   return (
     <>
     <div className="formBox">
@@ -36,6 +48,7 @@ function Login() {
           id="loginButton"
           value="Zaloguj się"
           placeholder="Login"
+          onClick={login}
         />
 
         <button
