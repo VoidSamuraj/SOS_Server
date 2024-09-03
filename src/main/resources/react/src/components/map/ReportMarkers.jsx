@@ -6,7 +6,7 @@ import reportImage from '../../icons/SOSANIM.svg';
 const ReportMarkers = ({ reports }) => {
   return useMemo(() => (
     <>
-      {Array.from(reports.entries()).map(([id, position]) => (
+      {Array.from(reports.entries()).map(([id, {position, date, status}]) => (
         <AdvancedMarker key={id} position={position}>
           <div className="mapMarker" style={{ width: '200px', height: '100px' }}>
             <img src={reportImage} alt="Report" />

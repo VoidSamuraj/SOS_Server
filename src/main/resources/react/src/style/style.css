@@ -28,19 +28,6 @@ html, body, body>div{
   border-bottom: 1px solid white;
 }
 
-
-#navButtons{
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-}
-#navButtons>button{
-  margin: 0 2.5px;
-}
-#sendPatrolButton{
-  margin-top: 10px;
-}
-
 .switch{
   display: inline-flex;
   align-items: center;

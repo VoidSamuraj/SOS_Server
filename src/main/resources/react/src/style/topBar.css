@@ -9,7 +9,22 @@
   display: flex;
   flex-direction: row;
 }
+#topBar>div{
+    width:100%;
+    height:100%;
+    position:relative;
+}
+#topBar img{
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    right: 0;
+    margin: 7px;
+}
 #infoBox{
+  position:absolute;
+  left:50%;
+  transform: translate(-50%, 0);
   padding: 5px 0;
   display: flex;
   flex-direction: column;

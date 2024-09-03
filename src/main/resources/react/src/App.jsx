@@ -48,7 +48,8 @@ function App() {
     if (reports.size < 5) {
       const y = Math.floor(Math.random() * (54 - 50)) + 50;
       const x = Math.floor(Math.random() * (24 - 15)) + 15;
-      addReport(reports.size, { lat: y, lng: x });
+      const status = Math.floor(Math.random() * 3);
+      addReport(reports.size, { lat: y, lng: x }, Date.now(), status);
     }
   }, [reports]);
 

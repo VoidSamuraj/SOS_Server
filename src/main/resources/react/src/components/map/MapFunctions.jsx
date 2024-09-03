@@ -28,9 +28,29 @@ export const usePatrols = () => {
 export const useReports = () => {
   const [reports, setReports] = useState(new Map());
 
-  const addReport = (id, position) => {
-    setReports(prevReports => new Map(prevReports).set(id, position));
+  const addReport = (id, position, date, status) => {
+    setReports(prevReports => new Map(prevReports).set(id, { position, date, status}));
   };
+
+const editReport = (id, position = null, date = null, status = null) => {
+  setReports(prevReports => {
+    const updatedReports = new Map(prevReports);
+
+    if (!updatedReports.has(id)) {
+      return prevReports;
+    }
+
+    const currentReport = updatedReports.get(id);
+
+    updatedReports.set(id, {
+      position: position !== null ? position : currentReport.position,
+      date: date !== null ? date : currentReport.date,
+      status: status !==null ? status : currentReport.status
+    });
+
+    return updatedReports;
+  });
+};
 
   const removeReport = (id) => {
     const newReports = new Map(reports);
