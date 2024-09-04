@@ -1,26 +1,25 @@
-#map{
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+#map {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 
-.mapMarker svg{
-    position:absolute;
-    width:100%;
-    height:100%;
+.mapMarker svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
-.mapMarker{
-   position: absolute;
-   transform: translate(-50%, -50%);
-
+.mapMarker {
+  position: absolute;
+  transform: translate(-50%, -50%);
 }
-.yNHHyP-marker-view{
-    z-index: 5;
+.yNHHyP-marker-view {
+  z-index: 5;
 }
 .yNHHyP-marker-view:hover {
-    z-index: 6;
+  z-index: 6;
 }
-.yNHHyP-marker-view>div>div{
-    pointer-events: auto !important;
+.yNHHyP-marker-view > div > div {
+  pointer-events: auto !important;
 }

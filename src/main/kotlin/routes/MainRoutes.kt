@@ -6,10 +6,6 @@ import io.ktor.server.routing.*
 import java.io.File
 
 fun Route.mainRoutes(){
-    get(){
-        call.respondRedirect("/user/login")
-    }
-    route("/index"){
         get {
 /*
             checkPermission(token = call.sessions.get("TOKEN")as MyToken?,
@@ -35,10 +31,9 @@ fun Route.mainRoutes(){
             )*/
 
         }
+
+    get("{...}") {
+        call.respondRedirect("/")
     }
-    route("/login"){
-        get{
-            println("Login route accessed")
-        }
-    }
+
 }

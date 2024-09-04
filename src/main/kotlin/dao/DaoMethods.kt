@@ -386,7 +386,7 @@ object DaoMethods:DaoMethodsInterface {
             Guards.selectAll()
                 .limit(pageSize, offset.toLong())
                 .map(::resultRowToGuard).toList()
-            }
+        }
     }
 
 
