@@ -1,11 +1,13 @@
-html, body, body>div{
-  margin:0;
-  width:100%;
-  height:100%;
+html,
+body,
+body > div {
+  margin: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
 }
 
-.icon-button{
+.icon-button {
   display: inline-flex;
   align-items: center;
   color: white;
@@ -14,32 +16,36 @@ html, body, body>div{
   border-top: 1px solid white;
   background-color: transparent;
 }
-.icon-button{
+.icon-button {
   transition: background-color 0.2s ease-in-out;
 }
-.icon-button:hover,#patrolsClose:hover, #statsClose:hover, #settingsMenu > img:hover{
-  background-color: #fff2
+.icon-button:hover,
+#patrolsClose:hover,
+#statsClose:hover,
+#settingsMenu > img:hover {
+  background-color: #fff2;
 }
-.icon-button>img{
+.icon-button > img {
   width: 36px;
-  height:36px;
+  height: 36px;
 }
-#dropdownMenu>.icon-button:last-of-type{
+#dropdownMenu > .icon-button:last-of-type {
   border-bottom: 1px solid white;
 }
 
-.switch{
+.switch {
   display: inline-flex;
   align-items: center;
 }
-.toggle:before, .curtain {
+.toggle:before,
+.curtain {
   position: absolute;
 }
 
 .toggle:focus {
   outline: transparent;
 }
-.toggle{
+.toggle {
   border-radius: 0.75em;
   box-shadow: 0 0 0 0.1em inset;
   cursor: pointer;
@@ -53,8 +59,8 @@ html, body, body>div{
   -webkit-tap-highlight-color: transparent;
   background-color: #d6d6d6;
 }
-.toggle:checked{
-  background-color: #3A3;
+.toggle:checked {
+  background-color: #3a3;
 }
 .toggle:before {
   background: currentColor;
@@ -68,7 +74,8 @@ html, body, body>div{
 .toggle:checked:before {
   transform: translateX(1.5em);
 }
-.toggle:checked ~ .slot .slot__label, .slot__label:nth-child(2) {
+.toggle:checked ~ .slot .slot__label,
+.slot__label:nth-child(2) {
   transform: translateY(-50%) scaleY(0);
 }
 .toggle:checked ~ .slot .slot__label:nth-child(2) {

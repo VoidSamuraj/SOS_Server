@@ -1,10 +1,30 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 export const usePatrols = () => {
   const [patrols, setPatrols] = useState(new Map());
 
   const addPatrol = (id, position, color) => {
-    setPatrols(prevPatrols => new Map(prevPatrols).set(id, { position, color }));
+    setPatrols((prevPatrols) =>
+      new Map(prevPatrols).set(id, { position, color })
+    );
+  };
+
+  const updatePatrol = (id, newColor = null, newPosition = null) => {
+    setPatrols((prevPatrols) => {
+      const updatedPatrols = new Map(prevPatrols);
+
+      if (!updatedPatrols.has(id))
+        return prevPatrols;
+
+        const currentPatrol = updatedPatrols.get(id);
+
+          updatedPatrols.set(id, {
+            position: newPosition !== null ? newPosition : currentPatrol.position,
+            color: newColor !== null ? newColor : currentPatrol.color,
+          });
+
+      return updatedPatrols;
+    });
   };
 
   const removePatrol = (id) => {
@@ -13,44 +33,37 @@ export const usePatrols = () => {
     setPatrols(newPatrols);
   };
 
-  const removeFirstPatrol = () => {
-    if (patrols.size > 0) {
-      const newPatrols = new Map(patrols);
-      const firstKey = newPatrols.keys().next().value;
-      newPatrols.delete(firstKey);
-      setPatrols(newPatrols);
-    }
-  };
-
-  return { patrols, setPatrols, addPatrol, removePatrol, removeFirstPatrol };
+  return { patrols, setPatrols, addPatrol, updatePatrol, removePatrol };
 };
 
 export const useReports = () => {
   const [reports, setReports] = useState(new Map());
 
   const addReport = (id, position, date, status) => {
-    setReports(prevReports => new Map(prevReports).set(id, { position, date, status}));
+    setReports((prevReports) =>
+      new Map(prevReports).set(id, { position, date, status })
+    );
   };
 
-const editReport = (id, position = null, date = null, status = null) => {
-  setReports(prevReports => {
-    const updatedReports = new Map(prevReports);
+  const editReport = (id, position = null, date = null, status = null) => {
+    setReports((prevReports) => {
+      const updatedReports = new Map(prevReports);
 
-    if (!updatedReports.has(id)) {
-      return prevReports;
-    }
+      if (!updatedReports.has(id)) {
+        return prevReports;
+      }
 
-    const currentReport = updatedReports.get(id);
+      const currentReport = updatedReports.get(id);
 
-    updatedReports.set(id, {
-      position: position !== null ? position : currentReport.position,
-      date: date !== null ? date : currentReport.date,
-      status: status !==null ? status : currentReport.status
+      updatedReports.set(id, {
+        position: position !== null ? position : currentReport.position,
+        date: date !== null ? date : currentReport.date,
+        status: status !== null ? status : currentReport.status,
+      });
+
+      return updatedReports;
     });
-
-    return updatedReports;
-  });
-};
+  };
 
   const removeReport = (id) => {
     const newReports = new Map(reports);
@@ -58,14 +71,5 @@ const editReport = (id, position = null, date = null, status = null) => {
     setReports(newReports);
   };
 
-  const removeFirstReport = () => {
-    if (reports.size > 0) {
-      const newReports = new Map(reports);
-      const firstKey = newReports.keys().next().value;
-      newReports.delete(firstKey);
-      setReports(newReports);
-    }
-  };
-
-  return { reports, setReports, addReport, removeReport, removeFirstReport };
+  return { reports, setReports, addReport, editReport, removeReport };
 };

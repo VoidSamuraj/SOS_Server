@@ -1,5 +1,4 @@
-
-#dropdownMenu{
+#dropdownMenu {
   z-index: 4;
   position: absolute;
   right: 0;
@@ -9,13 +8,13 @@
   width: 150px;
   transition: top 0.2s ease-in-out;
 }
-#dropdownMenu>*{
+#dropdownMenu > * {
   padding: 5px 5px;
 }
 
-.dropdownMenuVisible{
-  top:62px;
+.dropdownMenuVisible {
+  top: 62px;
 }
-.dropdownMenuHidden{
-    top:-100%;
+.dropdownMenuHidden {
+  top: -100%;
 }
