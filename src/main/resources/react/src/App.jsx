@@ -8,46 +8,41 @@ import {
 import Login from "./Login";
 import Home from "./Home";
 import PrivateRoute from "./PrivateRoute";
-import { jwtDecode } from "jwt-decode";
+import loadingIcon from "./icons/loader.svg";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
+  function checkTokenExpiration() {
+    const expString = localStorage.getItem("exp");
+    if (expString != null) {
+      const expTime = expString ? parseInt(expString, 10) : null;
+      const currentTime = Date.now();
 
-    if (userToken) {
-      try {
-        const decodedToken = jwtDecode(userToken);
-
-        // check if token is active
-        if (decodedToken.exp * 1000 > Date.now()) {
-          setIsLoggedIn(true);
-        } else {
-          localStorage.removeItem("userToken");
-          setIsLoggedIn(false);
-        }
-      } catch (error) {
-        console.error("Invalid token:", error);
-        localStorage.removeItem("userToken");
+      if (expTime === null) {
         setIsLoggedIn(false);
+      } else if (currentTime > expTime) {
+        setIsLoggedIn(false);
+        localStorage.removeItem('exp');
+      } else {
+        setIsLoggedIn(true);
       }
-    } else {
-      setIsLoggedIn(false);
     }
     setCheckingAuth(false);
+  }
+  useEffect(() => {
+    checkTokenExpiration();
   }, []);
-
   if (checkingAuth) {
-    return <div>Loading...</div>;
+    return <img className={"loadingCircle"} src={loadingIcon} alt="Loading" />;
   }
 
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/home" />} />
-        <Route path="/login" element={<Login isLoggedIn={isLoggedIn} />} />
+        <Route path="/login" element={<Login isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
         //nesting Home in PrivateRoute
         <Route element={<PrivateRoute isLoggedIn={isLoggedIn} />}>
           <Route path="/home" element={<Home />} />

@@ -11,8 +11,9 @@ import car from "./icons/car.svg";
 import { usePatrols, useReports } from "./components/map/MapFunctions";
 
 function Home() {
-  const { patrols, setPatrols, addPatrol, updatePatrol, removePatrol } = usePatrols();
-  const { reports, addReport,editReport, removeReport} = useReports();
+  const { patrols, setPatrols, addPatrol, updatePatrol, removePatrol } =
+    usePatrols();
+  const { reports, addReport, editReport, removeReport } = useReports();
 
   useEffect(() => {
     document.documentElement.classList.add("indexStyle");
@@ -24,10 +25,10 @@ function Home() {
     };
   }, []);
 
-  const assignTask = (patrolId, reportId)=>{
-      updatePatrol(patrolId, "#AAA", null);
-      editReport(reportId, null, null,1);
- }
+  const assignTask = (patrolId, reportId) => {
+    updatePatrol(patrolId, "#AAA", null);
+    editReport(reportId, null, null, 1);
+  };
 
   //TEST
 
@@ -104,7 +105,11 @@ function Home() {
       />
       <MyMap patrols={patrols} reports={reports} />
       <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} />
-      <AssignTaskBox patrols={patrols} reports={reports} onAssignTask={assignTask}/>
+      <AssignTaskBox
+        patrols={patrols}
+        reports={reports}
+        onAssignTask={assignTask}
+      />
     </>
   );
 }

@@ -14,10 +14,11 @@ import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.collections.mapNotNull
 
 object DaoMethods:DaoMethodsInterface {
 
-    private fun resultRowToUser(row: ResultRow) = Customer(
+    private fun resultRowToClient(row: ResultRow) = Customer(
         id = row[Customers.id],
         login = row[Customers.login],
         password = row[Customers.password],
@@ -72,27 +73,27 @@ object DaoMethods:DaoMethodsInterface {
 
 
 
-    //Client
+    //Customer
 
-    override suspend fun addClient(
+    override suspend fun addCustomer(
         login: String,
         password: String,
         phone: String,
         pesel: String,
         email: String
-    ): Pair<Boolean,String> {
+    ): Triple<Boolean,String, Customer?> {
         return transaction {
             if (Customers.select(Customers.login).where{ Customers.login eq login}.count() > 0) {
-                return@transaction false to "Login is already taken."
+                return@transaction Triple(false, "Login is already taken.", null)
             }
             if (Customers.select(Customers.phone).where{ Customers.phone eq phone}.count() > 0) {
-                return@transaction false to "Phone is already taken."
+                return@transaction Triple(false, "Phone is already taken.", null)
             }
             if (Customers.select(Customers.pesel).where{ Customers.pesel eq pesel}.count() > 0) {
-                return@transaction false to "Pesel is already taken."
+                return@transaction Triple(false, "Pesel is already taken.", null)
             }
             if (Customers.select(Customers.email).where{ Customers.email eq email}.count() > 0) {
-                return@transaction false to "Email is already taken."
+                return@transaction Triple(false, "Email is already taken.", null)
             }
 
             val insertStatement = Customers.insert {
@@ -103,15 +104,15 @@ object DaoMethods:DaoMethodsInterface {
                 it[Customers.email] = email
                 it[Customers.account_deleted] = false
             }
-            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToUser) != null){
-                true to "Client created successfully."
+            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToClient) != null){
+                Triple(true, "Customer created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToClient(resultRow) })
             } else {
-                false to "Failed to create client."
+                Triple(false, "Failed to create client.", null)
             }
         }
     }
 
-    override suspend fun editClient(
+    override suspend fun editCustomer(
         id: Int,
         login: String?,
         password: String,
@@ -142,7 +143,7 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun deleteClient(id: Int): Boolean {
+    override suspend fun deleteCustomer(id: Int): Boolean {
         return transaction {
             Customers.update({ Customers.id eq id }) {
                 it[Customers.account_deleted] = true
@@ -150,31 +151,31 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getClient(id: Int): Customer? {
+    override suspend fun getCustomer(id: Int): Customer? {
         return transaction {
             Customers
                 .selectAll().where { Customers.id eq id }
-                .mapNotNull(::resultRowToUser)
+                .mapNotNull(::resultRowToClient)
                 .singleOrNull()
         }
     }
 
-    override suspend fun getClient(login:String, password: String): Customer? {
+    override suspend fun getCustomer(login:String, password: String): Customer? {
         return transaction {
             Customers
                 .selectAll().where { (Customers.login eq id) and (Customers.password eq password) }
-                .mapNotNull(::resultRowToUser)
+                .mapNotNull(::resultRowToClient)
                 .singleOrNull()
         }
     }
 
-    override suspend fun getAllClients(page: Int, pageSize: Int): List<Customer>{
+    override suspend fun getAllCustomers(page: Int, pageSize: Int): List<Customer>{
         return transaction {
             val offset = (page - 1) * pageSize
 
             Customers.selectAll()
                 .limit(pageSize, offset.toLong())
-                .map(::resultRowToUser).toList()
+                .map(::resultRowToClient).toList()
         }
 
     }
@@ -293,14 +294,14 @@ object DaoMethods:DaoMethodsInterface {
 
     //Guard
 
-    override suspend fun addGuard( login: String, password: String, name: String, surname: String, phone: String): Pair<Boolean, String> {
+    override suspend fun addGuard( login: String, password: String, name: String, surname: String, phone: String): Triple<Boolean, String, Guard?> {
         return transaction {
 
             if (Guards.select(Guards.login).where{ Guards.login eq login}.count() > 0) {
-                return@transaction false to "Login is already taken."
+                return@transaction Triple(false, "Login is already taken.", null)
             }
             if (Guards.select(Guards.phone).where{ Guards.phone eq phone}.count() > 0) {
-                return@transaction false to "Phone is already taken."
+                return@transaction Triple(false, "Phone is already taken.", null)
             }
 
             val insertStatement = Guards.insert {
@@ -312,9 +313,9 @@ object DaoMethods:DaoMethodsInterface {
                 it[Guards.account_deleted] = false
             }
             if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToGuard) != null){
-                true to "Guard created successfully."
+                Triple(true, "Guard created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToGuard(resultRow) })
             } else {
-                false to "Failed to create guard."
+                Triple(false, "Failed to create guard.", null)
             }
         }
     }
@@ -396,14 +397,14 @@ object DaoMethods:DaoMethodsInterface {
 
     //Employee
 
-    override suspend fun addEmployee(login: String, password: String, name: String, surname: String, phone: String, role: Employee.Role): Pair<Boolean,String> {
+    override suspend fun addEmployee(login: String, password: String, name: String, surname: String, phone: String, role: Employee.Role): Triple<Boolean,String,Employee?> {
         return transaction {
 
             if (Employees.select(Employees.login).where{ Employees.login eq login}.count() > 0) {
-                return@transaction false to "Login is already taken."
+                return@transaction Triple(false, "Login is already taken.",null)
             }
             if (Employees.select(Employees.phone).where{ Employees.phone eq phone}.count() > 0) {
-                return@transaction false to "Phone is already taken."
+                return@transaction Triple(false, "Phone is already taken.",null)
             }
 
             val insertStatement = Employees.insert {
@@ -417,9 +418,9 @@ object DaoMethods:DaoMethodsInterface {
             }
 
             if (insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToEmployee) != null) {
-                true to "Employee created successfully."
+                Triple(true, "Employee created successfully.",insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToEmployee(resultRow) })
             } else {
-                false to "Failed to create employee."
+                Triple(false, "Failed to create employee.",null)
             }
         }
     }

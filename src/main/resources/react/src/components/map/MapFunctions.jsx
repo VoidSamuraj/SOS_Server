@@ -13,15 +13,14 @@ export const usePatrols = () => {
     setPatrols((prevPatrols) => {
       const updatedPatrols = new Map(prevPatrols);
 
-      if (!updatedPatrols.has(id))
-        return prevPatrols;
+      if (!updatedPatrols.has(id)) return prevPatrols;
 
-        const currentPatrol = updatedPatrols.get(id);
+      const currentPatrol = updatedPatrols.get(id);
 
-          updatedPatrols.set(id, {
-            position: newPosition !== null ? newPosition : currentPatrol.position,
-            color: newColor !== null ? newColor : currentPatrol.color,
-          });
+      updatedPatrols.set(id, {
+        position: newPosition !== null ? newPosition : currentPatrol.position,
+        color: newColor !== null ? newColor : currentPatrol.color,
+      });
 
       return updatedPatrols;
     });

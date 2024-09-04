@@ -8,8 +8,9 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-
+/*
 fun Application.configureSecurity() {
+
     data class MySession(val count: Int = 0)
     install(Sessions) {
         cookie<MySession>("MY_SESSION") {
@@ -51,6 +52,8 @@ fun Application.configureSecurity() {
                     }
                 }
     }
+
 }
 
 class UserSession(accessToken: String)
+*/

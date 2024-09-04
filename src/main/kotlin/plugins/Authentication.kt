@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
+import dao.DaoMethods
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -13,7 +14,7 @@ import security.HashPassword
 import security.JWTToken
 import security.Keys
 import java.util.*
-/*
+
 fun Application.configureWorkerAuthentication() {
     install(Authentication) {
         jwt("auth-jwt") {
@@ -24,8 +25,8 @@ fun Application.configureWorkerAuthentication() {
             validate { credential ->
                 val login=credential.payload.getClaim("login").asString()
                 val password=credential.payload.getClaim("password").asString()
-                val dbPassword=dao.getUserPassword(login=login)
-                if (login.isNotEmpty() && !dbPassword.isNullOrEmpty() && password.isNotEmpty() && HashPassword.comparePasswords(password,dbPassword)) {
+                val employee= DaoMethods.getEmployee(login,password)
+                if (login.isNotEmpty() && password.isNotEmpty() && employee!=null && HashPassword.comparePasswords(password,employee.password)) {
                     JWTPrincipal(credential.payload)
                 } else {
                     null
@@ -39,8 +40,8 @@ fun Application.configureWorkerAuthentication() {
 }
 suspend fun checkPermission(token:JWTToken?, onSuccess: suspend ()->Unit,onFailure:suspend ()->Unit){
     val expireTime= getTokenExpirationDate(token)
-    val id = getUserId(token)
-    if(expireTime!=null&&expireTime.after(Date())&&id!=null&& dao.getUser(id)!=null){
+    val id = getEmployeeId(token)
+    if(expireTime!=null&&expireTime.after(Date())&&id!=null&& DaoMethods.getEmployee(id)!=null){
         onSuccess()
     }else{
         onFailure()
@@ -51,14 +52,14 @@ fun decodeToken(jwtToken:String?):DecodedJWT{
         .build()
         .verify(jwtToken)
 }
-fun getUserId(token: JWTToken?):Int?{
+fun getEmployeeId(token: JWTToken?):Int?{
     val jwtToken = token?.token
     if(jwtToken!=null){
         return try {
             val decodedToken = decodeToken(jwtToken)
             decodedToken.getClaim("id").asInt()
 
-        } catch (e: JWTVerificationException) {
+        } catch (_: JWTVerificationException) {
             null
         }
     }
@@ -71,10 +72,9 @@ fun getTokenExpirationDate(token: JWTToken?):Date?{
             val decodedToken = decodeToken(jwtToken)
             decodedToken.expiresAt
 
-        } catch (e: JWTVerificationException) {
+        } catch (_: JWTVerificationException) {
             null
         }
     }
     return null
 }
-*/

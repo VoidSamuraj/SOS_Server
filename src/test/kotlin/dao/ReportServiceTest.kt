@@ -21,8 +21,8 @@ class ReportServiceTest {
         @JvmStatic
         fun setupOnce(){
             CoroutineScope(Dispatchers.IO).launch {
-                DaoMethods.addClient("login1", "password1", "123456789", "12345678901", "email@test.com")
-                DaoMethods.addClient("login2", "password2", "987654321", "12345678902", "email2@test.com")
+                DaoMethods.addCustomer("login1", "password1", "123456789", "12345678901", "email@test.com")
+                DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
             }
         }
     }
@@ -40,7 +40,7 @@ class ReportServiceTest {
     fun `should add report`() = runTest {
         val result = DaoMethods.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
         assertTrue(result)
-        println("CLIENT "+ DaoMethods.getClient(1))
+        println("CLIENT "+ DaoMethods.getCustomer(1))
 
         val report = transaction { Reports.selectAll().singleOrNull() }
         assertNotNull(report)

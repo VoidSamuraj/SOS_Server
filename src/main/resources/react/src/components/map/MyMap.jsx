@@ -5,7 +5,6 @@ import CarMarkers from './CarMarkers.jsx'
 import ReportMarkers from './ReportMarkers.jsx'
 
 function MyMap({patrols, reports}) {
-console.log(patrols)
   return (
     <APIProvider apiKey={config.GOOGLE_API_KEY} onLoad={() => console.log('Maps API has loaded.')}>
       <GoogleMap

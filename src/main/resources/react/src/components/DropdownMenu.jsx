@@ -1,12 +1,15 @@
-import React from 'react';
-import '../style/dropdownMenu.css'; // Załaduj style dla tego komponentu
-import barchart from '../icons/bar-chart.svg';
-import cog from '../icons/cog.svg';
-import exit from '../icons/exit.svg';
+import React from "react";
+import "../style/dropdownMenu.css"; // Załaduj style dla tego komponentu
+import barchart from "../icons/bar-chart.svg";
+import cog from "../icons/cog.svg";
+import exit from "../icons/exit.svg";
 
-function DropdownMenu({isVisible, onSettingsToggle, onStatsToggle}) {
+function DropdownMenu({ isVisible, onSettingsToggle, onStatsToggle }) {
   return (
-    <div id="dropdownMenu" className={`${isVisible ? 'dropdownMenuVisible' : 'dropdownMenuHidden'}`}>
+    <div
+      id="dropdownMenu"
+      className={`${isVisible ? "dropdownMenuVisible" : "dropdownMenuHidden"}`}
+    >
       <button onClick={onStatsToggle} className="icon-button">
         <img src={barchart} alt="stats" />
         Statystyki

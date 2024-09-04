@@ -27,79 +27,79 @@ class CustomersServiceTest {
     }
 
     @Test
-    fun `should add client`() = runTest {
-        val result = DaoMethods.addClient("login1", "password1", "123456789", "12345678901", "email@test.com")
+    fun `should add customer`() = runTest {
+        val result = DaoMethods.addCustomer("login1", "password1", "123456789", "12345678901", "email@test.com")
         assertTrue(result.first)
 
-        val client = transaction { Customers.selectAll().singleOrNull() }
-        assertNotNull(client)
-        assertEquals("login1", client[Customers.login])
+        val customer = transaction { Customers.selectAll().singleOrNull() }
+        assertNotNull(customer)
+        assertEquals("login1", customer[Customers.login])
     }
 
     @Test
-    fun `should add only two client`() = runTest {
-        var result = DaoMethods.addClient("login1", "password1", "123456789", "12345678901", "email@test.com")
+    fun `should add only two customer`() = runTest {
+        var result = DaoMethods.addCustomer("login1", "password1", "123456789", "12345678901", "email@test.com")
         assertTrue(result.first)
-        result = DaoMethods.addClient("login1", "password1", "1234567892", "123456789012", "email@test2.com")
+        result = DaoMethods.addCustomer("login1", "password1", "1234567892", "123456789012", "email@test2.com")
         assertFalse(result.first)
-        result = DaoMethods.addClient("login2", "password1", "1234567892", "123456789012", "email@test2.com")
+        result = DaoMethods.addCustomer("login2", "password1", "1234567892", "123456789012", "email@test2.com")
         assertTrue(result.first)
-        result = DaoMethods.addClient("login3", "password1", "1234567892", "123456789013", "email@test3.com")
+        result = DaoMethods.addCustomer("login3", "password1", "1234567892", "123456789013", "email@test3.com")
         assertFalse(result.first)
-        result = DaoMethods.addClient("login3", "password1", "1234567893", "123456789012", "email@test3.com")
+        result = DaoMethods.addCustomer("login3", "password1", "1234567893", "123456789012", "email@test3.com")
         assertFalse(result.first)
-        result = DaoMethods.addClient("login3", "password1", "1234567893", "123456789013", "email@test2.com")
+        result = DaoMethods.addCustomer("login3", "password1", "1234567893", "123456789013", "email@test2.com")
         assertFalse(result.first)
     }
 
     @Test
-    fun `should edit client`() = runTest {
-        DaoMethods.addClient("login2", "password2", "987654321", "12345678902", "email2@test.com")
+    fun `should edit customer`() = runTest {
+        DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
 
-        println("clients "+DaoMethods.getAllClients(1,10))
-        val result = DaoMethods.editClient(1, "newLogin", "password2", null, null, null)
+        println("customers "+DaoMethods.getAllCustomers(1,10))
+        val result = DaoMethods.editCustomer(1, "newLogin", "password2", null, null, null)
         assertTrue(result.first)
 
-        val client = transaction { Customers.selectAll().singleOrNull() }
-        assertNotNull(client)
-        assertEquals("newLogin", client[Customers.login])
+        val customer = transaction { Customers.selectAll().singleOrNull() }
+        assertNotNull(customer)
+        assertEquals("newLogin", customer[Customers.login])
     }
     @Test
-    fun `should not edit client`() = runTest {
-        DaoMethods.addClient("login2", "password2", "987654321", "12345678902", "email2@test.com")
+    fun `should not edit customer`() = runTest {
+        DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
 
-        println("clients "+DaoMethods.getAllClients(1,10))
-        val result = DaoMethods.editClient(1, "newLogin", "password1", null, null, null)
+        println("customers "+DaoMethods.getAllCustomers(1,10))
+        val result = DaoMethods.editCustomer(1, "newLogin", "password1", null, null, null)
         assertFalse(result.first)
 
-        val client = transaction { Customers.selectAll().singleOrNull() }
-        assertNotNull(client)
-        assertNotEquals("newLogin", client[Customers.login])
+        val customer = transaction { Customers.selectAll().singleOrNull() }
+        assertNotNull(customer)
+        assertNotEquals("newLogin", customer[Customers.login])
     }
     @Test
-    fun `should delete client`() = runTest {
-        DaoMethods.addClient("login3", "password3", "555555555", "12345678903", "email3@test.com")
-        val result = DaoMethods.deleteClient(1)
+    fun `should delete customer`() = runTest {
+        DaoMethods.addCustomer("login3", "password3", "555555555", "12345678903", "email3@test.com")
+        val result = DaoMethods.deleteCustomer(1)
         assertTrue(result)
-        val client = DaoMethods.getClient(1)
-        assertNotNull(client)
-        assertTrue(client.account_deleted == true)
+        val customer = DaoMethods.getCustomer(1)
+        assertNotNull(customer)
+        assertTrue(customer.account_deleted == true)
     }
 
     @Test
-    fun `should get client by id`() = runTest {
-        DaoMethods.addClient("login4", "password4", "444444444", "12345678904", "email4@test.com")
-        val client = DaoMethods.getClient(1)
-        assertNotNull(client)
-        assertEquals("login4", client.login)
+    fun `should get customer by id`() = runTest {
+        DaoMethods.addCustomer("login4", "password4", "444444444", "12345678904", "email4@test.com")
+        val customer = DaoMethods.getCustomer(1)
+        assertNotNull(customer)
+        assertEquals("login4", customer.login)
     }
 
     @Test
-    fun `should get all clients`() = runTest {
-        DaoMethods.addClient("login5", "password5", "555555555", "12345678905", "email5@test.com")
-        DaoMethods.addClient("login6", "password6", "666666666", "12345678906", "email6@test.com")
-        val clients = DaoMethods.getAllClients(page = 1, pageSize = 10).toList()
-        assertEquals(2, clients.size)
+    fun `should get all customers`() = runTest {
+        DaoMethods.addCustomer("login5", "password5", "555555555", "12345678905", "email5@test.com")
+        DaoMethods.addCustomer("login6", "password6", "666666666", "12345678906", "email6@test.com")
+        val customers = DaoMethods.getAllCustomers(page = 1, pageSize = 10).toList()
+        assertEquals(2, customers.size)
     }
 
 }

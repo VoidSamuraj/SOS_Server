@@ -81,3 +81,22 @@ body > div {
 .toggle:checked ~ .slot .slot__label:nth-child(2) {
   transform: translateY(-100%) scaleY(1);
 }
+
+.loadingCircle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}

@@ -19,10 +19,11 @@ fun Application.module() {
         if(DaoMethods.getAllEmployees(1, 10).isEmpty())
             DaoMethods.addEmployee("JanK", "123456789", "Jan", "Kowalski", "qwerty", Employee.Role.DISPATCHER)
     }
+    configureWorkerAuthentication()
+    configureSerialization()
+    configureSession()
     configureSockets()
     configureHTTP()
-    configureSecurity()
     configureMonitoring()
     configureRouting()
-    configureSerialization()
 }
