@@ -7,7 +7,7 @@ data class Customer(val id:Int, val login: String, val password:String, val phon
 object Customers : Table() {
     val id = integer("id").autoIncrement()
     val login = varchar("login", 20).uniqueIndex()
-    val password = varchar("password", 40)
+    val password = varchar("password", 60)
     val phone = varchar("phone", 20).uniqueIndex()
     val pesel = varchar("pesel", 15).uniqueIndex()
     val email = varchar("email", 255).uniqueIndex()

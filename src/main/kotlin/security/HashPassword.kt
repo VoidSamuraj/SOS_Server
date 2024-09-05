@@ -9,7 +9,11 @@ object HashPassword {
     }
 
     fun comparePasswords(passwordToCompare: String, hashedPassword: String): Boolean {
-        return BCrypt.checkpw(passwordToCompare, hashedPassword)
+        return try {
+            BCrypt.checkpw(passwordToCompare, hashedPassword)
+        }catch(_: Exception){
+            false
+        }
     }
 
 }

@@ -31,9 +31,12 @@ function App() {
     }
     setCheckingAuth(false);
   }
+
   useEffect(() => {
     checkTokenExpiration();
   }, []);
+
+
   if (checkingAuth) {
     return <img className={"loadingCircle"} src={loadingIcon} alt="Loading" />;
   }
@@ -45,7 +48,7 @@ function App() {
         <Route path="/login" element={<Login isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
         //nesting Home in PrivateRoute
         <Route element={<PrivateRoute isLoggedIn={isLoggedIn} />}>
-          <Route path="/home" element={<Home />} />
+          <Route path="/home" element={<Home  onLogout={()=>setIsLoggedIn(false)}/>} />
         </Route>
         <Route
           path="*"

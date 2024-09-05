@@ -56,7 +56,6 @@ class CustomersServiceTest {
     fun `should edit customer`() = runTest {
         DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
 
-        println("customers "+DaoMethods.getAllCustomers(1,10))
         val result = DaoMethods.editCustomer(1, "newLogin", "password2", null, null, null)
         assertTrue(result.first)
 
@@ -68,7 +67,6 @@ class CustomersServiceTest {
     fun `should not edit customer`() = runTest {
         DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
 
-        println("customers "+DaoMethods.getAllCustomers(1,10))
         val result = DaoMethods.editCustomer(1, "newLogin", "password1", null, null, null)
         assertFalse(result.first)
 
@@ -92,6 +90,14 @@ class CustomersServiceTest {
         val customer = DaoMethods.getCustomer(1)
         assertNotNull(customer)
         assertEquals("login4", customer.login)
+    }
+    @Test
+    fun `should get customer by login & password`() = runTest {
+        DaoMethods.addCustomer("Jonnn", "zaq1@WSX", "123456789", "1234456545", "JonnnD@wp.pl")
+        val customer = DaoMethods.getCustomer("Jonnn", "zaq1@WSX")
+        print("CLIENTT "+customer.first)
+        assertNotNull(customer.second)
+        assertEquals("Jonnn", customer.second!!.login)
     }
 
     @Test

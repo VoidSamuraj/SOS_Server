@@ -33,7 +33,7 @@ data class Employee(val id:Int, val login: String, val password:String, val name
 object Employees : Table() {
     val id = integer("id").autoIncrement()
     val login = varchar("login", 20).uniqueIndex()
-    val password = varchar("password", 40)
+    val password = varchar("password", 60)
     val name = varchar("name",40)
     val surname = varchar("surname", 40)
     val phone =  varchar("phone", 20).uniqueIndex()

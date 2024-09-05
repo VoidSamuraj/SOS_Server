@@ -10,7 +10,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
-import security.HashPassword
+import jwtExpirationSeconds
 import security.JWTToken
 import security.Keys
 import java.util.*
@@ -26,7 +26,7 @@ fun Application.configureWorkerAuthentication() {
                 val login=credential.payload.getClaim("login").asString()
                 val password=credential.payload.getClaim("password").asString()
                 val employee= DaoMethods.getEmployee(login,password)
-                if (login.isNotEmpty() && password.isNotEmpty() && employee!=null && HashPassword.comparePasswords(password,employee.password)) {
+                if (login.isNotEmpty() && password.isNotEmpty() && employee.second!=null) {
                     JWTPrincipal(credential.payload)
                 } else {
                     null
@@ -47,6 +47,20 @@ suspend fun checkPermission(token:JWTToken?, onSuccess: suspend ()->Unit,onFailu
         onFailure()
     }
 }
+fun createToken(employee: Employee): JWTToken{
+    val token = JWT.create()
+        .withClaim("id", employee.id)
+        .withClaim("login", employee.login)
+        // .withClaim("password", employee.password)
+        .withClaim("name", employee.name)
+        .withClaim("surname", employee.surname)
+        .withClaim("phone", employee.phone)
+        .withClaim("roleCode", employee.roleCode.toInt())
+        .withExpiresAt(Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000))
+        .sign(Algorithm.HMAC256(Keys.JWTSecret))
+    return JWTToken(token)
+}
+
 fun decodeToken(jwtToken:String?):DecodedJWT{
     return JWT.require(Algorithm.HMAC256(Keys.JWTSecret))
         .build()

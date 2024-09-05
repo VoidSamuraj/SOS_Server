@@ -1,8 +1,6 @@
 package routes
 
 import Employee
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import dao.DaoMethods
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -10,7 +8,6 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
@@ -21,11 +18,10 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import jwtExpirationSeconds
 import plugins.checkPermission
+import plugins.createToken
 import plugins.decodeToken
 import plugins.getTokenExpirationDate
-import security.HashPassword
 import security.JWTToken
-import security.Keys
 import java.util.Date
 
 fun Route.authRoutes(){
@@ -45,27 +41,15 @@ fun Route.authRoutes(){
     }
 
     fun PipelineContext<Unit,ApplicationCall>.generateToken(employee: Employee): JWTToken?{
-        val token = JWT.create()
-            .withClaim("id", employee.id)
-            .withClaim("login", employee.login)
-           // .withClaim("password", employee.password)
-            .withClaim("name", employee.name)
-            .withClaim("surname", employee.surname)
-            .withClaim("phone", employee.phone)
-            .withClaim("roleCode", employee.roleCode.toInt())
-            .withExpiresAt(Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000))
-            .sign(Algorithm.HMAC256(Keys.JWTSecret))
-        mToken = JWTToken(token)
+        mToken = createToken(employee)
         call.sessions.set(mToken)
         return mToken!!
     }
 
     suspend fun PipelineContext<Unit,ApplicationCall>.onAuthenticate(employee: Employee){
-        generateToken(employee)
-        Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000).time.let { it1 -> call.attributes.put(AttributeKey("exp"), it1.toString()) }
+        getTokenExpirationDate(generateToken(employee)).let { it1 -> call.attributes.put(AttributeKey("exp"), it1?.time.toString()) }
         val responseObject = mapOf("message" to "Success", "exp" to Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000).time.toString())
         call.respond(HttpStatusCode.OK, responseObject)
-        //call.respond(HttpStatusCode.OK, "Success")
     }
     suspend fun PipelineContext<Unit,ApplicationCall>.onAuthError(){
         call.respondRedirect("/")
@@ -77,10 +61,11 @@ fun Route.authRoutes(){
             val login = formParameters.getOrFail("login")
             val password = formParameters.getOrFail("password")
             val employee= DaoMethods.getEmployee(login, password)
-            if(employee!=null && HashPassword.comparePasswords(password,employee.password))
-                onAuthenticate(employee)
+            println("ERRROORO "+DaoMethods.getAllEmployees(1,10))
+            if(employee.second!=null)
+                onAuthenticate(employee.second!!)
             else {
-                errorMessage ="Login error"
+                errorMessage =employee.first
                 onAuthError()
             }
         }
@@ -108,12 +93,12 @@ fun Route.authRoutes(){
         }
         post("/logout") {
             call.sessions.clear("userToken")
-            call.respondText("Logged out successfully")
+            call.respond(HttpStatusCode.OK, "Success")
         }
         post("/register") {
             val formParameters = call.receiveParameters()
             val login = formParameters.getOrFail("login")
-            val password = HashPassword.hashPassword(formParameters.getOrFail("password"))
+            val password = formParameters.getOrFail("password")
             // TODO
             /*
             val employee= DaoMethods.addEmployee(login,password,)
@@ -125,7 +110,7 @@ fun Route.authRoutes(){
             }
             */
             //TEST
-            val employee= DaoMethods.getEmployee(1)
+            var employee= DaoMethods.getEmployee(1)
                 onAuthenticate(employee!!)
 
             }

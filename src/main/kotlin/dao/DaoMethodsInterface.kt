@@ -14,7 +14,7 @@ interface DaoMethodsInterface {
     suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, phone: String?=null, pesel: String?=null, email: String?=null): Pair<Boolean, String>
     suspend fun deleteCustomer(id:Int):Boolean
     suspend fun getCustomer(id:Int):Customer?
-    suspend fun getCustomer(login:String, password: String):Customer?
+    suspend fun getCustomer(login:String, password: String):Pair<String,Customer?>
     suspend fun getAllCustomers(page:Int, pageSize:Int):List<Customer>
 
     //Intervention
@@ -35,7 +35,7 @@ interface DaoMethodsInterface {
     suspend fun editGuard(id:Int, login: String?=null, password: String, newPassword: String?=null, name:String?=null, surname:String?=null, phone: String?=null): Pair<Boolean, String>
     suspend fun deleteGuard(id:Int):Boolean
     suspend fun getGuard(id:Int):Guard?
-    suspend fun getGuard(login:String, password: String):Guard?
+    suspend fun getGuard(login:String, password: String):Pair<String,Guard?>
     suspend fun getAllGuards(page:Int, pageSize: Int):List<Guard>
 
     //Employee
@@ -43,6 +43,6 @@ interface DaoMethodsInterface {
     suspend fun editEmployee(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null,surname: String?=null, phone: String?=null, role:Employee.Role?=null): Pair<Boolean, String>
     suspend fun addEmployee(login: String, password: String, name: String,surname: String, phone: String, role:Employee.Role): Triple<Boolean,String,Employee?>
     suspend fun getEmployee(id:Int):Employee?
-    suspend fun getEmployee(login:String, password: String):Employee?
+    suspend fun getEmployee(login:String, password: String):Pair<String,Employee?>
     suspend fun getAllEmployees(page:Int, pageSize: Int):List<Employee>
 }

@@ -1,49 +1,28 @@
 import React, { useState, useEffect } from "react";
 import "./style/login.css";
 import { useNavigate } from "react-router-dom";
+import {login} from "./script/ApiService.js"
 
 function Login({ isLoggedIn, setIsLoggedIn }) {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showRecoverForm, setShowRecoverForm] = useState(false);
   const navigate = useNavigate();
+  const [loginValue, setLoginValue] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
-  const register = () => {
-    const formData = new URLSearchParams();
-    formData.append("login", "exampleLogin");
-    formData.append("password", "examplePassword");
-
-    fetch("/employee/register", {
-      method: "POST",
-      credentials: "include",
-      body: formData,
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log(response);
-          return response.json();
-        } else {
-          return response.json().then((errorData) => {
-            const errorMessage = errorData.message || "Unknown error";
-            throw new Error(`Server error: ${errorMessage}`);
-          });
-        }
-      })
-      .then((data) => {
-        console.log("Data received:", data);
-        if (data.exp) {
-          localStorage.setItem("exp", data.exp);
-          setIsLoggedIn(true);
-        }
-      })
-      .catch((error) => console.error("Error:", error));
-  };
-  const login = () => {
-    register();
+  const handleLogin = (event) => {
+    event.preventDefault();
+    login(loginValue, password, setIsLoggedIn);
     navigate("/home");
+  };
+  const handleRecoverPassword = (event) => {
+    event.preventDefault();
+    console.log("RECOVER");
   };
 
   useEffect(() => {
@@ -56,15 +35,23 @@ function Login({ isLoggedIn, setIsLoggedIn }) {
     <>
       <div className="formBox">
         {!showRecoverForm ? (
-          <form id="loginForm">
+          <form id="loginForm" onSubmit={handleLogin}>
             <label htmlFor="login">Login</label>
-            <input type="text" id="login" placeholder="Login" />
+            <input
+              type="text"
+              id="login"
+              placeholder="Login"
+              value={loginValue}
+              onChange={(event) => setLoginValue(event.target.value)}
+            />
 
             <label htmlFor="password">Hasło</label>
             <input
               type={passwordVisible ? "text" : "password"}
               id="password"
               placeholder="Hasło"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
             />
 
             <button
@@ -80,7 +67,6 @@ function Login({ isLoggedIn, setIsLoggedIn }) {
               id="loginButton"
               value="Zaloguj się"
               placeholder="Login"
-              onClick={login}
             />
 
             <button
@@ -92,9 +78,15 @@ function Login({ isLoggedIn, setIsLoggedIn }) {
             </button>
           </form>
         ) : (
-          <form id="recoverPasswordForm">
+          <form id="recoverPasswordForm" onSubmit={handleRecoverPassword}>
             <label htmlFor="email">Email</label>
-            <input type="email" id="email" placeholder="Email" />
+            <input
+              type="email"
+              id="email"
+              placeholder="Email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
 
             <input
               type="submit"

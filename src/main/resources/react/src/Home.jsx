@@ -10,7 +10,7 @@ import "./style/style.css";
 import car from "./icons/car.svg";
 import { usePatrols, useReports } from "./components/map/MapFunctions";
 
-function Home() {
+function Home({onLogout}) {
   const { patrols, setPatrols, addPatrol, updatePatrol, removePatrol } =
     usePatrols();
   const { reports, addReport, editReport, removeReport } = useReports();
@@ -90,6 +90,7 @@ function Home() {
         isVisible={isDropdownVisible}
         onSettingsToggle={toggleSettings}
         onStatsToggle={toggleStats}
+        onLogout={onLogout}
       />
       <SettingsMenu
         isVisible={isSettingsVisible}

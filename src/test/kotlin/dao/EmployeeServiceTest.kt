@@ -87,6 +87,13 @@ class EmployeeServiceTest {
         assertNotNull(employee)
         assertEquals("John", employee.name)
     }
+    @Test
+    fun `should get employee by login & password`() = runTest {
+        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        val employee = DaoMethods.getEmployee("JonnnD", "zaq1@WSX")
+        assertNotNull(employee.second)
+        assertEquals("John", employee.second!!.name)
+    }
 
     @Test
     fun `should get all employees`() = runTest {

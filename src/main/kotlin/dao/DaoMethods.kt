@@ -14,6 +14,8 @@ import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import security.HashPassword
+import security.HashPassword.comparePasswords
 import kotlin.collections.mapNotNull
 
 object DaoMethods:DaoMethodsInterface {
@@ -98,17 +100,15 @@ object DaoMethods:DaoMethodsInterface {
 
             val insertStatement = Customers.insert {
                 it[Customers.login] = login
-                it[Customers.password] = password
+                it[Customers.password] =  HashPassword.hashPassword(password)
                 it[Customers.phone] = phone
                 it[Customers.pesel] = pesel
                 it[Customers.email] = email
                 it[Customers.account_deleted] = false
             }
-            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToClient) != null){
-                Triple(true, "Customer created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToClient(resultRow) })
-            } else {
-                Triple(false, "Failed to create client.", null)
-            }
+            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToClient) != null)
+                return@transaction Triple(true, "Customer created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToClient(resultRow) })
+                return@transaction Triple(false, "Failed to create client.", null)
         }
     }
 
@@ -123,10 +123,12 @@ object DaoMethods:DaoMethodsInterface {
     ): Pair<Boolean,String> {
         return transaction {
 
-            val customerExists = Customers.select(Customers.login, Customers.password).where{(Customers.id eq id) and (Customers.password eq password)}.singleOrNull()
+            val customerExists = Customers.selectAll().where{(Customers.id eq id)}.singleOrNull()
             if (customerExists == null) {
-                return@transaction false to "Incorrect password for the Customer."
+                return@transaction false to "Incorrect id for."
             }
+            if(!comparePasswords(password,resultRowToClient(customerExists).password))
+                return@transaction  false to "Incorrect password."
 
             val result = Customers.update({ Customers.id eq id }) {
                 login?.let { firstName -> it[Customers.login] = firstName }
@@ -135,11 +137,9 @@ object DaoMethods:DaoMethodsInterface {
                 pesel?.let { pesel -> it[Customers.pesel] = pesel }
                 email?.let { email -> it[Customers.email] = email }
             } > 0
-            if(result){
-                true to "Customer updated successfully."
-            } else {
-                false to "Failed to update customer."
-            }
+            if(result)
+                return@transaction true to "Customer updated successfully."
+                return@transaction false to "Failed to update customer."
         }
     }
 
@@ -160,12 +160,21 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getCustomer(login:String, password: String): Customer? {
+    override suspend fun getCustomer(login:String, password: String): Pair<String, Customer?> {
         return transaction {
-            Customers
-                .selectAll().where { (Customers.login eq id) and (Customers.password eq password) }
+            val customer = Customers
+                .selectAll().where { (Customers.login eq login) }
                 .mapNotNull(::resultRowToClient)
                 .singleOrNull()
+            if (customer == null) {
+                return@transaction "Incorrect login." to null
+            }
+
+            if(!comparePasswords(password,customer.password))
+                return@transaction  "Incorrect password." to null
+
+            return@transaction "Success" to customer
+
         }
     }
 
@@ -306,17 +315,15 @@ object DaoMethods:DaoMethodsInterface {
 
             val insertStatement = Guards.insert {
                 it[Guards.login] = login
-                it[Guards.password] = password
+                it[Guards.password] =  HashPassword.hashPassword(password)
                 it[Guards.name] = name
                 it[Guards.surname] = surname
                 it[Guards.phone] = phone
                 it[Guards.account_deleted] = false
             }
-            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToGuard) != null){
-                Triple(true, "Guard created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToGuard(resultRow) })
-            } else {
-                Triple(false, "Failed to create guard.", null)
-            }
+            if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToGuard) != null)
+                return@transaction Triple(true, "Guard created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToGuard(resultRow) })
+                return@transaction Triple(false, "Failed to create guard.", null)
         }
     }
 
@@ -331,10 +338,14 @@ object DaoMethods:DaoMethodsInterface {
     ): Pair<Boolean, String> {
         return transaction {
 
-            val guardExists = Guards.select(Guards.login, Guards.password).where {(Guards.id eq id) and (Guards.password eq password) }.singleOrNull()
+            val guardExists = Guards.selectAll().where {(Guards.id eq id)}.singleOrNull()
             if (guardExists == null) {
-                return@transaction false to "Incorrect password for the Guard."
+                return@transaction false to "Incorrect Id for the Guard."
             }
+
+            if(!comparePasswords(password,resultRowToGuard(guardExists).password))
+                return@transaction  false to "Incorrect password for the guard."
+
 
             val updated = Guards.update({ Guards.id eq id }) {
                 login?.let{ login -> it[Guards.login] = login}
@@ -344,11 +355,9 @@ object DaoMethods:DaoMethodsInterface {
                 phone?.let { phone -> it[Guards.phone] = phone }
             } > 0
 
-            if (updated) {
-                true to "Guard updated successfully."
-            } else {
-                false to "Failed to update guard."
-            }
+            if (updated)
+                return@transaction true to "Guard updated successfully."
+            return@transaction false to "Failed to update guard."
         }
     }
 
@@ -371,12 +380,17 @@ object DaoMethods:DaoMethodsInterface {
     }
 
 
-    override suspend fun getGuard(login:String, password: String): Guard? {
+    override suspend fun getGuard(login:String, password: String): Pair<String,Guard?> {
         return transaction {
-            Guards
-                .selectAll().where { (Guards.login eq login) and (Guards.password eq password) }
+            val guard =Guards
+                .selectAll().where { (Guards.login eq login)}
                 .mapNotNull(::resultRowToGuard)
                 .singleOrNull()
+            if(guard == null)
+                return@transaction  "There is no guard with this Login." to null
+            if(!comparePasswords(password,guard.password))
+                return@transaction  "Incorrect password for the guard." to null
+            return@transaction "Success" to guard
         }
     }
 
@@ -409,7 +423,7 @@ object DaoMethods:DaoMethodsInterface {
 
             val insertStatement = Employees.insert {
                 it[Employees.login] = login
-                it[Employees.password] = password
+                it[Employees.password] = HashPassword.hashPassword(password)
                 it[Employees.name] = name
                 it[Employees.surname] = surname
                 it[Employees.phone] = phone
@@ -417,11 +431,9 @@ object DaoMethods:DaoMethodsInterface {
                 it[Employees.account_deleted] = false
             }
 
-            if (insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToEmployee) != null) {
-                Triple(true, "Employee created successfully.",insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToEmployee(resultRow) })
-            } else {
-                Triple(false, "Failed to create employee.",null)
-            }
+            if (insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToEmployee) != null)
+                return@transaction Triple(true, "Employee created successfully.",insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToEmployee(resultRow) })
+                return@transaction Triple(false, "Failed to create employee.",null)
         }
     }
 
@@ -436,10 +448,13 @@ object DaoMethods:DaoMethodsInterface {
     override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, role:Employee.Role?): Pair<Boolean, String> {
         return transaction {
 
-            val employeeExists = Employees.select(Employees.id, Employees.password).where{ (Employees.id eq id) and (Employees.password eq password) }.singleOrNull()
+            val employeeExists = Employees.selectAll().where{ (Employees.id eq id)}.singleOrNull()
             if (employeeExists == null) {
-                return@transaction false to "Incorrect password for the employee."
+                return@transaction false to "Incorrect Id for the employee."
             }
+
+            if(!comparePasswords(password,resultRowToEmployee(employeeExists).password))
+                return@transaction false to "Incorrect password for the employee."
 
             val updated = Employees.update({ Employees.id eq id }) {
                 login?.let { login -> it[Employees.login] = login }
@@ -449,11 +464,9 @@ object DaoMethods:DaoMethodsInterface {
                 phone?.let { phone -> it[Employees.phone] = phone }
                 role?.let{role-> it[Employees.role] = role.role.toShort()}
             } > 0
-            if (updated) {
-                true to "Employee updated successfully."
-            } else {
-                false to "Failed to update employee."
-            }
+            if (updated)
+                return@transaction true to "Employee updated successfully."
+                return@transaction false to "Failed to update employee."
         }
     }
 
@@ -466,12 +479,19 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getEmployee(login:String, password: String): Employee? {
+    override suspend fun getEmployee(login:String, password: String): Pair<String, Employee?> {
         return transaction {
-            Employees
-                .selectAll().where { (Employees.login eq login) and (Employees.password eq password) }
+            val employee = Employees
+                .selectAll().where { (Employees.login eq login) }
                 .mapNotNull(::resultRowToEmployee)
                 .singleOrNull()
+            if (employee == null) {
+                "Incorrect Id for the employee." to null
+            }
+            if(!comparePasswords(password,employee!!.password))
+                "Incorrect password for the employee." to null
+            "Success" to employee
+
         }
     }
 

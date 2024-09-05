@@ -3,8 +3,12 @@ import "../style/dropdownMenu.css"; // Załaduj style dla tego komponentu
 import barchart from "../icons/bar-chart.svg";
 import cog from "../icons/cog.svg";
 import exit from "../icons/exit.svg";
+import {logout} from "../script/ApiService.js"
+import { useNavigate } from "react-router-dom";
 
-function DropdownMenu({ isVisible, onSettingsToggle, onStatsToggle }) {
+function DropdownMenu({ isVisible, onSettingsToggle, onStatsToggle,onLogout }) {
+  const navigate = useNavigate();
+
   return (
     <div
       id="dropdownMenu"
@@ -18,7 +22,7 @@ function DropdownMenu({ isVisible, onSettingsToggle, onStatsToggle }) {
         <img src={cog} alt="settings" />
         Opcje
       </button>
-      <button className="icon-button">
+      <button onClick={()=>logout(()=>{navigate("/login");onLogout();})} className="icon-button">
         <img src={exit} alt="logout" />
         Wyloguj się
       </button>
