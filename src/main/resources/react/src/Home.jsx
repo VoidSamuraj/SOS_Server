@@ -34,12 +34,12 @@ function Home({onLogout}) {
 
   useEffect(() => {
     const initialize = () => {
-      addPatrol(11, { lat: 51.5, lng: 19.0 }, "#F00");
-      addPatrol(12, { lat: 51.6, lng: 21.1 }, "#0F0");
-      addPatrol(13, { lat: 52.6, lng: 21.5 }, "#0F0");
-      addPatrol(14, { lat: 50.2, lng: 22.9 }, "#0F0");
-      addPatrol(5, { lat: 53.6, lng: 22.0 }, "#F00");
-      addPatrol(6, { lat: 51.6, lng: 22.2 }, "#AAA");
+      addPatrol(11, { lat: 51.5, lng: 19.0 }, "#F00", "Jan", "Nowak", 987654321);
+      addPatrol(12, { lat: 51.6, lng: 21.1 }, "#0F0", "Grzeorz", "Braun", 998);
+      addPatrol(13, { lat: 52.6, lng: 21.5 }, "#0F0", "Jacek", "Sasin", 123123123);
+      addPatrol(14, { lat: 50.2, lng: 22.9 }, "#0F0", "Andrzej", "Nowak", 456123789);
+      addPatrol(5, { lat: 53.6, lng: 22.0 }, "#F00", "Bernard", "Kozak", 741852963);
+      addPatrol(6, { lat: 51.6, lng: 22.2 }, "#AAA", "Sylwia", "Małysz", 987456321);
     };
 
     initialize();

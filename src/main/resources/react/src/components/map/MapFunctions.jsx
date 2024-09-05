@@ -3,9 +3,9 @@ import { useState } from "react";
 export const usePatrols = () => {
   const [patrols, setPatrols] = useState(new Map());
 
-  const addPatrol = (id, position, color) => {
+  const addPatrol = (id, position, color, name, surname, phone) => {
     setPatrols((prevPatrols) =>
-      new Map(prevPatrols).set(id, { position, color })
+      new Map(prevPatrols).set(id, { position, color, name, surname, phone })
     );
   };
 
@@ -20,6 +20,9 @@ export const usePatrols = () => {
       updatedPatrols.set(id, {
         position: newPosition !== null ? newPosition : currentPatrol.position,
         color: newColor !== null ? newColor : currentPatrol.color,
+        name: currentPatrol.name,
+        surname: currentPatrol.surname,
+        phone: currentPatrol.phone
       });
 
       return updatedPatrols;

@@ -89,6 +89,14 @@ class GuardServiceTest {
     }
 
     @Test
+    fun `should get guard by login & password`() = runTest {
+        DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
+        val guard = DaoMethods.getGuard("JonnnD", "zaq1@WSX")
+        assertNotNull(guard.second)
+        assertEquals("John", guard.second!!.name)
+    }
+
+    @Test
     fun `should get all guards`() = runTest {
         DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
         DaoMethods.addGuard("JaneD", "zaq1@WSX", "Jane", "Doe", "987654321")

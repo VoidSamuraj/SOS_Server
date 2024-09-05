@@ -16,6 +16,7 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
     }
   );
 
+
   return (
     <div
       id="patrolsMenu"
@@ -43,13 +44,16 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
         </button>
       </div>
       <div id="patrolsList">
-        {sortedPatrols.map(([id, { position, color }]) => (
-          <div
-            key={id}
-            className="patrol-item"
-            style={{ backgroundColor: color }}
-          >
-            {id}
+        {sortedPatrols.map(([id, { position, color, name, surname, phone }]) => (
+          <div style={{ backgroundColor: color }} onClick={(event) => event.currentTarget.classList.toggle("expandedMenu")}>
+            <div
+              key={id}
+              className="patrol-item"
+            >
+              {id}
+            </div>
+            <p>{name+" "+surname}</p>
+            <p>{phone}</p>
           </div>
         ))}
       </div>
