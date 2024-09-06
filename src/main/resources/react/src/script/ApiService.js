@@ -1,3 +1,6 @@
+
+//EMPLOYEE
+
 export const register = (setIsLoggedIn) => {
   const formData = new URLSearchParams();
   formData.append("login", "exampleLogin");
@@ -74,3 +77,10 @@ export const logout = (redirect) => {
     }
   });
 };
+
+
+//GUARD
+
+
+
+//REPORT

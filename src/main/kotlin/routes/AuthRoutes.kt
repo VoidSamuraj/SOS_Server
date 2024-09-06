@@ -24,36 +24,38 @@ import plugins.getTokenExpirationDate
 import security.JWTToken
 import java.util.Date
 
+var mToken: JWTToken?=null
+var errorMessage:String=""
+
+suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(onSuccess:suspend ()->Unit){
+    val token=call.sessions.get("userToken")as JWTToken?
+    checkPermission(token = token,
+        onSuccess = {
+            mToken=token
+            onSuccess()
+        },
+        onFailure = {
+            call.respondRedirect("/")
+        })
+}
+
+fun PipelineContext<Unit,ApplicationCall>.generateToken(employee: Employee): JWTToken?{
+    mToken = createToken(employee)
+    call.sessions.set(mToken)
+    return mToken!!
+}
+
+suspend fun PipelineContext<Unit,ApplicationCall>.onAuthenticate(employee: Employee){
+    getTokenExpirationDate(generateToken(employee)).let { it1 -> call.attributes.put(AttributeKey("exp"), it1?.time.toString()) }
+    val responseObject = mapOf("message" to "Success", "exp" to Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000).time.toString())
+    call.respond(HttpStatusCode.OK, responseObject)
+}
+suspend fun PipelineContext<Unit,ApplicationCall>.onAuthError(){
+    call.respondRedirect("/")
+}
+
 fun Route.authRoutes(){
-    var mToken: JWTToken?=null
-    var errorMessage:String=""
 
-    suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(onSuccess:suspend ()->Unit){
-        val token=call.sessions.get("userToken")as JWTToken?
-        checkPermission(token = token,
-            onSuccess = {
-                mToken=token
-                onSuccess()
-            },
-            onFailure = {
-                call.respondRedirect("/")
-            })
-    }
-
-    fun PipelineContext<Unit,ApplicationCall>.generateToken(employee: Employee): JWTToken?{
-        mToken = createToken(employee)
-        call.sessions.set(mToken)
-        return mToken!!
-    }
-
-    suspend fun PipelineContext<Unit,ApplicationCall>.onAuthenticate(employee: Employee){
-        getTokenExpirationDate(generateToken(employee)).let { it1 -> call.attributes.put(AttributeKey("exp"), it1?.time.toString()) }
-        val responseObject = mapOf("message" to "Success", "exp" to Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000).time.toString())
-        call.respond(HttpStatusCode.OK, responseObject)
-    }
-    suspend fun PipelineContext<Unit,ApplicationCall>.onAuthError(){
-        call.respondRedirect("/")
-    }
 
     route("/employee"){
         post("/login") {
@@ -83,7 +85,7 @@ fun Route.authRoutes(){
                         decodedToken.claims["phone"]!!.asString(),
                         decodedToken.claims["roleCode"]!!.asInt().toShort(),
                         false
-                        )
+                    )
                     getTokenExpirationDate(generateToken(employee))?.time?.let { it1 -> call.attributes.put(AttributeKey("exp"), it1.toString()) }
 
                     call.respond(HttpStatusCode.OK, "Success")
@@ -111,9 +113,9 @@ fun Route.authRoutes(){
             */
             //TEST
             var employee= DaoMethods.getEmployee(1)
-                onAuthenticate(employee!!)
+            onAuthenticate(employee!!)
 
-            }
         }
     }
+}
 

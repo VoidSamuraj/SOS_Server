@@ -8,6 +8,44 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import org.jsoup.Jsoup
+import org.jsoup.safety.Safelist
+import java.util.regex.Pattern
+
+//TODO use this methods
+fun sanitizeHtml(html: String): String {
+    return Jsoup.clean(html, Safelist.none())
+}
+fun validateUsername(username: String): Boolean {
+    return username.length in 3..20
+}
+fun validatePhoneNumber(phoneNumber: String): Boolean {
+    val regex = "^[+]?[0-9]{10,13}$".toRegex()
+    return regex.matches(phoneNumber)
+}
+
+fun validateEmail(email: String): Boolean {
+    val emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    val pattern = Pattern.compile(emailRegex)
+    return pattern.matcher(email).matches()
+}
+fun isValidPESEL(pesel: String): Boolean {
+    if (pesel.length != 11 || !pesel.all { it.isDigit() }) {
+        return false
+    }
+
+    val digits = pesel.map { it.toString().toInt() }
+
+    // Definicja wag
+    val weights = intArrayOf(1, 3, 7, 9, 1, 3, 7, 9, 1, 3)
+
+    // Obliczanie sumy kontrolnej
+    val sum = digits.zip(weights.asIterable()).sumOf { (digit, weight) -> digit * weight }
+
+    // Sprawdzenie, czy suma kontrolna jest zgodna z ostatnią cyfrą PESEL
+    return sum % 10 == 0
+}
+
 /*
 fun Application.configureSecurity() {
 

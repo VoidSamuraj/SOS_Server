@@ -62,6 +62,8 @@ dependencies {
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("org.mindrot:jbcrypt:0.4")
 
+    implementation("org.jsoup:jsoup:1.18.1")
+
 }
 tasks.withType<Test> {
     systemProperty("ktor.environment", "test")

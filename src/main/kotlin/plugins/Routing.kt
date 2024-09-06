@@ -5,6 +5,7 @@ import routes.staticRoutes
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import routes.authRoutes
+import routes.databaseRoutes
 
 fun Application.configureRouting() {
 
@@ -12,5 +13,6 @@ fun Application.configureRouting() {
     routing {
         mainRoutes()
         authRoutes()
+        databaseRoutes()
     }
 }
