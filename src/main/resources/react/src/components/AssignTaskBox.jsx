@@ -7,7 +7,6 @@ function AssignTaskBox({ patrols, reports, onAssignTask }) {
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPatrol, setSelectedPatrol] = useState(null);
   const [nrOfMenu, setNrOfMenu] = useState(1);
-  const [sortByLocation, setSortByLocation] = useState(true);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [sortedPatrols, setSortedPatrols] = useState([]);
   const [sortedReports, setSortedReports] = useState([]);

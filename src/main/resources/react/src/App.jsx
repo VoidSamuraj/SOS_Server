@@ -86,7 +86,7 @@ socket.onclose = (event) => {
         <Route element={<PrivateRoute isLoggedIn={isLoggedIn} />}>
           <Route path="/home" element={<Home  onLogout={()=>setIsLoggedIn(false) } patrols={patrols} updatePatrol={updatePatrol}/>} />
         </Route>
-        <Route path="/administration" element={<Administration isLoggedIn={isLoggedIn} guards={patrols} />}/>
+        <Route path="/administration" element={<Administration onLogout={()=>setIsLoggedIn(false) } isLoggedIn={isLoggedIn} guards={patrols} />}/>
         <Route
           path="*"
           element={<Navigate to={isLoggedIn ? "/home" : "/login"} />}

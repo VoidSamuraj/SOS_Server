@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {  IconButton, Box, Tabs, Tab } from "@mui/material";
+import { IconButton, Box, Tabs, Tab } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { plPL } from "@mui/material/locale";
 import { DataGrid } from "@mui/x-data-grid";
@@ -38,16 +38,16 @@ const ManageAccounts = ({ guards }) => {
         getEmployees(page, pageSize).then((data) => {
           setEmployees(data);
         });
-    break;
+        break;
       case "guards":
-break;
+        break;
       case "customers":
         getClients(page, pageSize).then((data) => {
           setClients(data);
         });
-    break;
+        break;
       default:
-          break;
+        break;
     }
   }, [selectedTab, page, pageSize]);
 
@@ -273,7 +273,7 @@ break;
 
   return (
     <ThemeProvider theme={theme}>
-      <Box sx={{ padding: 2 }}>
+      <Box sx={{ padding: 2 }} style={{ paddingTop: "70px" }}>
         <Tabs
           value={selectedTab}
           onChange={(e, newValue) => setSelectedTab(newValue)}
