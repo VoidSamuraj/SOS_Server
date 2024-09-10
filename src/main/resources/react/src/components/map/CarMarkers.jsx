@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { AdvancedMarker } from "@vis.gl/react-google-maps";
+import { usePatrols } from "./MapFunctions";
 
 const CarIcon = ({ id, color }) => (
   <div className="mapMarker" style={{ width: "80px", height: "80px" }}>
@@ -29,6 +30,9 @@ const CarIcon = ({ id, color }) => (
 
 // Memoize markers to avoid unnecessary re-renders
 const CarMarkers = ({ cars }) => {
+
+  const { statusToCode } = usePatrols();
+
   return useMemo(
     () => (
       <>
@@ -42,9 +46,9 @@ const CarMarkers = ({ cars }) => {
               position.lat !== "unknown" &&
               position.lng !== "unknown"
           )
-          .map(([id, { position, color }]) => (
+          .map(([id, { position, status }]) => (
             <AdvancedMarker key={id} position={position}>
-              <CarIcon id={id} color={color} />
+              <CarIcon id={id} color={statusToCode(status)} />
             </AdvancedMarker>
           ))}
       </>

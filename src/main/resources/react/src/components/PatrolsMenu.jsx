@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import "../style/patrolsMenu.css"; // Załaduj style dla tego komponentu
 import leftarrow from "../icons/left-arrow.svg";
+import { usePatrols } from "./map/MapFunctions";
 
 function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
   const [sortByStatus, setSortByStatus] = useState(true);
 
+  const { statusToCode } = usePatrols();
   const sortedPatrols = Array.from(patrols.entries()).sort(
-    ([idA, { color: colorA }], [idB, { color: colorB }]) => {
+    ([idA, { status: statusA }], [idB, { status: statusB }]) => {
       if (sortByStatus) {
-        return colorA.localeCompare(colorB);
+        return statusA-statusB;
       } else {
         return idA - idB;
       }
@@ -44,8 +46,8 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
         </button>
       </div>
       <div id="patrolsList">
-        {sortedPatrols.map(([id, { position, color, name, surname, phone }]) => (
-          <div style={{ backgroundColor: color }} onClick={(event) => event.currentTarget.classList.toggle("expandedMenu")}>
+        {sortedPatrols.map(([id, { position, status, name, surname, phone }]) => (
+          <div style={{ backgroundColor: statusToCode(status) }} onClick={(event) => event.currentTarget.classList.toggle("expandedMenu")}>
             <div
               key={id}
               className="patrol-item"

@@ -82,8 +82,7 @@ function Home({onLogout, patrols, updatePatrol }) {
 
   return (
     <>
-      <script></script>
-      <TopBar onDropdownToggle={toggleDropdown} />
+      <TopBar onDropdownToggle={toggleDropdown} guards={patrols} />
       <DropdownMenu
         isVisible={isDropdownVisible}
         onSettingsToggle={toggleSettings}
