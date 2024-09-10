@@ -22,7 +22,8 @@ export const usePatrols = () => {
         color: newColor !== null ? newColor : currentPatrol.color,
         name: currentPatrol.name,
         surname: currentPatrol.surname,
-        phone: currentPatrol.phone
+        phone: currentPatrol.phone,
+        account_deleted: currentPatrol.account_deleted
       });
 
       return updatedPatrols;
@@ -35,7 +36,22 @@ export const usePatrols = () => {
     setPatrols(newPatrols);
   };
 
-  return { patrols, setPatrols, addPatrol, updatePatrol, removePatrol };
+  const convertArrayToPatrolMap = (dataArray) => {
+    return new Map(
+      dataArray.map(data => [
+        data.id, {
+          position: data.location || 'unknown',
+          color: (data.statusCode == 0 ? 'green':(data.statusCode == 1 ? 'gray': 'red')),
+          name: data.name,
+          surname: data.surname,
+          phone: data.phone,
+          account_deleted: data.account_deleted
+        }
+      ])
+    );
+  };
+
+  return { patrols, setPatrols, addPatrol, updatePatrol, removePatrol, convertArrayToPatrolMap };
 };
 
 export const useReports = () => {

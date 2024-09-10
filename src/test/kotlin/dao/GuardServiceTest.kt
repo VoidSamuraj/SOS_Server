@@ -101,7 +101,7 @@ class GuardServiceTest {
         DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
         DaoMethods.addGuard("JaneD", "zaq1@WSX", "Jane", "Doe", "987654321")
 
-        val guards = DaoMethods.getAllGuards(page = 1, pageSize = 10)
+        val guards = DaoMethods.getGuards(page = 1, pageSize = 10)
         assertEquals(2, guards.size)
     }
 }

@@ -85,12 +85,11 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to get client. ${ret.first}")
             }
         }
-        get("/getAll"){
-            val formParameters = call.receiveParameters()
-            val page = formParameters["page"]
-            val size = formParameters["size"]
+        get("/getPage"){
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
 
-            val customers = DaoMethods.getAllCustomers(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
+            val customers = DaoMethods.getCustomers(page,size)
             call.respond(HttpStatusCode.OK,customers)
         }
 
@@ -136,12 +135,12 @@ fun Route.databaseRoutes() {
             else
                 call.respond(HttpStatusCode.InternalServerError, "Failed to get intervention.")
         }
-        get("/getAll"){
+        get("/getPage"){
             val formParameters = call.receiveParameters()
             val page = formParameters["page"]
             val size = formParameters["size"]
 
-            val customers = DaoMethods.getAllInterventions(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
+            val customers = DaoMethods.getInterventions(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
             call.respond(HttpStatusCode.OK,customers)
         }
 
@@ -212,13 +211,13 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to get report.")
             }
         }
-        get("/getAll"){
+        get("/getPage"){
             val formParameters = call.receiveParameters()
             val page = formParameters["page"]
             val size = formParameters["size"]
 
-            val customers = DaoMethods.getAllReports(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
-            call.respond(HttpStatusCode.OK,customers)
+            val reports = DaoMethods.getReports(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
+            call.respond(HttpStatusCode.OK,reports)
         }
 
         delete{
@@ -307,15 +306,16 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to get guard. ${ret.first}")
             }
         }
-        get("/getAll"){
-            val formParameters = call.receiveParameters()
-            val page = formParameters["page"]
-            val size = formParameters["size"]
-
-            val customers = DaoMethods.getAllGuards(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
-            call.respond(HttpStatusCode.OK,customers)
+        get("/getPage"){
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+            val guards = DaoMethods.getGuards(page,size)
+            call.respond(HttpStatusCode.OK,guards)
         }
-
+        get("/getAll"){
+            val guards = DaoMethods.getAllGuards()
+            call.respond(HttpStatusCode.OK,guards)
+        }
         delete{
             val formParameters = call.receiveParameters()
             val id = formParameters["id"]?.toIntOrNull()
@@ -328,6 +328,103 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.OK,"The guard has been deleted.")
             else
                 call.respond(HttpStatusCode.InternalServerError, "Failed to delete guard.")
+        }
+
+    }
+    route("/employee"){
+        post("/add"){
+            val formParameters = call.receiveParameters()
+            val login = formParameters["login"]
+            val password = formParameters["password"]
+            val phone = formParameters["phone"]
+            val name = formParameters["name"]
+            val surname = formParameters["surname"]
+            val roleCode = formParameters["roleCode"]?.toIntOrNull()
+
+            if(login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() ||  roleCode == null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val ret = DaoMethods.addEmployee(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString(), Employee.Role.fromInt(roleCode!!))
+            if(ret.first){
+                call.respond(HttpStatusCode.OK,"Employee added to database.")
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to add entry to the database. ${ret.second}")
+            }
+        }
+
+        patch("/edit"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+            val login = formParameters["login"]
+            val password = formParameters["password"]
+            val newPassword = formParameters["newPassword"]
+            val phone = formParameters["phone"]
+            val name = formParameters["name"]
+            val surname = formParameters["surname"]
+            val roleCode = formParameters["roleCode"]?.toIntOrNull()
+            val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
+
+            if(id==null || password.isNullOrEmpty())
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val ret = DaoMethods.editEmployee(id!!,login, password.toString(), newPassword, name, surname, phone, role)
+            if(ret.first){
+                call.respond(HttpStatusCode.OK,"The employee has been edited.")
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to edit employee. ${ret.second}")
+            }
+        }
+        get("/getById"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val employee = DaoMethods.getEmployee(id!!)
+            if(employee!=null){
+                call.respond(HttpStatusCode.OK,employee)
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to get employee.")
+            }
+        }
+        //TODO
+        get("/getByCredentials"){
+            val formParameters = call.receiveParameters()
+            val login = formParameters["login"]
+            val password = formParameters["password"]
+
+            if(login.isNullOrEmpty() || password.isNullOrEmpty())
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+            val ret = DaoMethods.getCustomer(login.toString(), password.toString())
+            if(ret.second != null){
+                call.respond(HttpStatusCode.OK, ret.second!!)
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to get employee. ${ret.first}")
+            }
+        }
+        get("/getPage"){
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+            val employees = DaoMethods.getEmployees(page,size)
+            call.respond(HttpStatusCode.OK,employees)
+        }
+        get("/getAll"){
+            val employees = DaoMethods.getAllEmployees()
+            call.respond(HttpStatusCode.OK,employees)
+        }
+        delete{
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val deleted = DaoMethods.deleteEmployee(id!!)
+            if(deleted)
+                call.respond(HttpStatusCode.OK,"The employee has been deleted.")
+            else
+                call.respond(HttpStatusCode.InternalServerError, "Failed to delete employee.")
         }
 
     }

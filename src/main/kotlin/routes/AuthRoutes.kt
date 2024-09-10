@@ -63,7 +63,6 @@ fun Route.authRoutes(){
             val login = formParameters.getOrFail("login")
             val password = formParameters.getOrFail("password")
             val employee= DaoMethods.getEmployee(login, password)
-            println("ERRROORO "+DaoMethods.getAllEmployees(1,10))
             if(employee.second!=null)
                 onAuthenticate(employee.second!!)
             else {

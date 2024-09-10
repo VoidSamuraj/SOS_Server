@@ -84,7 +84,7 @@ class ReportServiceTest {
         DaoMethods.addReport(1, "Location1", Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
         DaoMethods.addReport(2, "Location2", Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.FINISHED)
 
-        val reports = DaoMethods.getAllReports(page = 1, pageSize = 10)
+        val reports = DaoMethods.getReports(page = 1, pageSize = 10)
         assertEquals(2, reports.size)
     }
 }

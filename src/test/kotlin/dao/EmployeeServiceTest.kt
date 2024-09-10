@@ -100,7 +100,7 @@ class EmployeeServiceTest {
         DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456987", Employee.Role.DISPATCHER)
         DaoMethods.addEmployee("JaneD", "zaq1@WSX", "Jane", "Doe", "123456789", Employee.Role.DISPATCHER)
 
-        val employees = DaoMethods.getAllEmployees(page = 1, pageSize = 10)
+        val employees = DaoMethods.getEmployees(page = 1, pageSize = 10)
         assertEquals(2, employees.size)
     }
 }

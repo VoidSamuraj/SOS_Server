@@ -89,7 +89,7 @@ class CustomersServiceTest {
         DaoMethods.addCustomer("login4", "password4", "444444444", "12345678904", "email4@test.com")
         val customer = DaoMethods.getCustomer(1)
         assertNotNull(customer)
-        assertEquals("login4", customer.login)
+        assertEquals("email4@test.com", customer.email)
     }
     @Test
     fun `should get customer by login & password`() = runTest {
@@ -97,14 +97,14 @@ class CustomersServiceTest {
         val customer = DaoMethods.getCustomer("Jonnn", "zaq1@WSX")
         print("CLIENTT "+customer.first)
         assertNotNull(customer.second)
-        assertEquals("Jonnn", customer.second!!.login)
+        assertEquals("JonnnD@wp.pl", customer.second!!.email)
     }
 
     @Test
     fun `should get all customers`() = runTest {
         DaoMethods.addCustomer("login5", "password5", "555555555", "12345678905", "email5@test.com")
         DaoMethods.addCustomer("login6", "password6", "666666666", "12345678906", "email6@test.com")
-        val customers = DaoMethods.getAllCustomers(page = 1, pageSize = 10).toList()
+        val customers = DaoMethods.getCustomers(page = 1, pageSize = 10).toList()
         assertEquals(2, customers.size)
     }
 

@@ -8,12 +8,13 @@ import StatsOverlay from "./components/StatsOverlay";
 import AssignTaskBox from "./components/AssignTaskBox";
 import "./style/style.css";
 import car from "./icons/car.svg";
-import { usePatrols, useReports } from "./components/map/MapFunctions";
+import { useReports } from "./components/map/MapFunctions";
+import { useNavigate } from "react-router-dom";
 
-function Home({onLogout}) {
-  const { patrols, setPatrols, addPatrol, updatePatrol, removePatrol } =
-    usePatrols();
+function Home({onLogout, patrols, updatePatrol }) {
+
   const { reports, addReport, editReport, removeReport } = useReports();
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.classList.add("indexStyle");
@@ -34,16 +35,13 @@ function Home({onLogout}) {
 
   useEffect(() => {
     const initialize = () => {
-      addPatrol(11, { lat: 51.5, lng: 19.0 }, "#F00", "Jan", "Nowak", 987654321);
-      addPatrol(12, { lat: 51.6, lng: 21.1 }, "#0F0", "Grzeorz", "Braun", 998);
-      addPatrol(13, { lat: 52.6, lng: 21.5 }, "#0F0", "Jacek", "Sasin", 123123123);
-      addPatrol(14, { lat: 50.2, lng: 22.9 }, "#0F0", "Andrzej", "Nowak", 456123789);
-      addPatrol(5, { lat: 53.6, lng: 22.0 }, "#F00", "Bernard", "Kozak", 741852963);
-      addPatrol(6, { lat: 51.6, lng: 22.2 }, "#AAA", "Sylwia", "Małysz", 987456321);
+      updatePatrol(0, null, { lat: 51.5, lng: 19.0 });
+      updatePatrol(1, null, { lat: 51.2, lng: 18.9 });
+      updatePatrol(2, null, { lat: 51.6, lng: 21.1 });
+      updatePatrol(3, null, { lat: 52.6, lng: 21.5 });
     };
-
     initialize();
-  }, []);
+  }, [patrols.size == 0]);
 
   const generateRandomReports = useCallback(() => {
     if (reports.size < 5) {
@@ -91,6 +89,7 @@ function Home({onLogout}) {
         onSettingsToggle={toggleSettings}
         onStatsToggle={toggleStats}
         onLogout={onLogout}
+        onAdminClick={()=>navigate("/administration")}
       />
       <SettingsMenu
         isVisible={isSettingsVisible}

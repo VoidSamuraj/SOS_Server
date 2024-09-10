@@ -3,6 +3,9 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 @Serializable
+data class EmployeeInfo(val id:Int, val name: String, val surname: String, val phone: String, val roleCode:Short, val account_deleted:Boolean): Principal
+
+    @Serializable
 data class Employee(val id:Int, val login: String, val password:String, val name: String, val surname: String, val phone: String, val roleCode:Short, val account_deleted:Boolean): Principal{
     /**
      * Enum representing role of worker.

@@ -68,7 +68,7 @@ class InterventionServiceTest {
         DaoMethods.addIntervention(1, 1, 1, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED , 101)
         DaoMethods.addIntervention(2, 2, 2, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED , 102)
 
-        val interventions = DaoMethods.getAllInterventions(page = 1, pageSize = 10)
+        val interventions = DaoMethods.getInterventions(page = 1, pageSize = 10)
         assertEquals(2, interventions.size)
     }
 }

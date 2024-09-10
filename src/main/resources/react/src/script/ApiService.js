@@ -1,5 +1,4 @@
-
-//EMPLOYEE
+//EMPLOYEE AUTH
 
 export const register = (setIsLoggedIn) => {
   const formData = new URLSearchParams();
@@ -13,7 +12,6 @@ export const register = (setIsLoggedIn) => {
   })
     .then((response) => {
       if (response.ok) {
-        console.log(response);
         return response.json();
       } else {
         return response.json().then((errorData) => {
@@ -23,7 +21,6 @@ export const register = (setIsLoggedIn) => {
       }
     })
     .then((data) => {
-      console.log("Data received:", data);
       if (data.exp) {
         localStorage.setItem("exp", data.exp);
         setIsLoggedIn(true);
@@ -44,7 +41,6 @@ export const login = (login, password, setIsLoggedIn) => {
   })
     .then((response) => {
       if (response.ok) {
-        console.log(response);
         return response.json();
       } else {
         return response.json().then((errorData) => {
@@ -54,7 +50,6 @@ export const login = (login, password, setIsLoggedIn) => {
       }
     })
     .then((data) => {
-      console.log("Data received:", data);
       if (data.exp) {
         localStorage.setItem("exp", data.exp);
         setIsLoggedIn(true);
@@ -71,16 +66,92 @@ export const logout = (redirect) => {
     if (response.ok) {
       localStorage.removeItem("exp");
       setTimeout(() => {
-          redirect("/login");
+        redirect("/login");
       }, 1000);
     } else {
     }
   });
 };
 
+//EMPLOYEE
+
+export const getEmployees = async (page, size) => {
+  try {
+    const url = new URL("/employee/getPage", window.location.origin);
+    url.searchParams.append("page", page);
+    url.searchParams.append("size", size);
+
+    const fetchOptions = {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    const response = await fetch(url.toString(), fetchOptions);
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    } else {
+      console.error("Empty fetch :", response.statusText);
+      return null;
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return null;
+  }
+};
 
 //GUARD
 
+export const getAllGuards = async () => {
+  try {
+    const response = await fetch("/guard/getAll", {
+      method: "GET",
+      credentials: "include",
+    });
 
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    } else {
+      console.error("Empty fetch :", response.statusText);
+      return null;
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return null;
+  }
+};
 
 //REPORT
+
+//CLIENT
+export const getClients = async (page, size) => {
+  try {
+    const url = new URL("/client/getPage", window.location.origin);
+    url.searchParams.append("page", page);
+    url.searchParams.append("size", size);
+
+    const fetchOptions = {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    const response = await fetch(url.toString(), fetchOptions);
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    } else {
+      console.error("Empty fetch :", response.statusText);
+      return null;
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return null;
+  }
+};

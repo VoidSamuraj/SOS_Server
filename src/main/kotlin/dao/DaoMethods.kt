@@ -1,6 +1,7 @@
 package dao
 
 import Customer
+import CustomerInfo
 import Guard
 import Guards
 import Intervention
@@ -9,7 +10,9 @@ import Report
 import Reports
 import Customers
 import Employee
+import EmployeeInfo
 import Employees
+import GuardInfo
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -24,6 +27,13 @@ object DaoMethods:DaoMethodsInterface {
         id = row[Customers.id],
         login = row[Customers.login],
         password = row[Customers.password],
+        phone = row[Customers.phone],
+        pesel = row[Customers.pesel],
+        email = row[Customers.email],
+        account_deleted = row[Customers.account_deleted]
+    )
+    private fun resultRowToClientInfo(row: ResultRow) = CustomerInfo(
+        id = row[Customers.id],
         phone = row[Customers.phone],
         pesel = row[Customers.pesel],
         email = row[Customers.email],
@@ -61,6 +71,15 @@ object DaoMethods:DaoMethodsInterface {
         account_deleted = row[Guards.account_deleted]
     )
 
+    private fun resultRowToGuardInfo(row: ResultRow) = GuardInfo(
+        id = row[Guards.id],
+        name = row[Guards.name],
+        surname = row[Guards.surname],
+        phone = row[Guards.phone],
+        statusCode = Guard.GuardStatus.UNAVAILABLE.status,
+        location = "",
+        account_deleted = row[Guards.account_deleted]
+    )
     private fun resultRowToEmployee(row: ResultRow) = Employee(
         id = row[Employees.id],
         login = row[Employees.login],
@@ -71,7 +90,14 @@ object DaoMethods:DaoMethodsInterface {
         roleCode = row[Employees.role],
         account_deleted = row[Employees.account_deleted]
     )
-
+    private fun resultRowToEmployeeInfo(row: ResultRow) = EmployeeInfo(
+        id = row[Employees.id],
+        name = row[Employees.name],
+        surname = row[Employees.surname],
+        phone = row[Employees.phone],
+        roleCode = row[Employees.role],
+        account_deleted = row[Employees.account_deleted]
+    )
 
 
 
@@ -178,18 +204,23 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getAllCustomers(page: Int, pageSize: Int): List<Customer>{
+    override suspend fun getCustomers(page: Int, pageSize: Int): List<CustomerInfo>{
         return transaction {
             val offset = (page - 1) * pageSize
 
             Customers.selectAll()
                 .limit(pageSize, offset.toLong())
-                .map(::resultRowToClient).toList()
+                .map(::resultRowToClientInfo).toList()
         }
 
     }
 
-
+    override suspend fun getAllCustomers(): List<CustomerInfo>{
+        return transaction {
+            Customers.selectAll()
+                .map(::resultRowToClientInfo).toList()
+        }
+    }
 
 
 
@@ -220,7 +251,7 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getAllInterventions(page: Int, pageSize: Int): List<Intervention> {
+    override suspend fun getInterventions(page: Int, pageSize: Int): List<Intervention> {
         return transaction {
             val offset = (page - 1) * pageSize
 
@@ -230,10 +261,13 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
+    override suspend fun getAllInterventions(): List<Intervention> {
+        return transaction {
 
-
-
-
+            Interventions.selectAll()
+                .map(::resultRowToIntervention).toList()
+        }
+    }
 
 
     //Report
@@ -284,7 +318,7 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getAllReports(page:Int, pageSize: Int): List<Report> {
+    override suspend fun getReports(page:Int, pageSize: Int): List<Report> {
         return transaction {
             val offset = (page - 1) * pageSize
 
@@ -295,6 +329,14 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
+    override suspend fun getAllReports(): List<Report> {
+        return transaction {
+
+            Reports.selectAll()
+                .map(::resultRowToReport).toList()
+
+        }
+    }
 
 
 
@@ -394,16 +436,22 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getAllGuards(page:Int, pageSize: Int): List<Guard> {
+    override suspend fun getGuards(page:Int, pageSize: Int): List<GuardInfo> {
         return transaction {
             val offset = (page - 1) * pageSize
 
             Guards.selectAll()
                 .limit(pageSize, offset.toLong())
-                .map(::resultRowToGuard).toList()
+                .map(::resultRowToGuardInfo).toList()
         }
     }
+    override suspend fun getAllGuards(): List<GuardInfo> {
+        return transaction {
 
+            Guards.selectAll()
+                .map(::resultRowToGuardInfo).toList()
+        }
+    }
 
 
 
@@ -486,24 +534,31 @@ object DaoMethods:DaoMethodsInterface {
                 .mapNotNull(::resultRowToEmployee)
                 .singleOrNull()
             if (employee == null) {
-                "Incorrect Id for the employee." to null
+                return@transaction "Incorrect Id for the employee." to null
             }
             if(!comparePasswords(password,employee!!.password))
-                "Incorrect password for the employee." to null
-            "Success" to employee
+                return@transaction "Incorrect password for the employee." to null
+            return@transaction "Success" to employee
 
         }
     }
 
-    override suspend fun getAllEmployees(page:Int, pageSize: Int): List<Employee> {
+    override suspend fun getEmployees(page:Int, pageSize: Int): List<EmployeeInfo> {
         return transaction {
             val offset = (page - 1) * pageSize
 
             Employees.selectAll()
                 .limit(pageSize, offset.toLong())
-                .map(::resultRowToEmployee).toList()
+                .map(::resultRowToEmployeeInfo).toList()
 
         }
     }
+    override suspend fun getAllEmployees(): List<EmployeeInfo> {
+        return transaction {
 
+            Employees.selectAll()
+                .map(::resultRowToEmployeeInfo).toList()
+
+        }
+    }
 }

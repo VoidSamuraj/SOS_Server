@@ -2,6 +2,10 @@ import io.ktor.server.auth.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
+
+@Serializable
+data class GuardInfo(val id:Int, val name: String, val surname: String,val phone: String, val statusCode:Int, val location:String, val account_deleted:Boolean): Principal
+
 @Serializable
 data class Guard(val id:Int, val login: String,val password:String, val name: String, val surname: String,val phone: String, val statusCode:Int, val location:String, val account_deleted:Boolean): Principal{
 
