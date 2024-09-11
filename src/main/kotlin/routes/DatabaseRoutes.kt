@@ -25,7 +25,6 @@ fun Route.databaseRoutes() {
             val pesel = formParameters["pesel"]
             val email = formParameters["email"]
 
-            print("  "+login+ " "+password+" "+phone+" "+pesel+" "+email)
             if(login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || pesel.isNullOrEmpty() || email.isNullOrEmpty())
                 call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
@@ -88,15 +87,25 @@ fun Route.databaseRoutes() {
         get("/getPage"){
             val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
             val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-
             val customers = DaoMethods.getCustomers(page,size)
             call.respond(HttpStatusCode.OK,customers)
         }
-
-        delete{
+        patch("/restore"){
             val formParameters = call.receiveParameters()
             val id = formParameters["id"]?.toIntOrNull()
 
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val restored = DaoMethods.restoreCustomer(id!!)
+            if(restored)
+                call.respond(HttpStatusCode.OK,"The client has been restored.")
+            else
+                call.respond(HttpStatusCode.InternalServerError, "Failed to restore client.")
+        }
+        delete{
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
             if(id==null)
                 call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
@@ -120,7 +129,7 @@ fun Route.databaseRoutes() {
             val end_time = formParameters["end_time"]
             val status = formParameters["id"]?.toIntOrNull()
             //TODO
-           // val ret = DaoMethods.addIntervention(report_id, guard_id, employee_id, start_time, end_time,status)
+            // val ret = DaoMethods.addIntervention(report_id, guard_id, employee_id, start_time, end_time,status)
 
         }
 
@@ -316,6 +325,20 @@ fun Route.databaseRoutes() {
             val guards = DaoMethods.getAllGuards()
             call.respond(HttpStatusCode.OK,guards)
         }
+
+        patch("/restore"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val restored = DaoMethods.restoreGuard(id!!)
+            if(restored)
+                call.respond(HttpStatusCode.OK,"The guard has been restored.")
+            else
+                call.respond(HttpStatusCode.InternalServerError, "Failed to restore guard.")
+        }
         delete{
             val formParameters = call.receiveParameters()
             val id = formParameters["id"]?.toIntOrNull()
@@ -351,7 +374,21 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to add entry to the database. ${ret.second}")
             }
         }
+        patch("/changeRole"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+            val roleCode = formParameters["roleCode"]?.toIntOrNull()
+            val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
 
+            if(id==null || role == null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+            val ret = DaoMethods.changeEmployeeRole(id!!, role!!)
+            if(ret.first){
+                call.respond(HttpStatusCode.OK,"The employee has been edited.")
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to edit employee. ${ret.second}")
+            }
+        }
         patch("/edit"){
             val formParameters = call.receiveParameters()
             val id = formParameters["id"]?.toIntOrNull()
@@ -412,6 +449,20 @@ fun Route.databaseRoutes() {
         get("/getAll"){
             val employees = DaoMethods.getAllEmployees()
             call.respond(HttpStatusCode.OK,employees)
+        }
+
+        patch("/restore"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val restored = DaoMethods.restoreEmployee(id!!)
+            if(restored)
+                call.respond(HttpStatusCode.OK,"The employee has been restored.")
+            else
+                call.respond(HttpStatusCode.InternalServerError, "Failed to restore employee.")
         }
         delete{
             val formParameters = call.receiveParameters()

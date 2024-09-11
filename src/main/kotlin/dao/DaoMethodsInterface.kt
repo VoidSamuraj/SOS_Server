@@ -11,6 +11,7 @@ interface DaoMethodsInterface {
     suspend fun addCustomer(login: String, password: String, phone: String, pesel: String, email: String): Triple<Boolean, String, Customer?>
     suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, phone: String?=null, pesel: String?=null, email: String?=null): Pair<Boolean, String>
     suspend fun deleteCustomer(id:Int):Boolean
+    suspend fun restoreCustomer(id:Int):Boolean
     suspend fun getCustomer(id:Int):Customer?
     suspend fun getCustomer(login:String, password: String):Pair<String,Customer?>
     suspend fun getCustomers(page:Int, pageSize:Int):List<CustomerInfo>
@@ -35,6 +36,7 @@ interface DaoMethodsInterface {
     suspend fun addGuard(login: String, password: String, name:String, surname:String, phone: String): Triple<Boolean, String,Guard?>
     suspend fun editGuard(id:Int, login: String?=null, password: String, newPassword: String?=null, name:String?=null, surname:String?=null, phone: String?=null): Pair<Boolean, String>
     suspend fun deleteGuard(id:Int):Boolean
+    suspend fun restoreGuard(id:Int):Boolean
     suspend fun getGuard(id:Int):Guard?
     suspend fun getGuard(login:String, password: String):Pair<String,Guard?>
     suspend fun getGuards(page:Int, pageSize: Int):List<GuardInfo>
@@ -42,7 +44,9 @@ interface DaoMethodsInterface {
 
     //Employee
     suspend fun deleteEmployee(id:Int):Boolean
+    suspend fun restoreEmployee(id:Int):Boolean
     suspend fun editEmployee(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null,surname: String?=null, phone: String?=null, role:Employee.Role?=null): Pair<Boolean, String>
+    suspend fun changeEmployeeRole(id:Int, role:Employee.Role): Pair<Boolean, String>
     suspend fun addEmployee(login: String, password: String, name: String,surname: String, phone: String, role:Employee.Role): Triple<Boolean,String,Employee?>
     suspend fun getEmployee(id:Int):Employee?
     suspend fun getEmployee(login:String, password: String):Pair<String,Employee?>

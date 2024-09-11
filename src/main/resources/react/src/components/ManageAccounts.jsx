@@ -3,11 +3,13 @@ import { IconButton, Box, Tabs, Tab } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { plPL } from "@mui/material/locale";
 import { DataGrid } from "@mui/x-data-grid";
-import AccountForm from "./AccountForm";
 import edit from "../icons/edit.svg";
+import xCircle from "../icons/x-circle.svg";
+import checkCircle from "../icons/check-circle.svg";
 import x from "../icons/x.svg";
 import { plLanguage } from "../script/plLanguage.js";
 import { getClients, getEmployees } from "../script/ApiService.js";
+import AccountForm from "./AccountForm";
 
 const ManageAccounts = ({ guards }) => {
   const [clients, setClients] = useState([]);
@@ -15,6 +17,9 @@ const ManageAccounts = ({ guards }) => {
 
   const [selectedTab, setSelectedTab] = useState("employees");
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedParams, setSelectedParams] = useState(null);
+  const [editMode, setEditMode] = useState(true);
+  const [isEdited, setIsEdited] = useState(false);
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -33,23 +38,25 @@ const ManageAccounts = ({ guards }) => {
   }, [selectedTab]);
 
   useEffect(() => {
-    switch (selectedTab) {
-      case "employees":
-        getEmployees(page, pageSize).then((data) => {
-          setEmployees(data);
-        });
-        break;
-      case "guards":
-        break;
-      case "customers":
-        getClients(page, pageSize).then((data) => {
-          setClients(data);
-        });
-        break;
-      default:
-        break;
+    if (!modalOpen) {
+      switch (selectedTab) {
+        case "employees":
+          getEmployees(page, pageSize).then((data) => {
+            setEmployees(data);
+          });
+          break;
+        case "guards":
+          break;
+        case "customers":
+          getClients(page, pageSize).then((data) => {
+            setClients(data);
+          });
+          break;
+        default:
+          break;
+      }
     }
-  }, [selectedTab, page, pageSize]);
+  }, [modalOpen, selectedTab, page, pageSize]);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -69,16 +76,27 @@ const ManageAccounts = ({ guards }) => {
           { field: "phone", headerName: "Telefon", width: 150 },
           { field: "role", headerName: "Rola", width: 150 },
           {
-            field: "account_deleted",
-            headerName: "Konto usunięte",
+            field: "account_active",
+            headerName: "Konto aktywne",
             width: 200,
+            renderCell: (params) => (
+              <img
+                src={params.row.account_active ? checkCircle : xCircle}
+                alt={
+                  params.row.account_active
+                    ? "Account Active"
+                    : "Account Deleted"
+                }
+                style={{ width: 36, height: 36, margin: 8 }}
+              />
+            ),
           },
           {
             field: "actions",
             headerName: "Akcje",
             width: 150,
             renderCell: (params) => (
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Box sx={{ display: "flex", gap: 1, height: "100%" }}>
                 <IconButton onClick={() => handleEdit(params.row)}>
                   <img
                     src={edit}
@@ -86,6 +104,8 @@ const ManageAccounts = ({ guards }) => {
                     style={{
                       filter:
                         "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
+                      width: "30px",
+                      height: "30px",
                     }}
                   />
                 </IconButton>
@@ -99,6 +119,8 @@ const ManageAccounts = ({ guards }) => {
                     style={{
                       filter:
                         "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
+                      width: "30px",
+                      height: "30px",
                     }}
                   />
                 </IconButton>
@@ -114,16 +136,27 @@ const ManageAccounts = ({ guards }) => {
           { field: "surname", headerName: "Nazwisko", width: 150 },
           { field: "phone", headerName: "Telefon", width: 150 },
           {
-            field: "account_deleted",
-            headerName: "Konto usunięte",
+            field: "account_active",
+            headerName: "Konto aktywne",
             width: 200,
+            renderCell: (params) => (
+              <img
+                src={params.row.account_active ? checkCircle : xCircle}
+                alt={
+                  params.row.account_active
+                    ? "Account Active"
+                    : "Account Deleted"
+                }
+                style={{ width: 36, height: 36, margin: 8 }}
+              />
+            ),
           },
           {
             field: "actions",
             headerName: "Akcje",
             width: 150,
             renderCell: (params) => (
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Box sx={{ display: "flex", gap: 1, height: "100%" }}>
                 <IconButton onClick={() => handleEdit(params.row)}>
                   <img
                     src={edit}
@@ -131,6 +164,8 @@ const ManageAccounts = ({ guards }) => {
                     style={{
                       filter:
                         "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
+                      width: "30px",
+                      height: "30px",
                     }}
                   />
                 </IconButton>
@@ -144,6 +179,8 @@ const ManageAccounts = ({ guards }) => {
                     style={{
                       filter:
                         "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
+                      width: "30px",
+                      height: "30px",
                     }}
                   />
                 </IconButton>
@@ -159,16 +196,27 @@ const ManageAccounts = ({ guards }) => {
           { field: "pesel", headerName: "Pesel", width: 150 },
           { field: "email", headerName: "Email", width: 150 },
           {
-            field: "account_deleted",
-            headerName: "Konto usunięte",
+            field: "account_active",
+            headerName: "Konto aktywne",
             width: 200,
+            renderCell: (params) => (
+              <img
+                src={params.row.account_active ? checkCircle : xCircle}
+                alt={
+                  params.row.account_active
+                    ? "Account Active"
+                    : "Account Deleted"
+                }
+                style={{ width: 36, height: 36, margin: 8 }}
+              />
+            ),
           },
           {
             field: "actions",
             headerName: "Akcje",
             width: 150,
             renderCell: (params) => (
-              <Box sx={{ display: "flex", gap: 1 }}>
+              <Box sx={{ display: "flex", gap: 1, height: "100%" }}>
                 <IconButton onClick={() => handleEdit(params.row)}>
                   <img
                     src={edit}
@@ -176,6 +224,8 @@ const ManageAccounts = ({ guards }) => {
                     style={{
                       filter:
                         "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
+                      width: "30px",
+                      height: "30px",
                     }}
                   />
                 </IconButton>
@@ -189,6 +239,8 @@ const ManageAccounts = ({ guards }) => {
                     style={{
                       filter:
                         "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
+                      width: "30px",
+                      height: "30px",
                     }}
                   />
                 </IconButton>
@@ -206,8 +258,8 @@ const ManageAccounts = ({ guards }) => {
     switch (selectedTab) {
       case "employees":
         return employees && employees.length > 0
-          ? Array.from(employees.entries()).map(
-              ([id, { name, surname, phone, roleCode, account_deleted }]) => ({
+          ? employees.map(
+              ({ id, name, surname, phone, roleCode, account_deleted }) => ({
                 id,
                 name,
                 surname,
@@ -218,7 +270,7 @@ const ManageAccounts = ({ guards }) => {
                     : roleCode === 1
                     ? "Menedżer"
                     : "Administrator",
-                account_deleted,
+                account_active: !account_deleted,
               })
             )
           : [];
@@ -231,7 +283,7 @@ const ManageAccounts = ({ guards }) => {
                 name,
                 surname,
                 phone,
-                account_deleted,
+                account_active: !account_deleted,
               })
             )
           : [];
@@ -243,7 +295,7 @@ const ManageAccounts = ({ guards }) => {
               phone,
               pesel,
               email,
-              account_deleted,
+              account_active: !account_deleted,
             }))
           : [];
         break;
@@ -252,8 +304,8 @@ const ManageAccounts = ({ guards }) => {
     }
   };
   const handleEdit = (record) => {
+    setSelectedParams(record);
     setModalOpen(true);
-    // Można ustawić dane do edycji w formularzu
   };
 
   const handleDelete = (record) => {
@@ -262,10 +314,10 @@ const ManageAccounts = ({ guards }) => {
 
   const handleClose = () => {
     setModalOpen(false);
+    setSelectedParams(null);
   };
 
   const handleCreate = (values) => {
-    // Logika tworzenia/aktualizacji rekordu
     setModalOpen(false);
   };
 
@@ -298,7 +350,10 @@ const ManageAccounts = ({ guards }) => {
         <AccountForm
           open={modalOpen}
           onClose={handleClose}
-          onCreate={handleCreate}
+          selectedTab={selectedTab}
+          selectedParams={selectedParams}
+          editMode={editMode}
+          setIsEdited={setIsEdited}
         />
       </Box>
     </ThemeProvider>

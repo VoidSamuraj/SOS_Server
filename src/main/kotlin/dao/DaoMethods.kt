@@ -177,6 +177,13 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
+    override suspend fun restoreCustomer(id: Int): Boolean {
+        return transaction {
+            Customers.update({ Customers.id eq id }) {
+                it[Customers.account_deleted] = false
+            } > 0
+        }
+    }
     override suspend fun getCustomer(id: Int): Customer? {
         return transaction {
             Customers
@@ -411,6 +418,13 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
+    override suspend fun restoreGuard(id: Int): Boolean {
+        return transaction {
+            Guards.update({ Guards.id eq id }) {
+                it[Guards.account_deleted] = false
+            } > 0
+        }
+    }
 
     override suspend fun getGuard(id: Int): Guard? {
         return transaction {
@@ -493,6 +507,13 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
+    override suspend fun restoreEmployee(id: Int): Boolean {
+        return transaction {
+            Employees.update({ Employees.id eq id }) {
+                it[Employees.account_deleted] = false
+            } > 0
+        }
+    }
     override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, role:Employee.Role?): Pair<Boolean, String> {
         return transaction {
 
@@ -517,7 +538,22 @@ object DaoMethods:DaoMethodsInterface {
                 return@transaction false to "Failed to update employee."
         }
     }
+    override suspend fun changeEmployeeRole(id: Int, role:Employee.Role): Pair<Boolean, String> {
+        return transaction {
 
+            val employeeExists = Employees.selectAll().where{ (Employees.id eq id)}.singleOrNull()
+            if (employeeExists == null) {
+                return@transaction false to "Incorrect Id for the employee."
+            }
+
+            val updated = Employees.update({ Employees.id eq id }) {
+                it[Employees.role] = role.role.toShort()
+            } > 0
+            if (updated)
+                return@transaction true to "Employee updated successfully."
+            return@transaction false to "Failed to update employee."
+        }
+    }
     override suspend fun getEmployee(id: Int): Employee? {
         return transaction {
             Employees

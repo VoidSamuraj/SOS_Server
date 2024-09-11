@@ -1,3 +1,76 @@
+//HELPERS
+
+const restorePerson = async (route, id, name) => {
+  try {
+    const response = await fetch(route, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      credentials: "include",
+      body: new URLSearchParams({ id }).toString(),
+    });
+
+    if (response.ok) {
+    } else {
+      response.text().then((errorMessage) => {
+        console.error(name + " restore error:", errorMessage);
+      });
+    }
+  } catch (error) {
+    console.error(name + " restore error:", error);
+  }
+};
+const deletePerson = async (route, id, name) => {
+  try {
+    const response = await fetch(route, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      credentials: "include",
+      body: new URLSearchParams({ id }).toString(),
+    });
+
+    if (response.ok) {
+    } else {
+      response.text().then((errorMessage) => {
+        console.error(name + " delete error:", errorMessage);
+      });
+    }
+  } catch (error) {
+    console.error(name + " delete error:", error);
+  }
+};
+
+const getPersons = async (page, size, route) => {
+  try {
+    const url = new URL(route, window.location.origin);
+    url.searchParams.append("page", page);
+    url.searchParams.append("size", size);
+
+    const fetchOptions = {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    const response = await fetch(url.toString(), fetchOptions);
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    } else {
+      console.error("Empty fetch :", response.statusText);
+      return null;
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return null;
+  }
+};
+
 //EMPLOYEE AUTH
 
 export const register = (setIsLoggedIn) => {
@@ -76,30 +149,36 @@ export const logout = (redirect) => {
 //EMPLOYEE
 
 export const getEmployees = async (page, size) => {
+  return getPersons(page, size, "/employee/getPage");
+};
+
+export const deleteEmployee = async (id) => {
+  deletePerson("/employee", id, "Employee");
+};
+
+export const restoreEmployee = async (id) => {
+  restorePerson("/employee/restore", id, "Employee");
+};
+export const changeEmployeeRole = async (id, roleCode) => {
   try {
-    const url = new URL("/employee/getPage", window.location.origin);
-    url.searchParams.append("page", page);
-    url.searchParams.append("size", size);
+    let formData = new FormData();
+    formData.append("id", id);
+    formData.append("roleCode", roleCode);
 
-    const fetchOptions = {
-      method: "GET",
+    fetch("/employee/changeRole", {
+      method: "PATCH",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    const response = await fetch(url.toString(), fetchOptions);
-
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-    } else {
-      console.error("Empty fetch :", response.statusText);
-      return null;
-    }
+      body: formData,
+    }).then((response) => {
+      if (response.ok) {
+      } else {
+        response.text().then((errorMessage) => {
+          console.error("Employee edit error:", errorMessage);
+        });
+      }
+    });
   } catch (error) {
-    console.error("Fetch error:", error);
-    return null;
+    console.error("Employee edit error:", error);
   }
 };
 
@@ -124,34 +203,23 @@ export const getAllGuards = async () => {
     return null;
   }
 };
+export const deleteGuard = async (id) => {
+  deletePerson("/guard", id, "Guard");
+};
 
+export const restoreGuard = async (id) => {
+  restorePerson("/guard/restore", id, "Guard");
+};
 //REPORT
 
 //CLIENT
 export const getClients = async (page, size) => {
-  try {
-    const url = new URL("/client/getPage", window.location.origin);
-    url.searchParams.append("page", page);
-    url.searchParams.append("size", size);
+  return getPersons(page, size, "/client/getPage");
+};
+export const deleteClient = async (id) => {
+  deletePerson("/client", id, "Client");
+};
 
-    const fetchOptions = {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    const response = await fetch(url.toString(), fetchOptions);
-
-    if (response.ok) {
-      const data = await response.json();
-      return data;
-    } else {
-      console.error("Empty fetch :", response.statusText);
-      return null;
-    }
-  } catch (error) {
-    console.error("Fetch error:", error);
-    return null;
-  }
+export const restoreClient = async (id) => {
+  restorePerson("/client/restore", id, "Client");
 };
