@@ -11,10 +11,14 @@ import car from "./icons/car.svg";
 import { useReports } from "./components/map/MapFunctions";
 import { useNavigate } from "react-router-dom";
 
-function Home({onLogout, patrols, updatePatrol }) {
+import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import config from "./config";
+const libraries = ["places"];
 
+function Home({ onLogout, patrols, updatePatrol }) {
   const { reports, addReport, editReport, removeReport } = useReports();
   const navigate = useNavigate();
+  const [locationJson, setLocationJson] = useState(null);
 
   useEffect(() => {
     document.documentElement.classList.add("indexStyle");
@@ -81,18 +85,20 @@ function Home({onLogout, patrols, updatePatrol }) {
   };
 
   return (
-    <>
+    <LoadScript googleMapsApiKey={config.GOOGLE_API_KEY} libraries={libraries}>
       <TopBar onDropdownToggle={toggleDropdown} guards={patrols} />
       <DropdownMenu
         isVisible={isDropdownVisible}
         onSettingsToggle={toggleSettings}
         onStatsToggle={toggleStats}
         onLogout={onLogout}
-        onAdminClick={()=>navigate("/administration")}
+        onAdminClick={() => navigate("/administration")}
       />
       <SettingsMenu
         isVisible={isSettingsVisible}
         onSettingsToggle={toggleSettings}
+        locationJson={locationJson}
+        setLocationJson={setLocationJson}
       />
       <div id="patrolsButton" onClick={togglePatrolList}>
         <img src={car} alt="patrols" />
@@ -102,14 +108,14 @@ function Home({onLogout, patrols, updatePatrol }) {
         onPatrolsToggle={togglePatrolList}
         patrols={patrols}
       />
-      <MyMap patrols={patrols} reports={reports} />
+      <MyMap patrols={patrols} reports={reports} locationJson={locationJson}/>
       <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} />
       <AssignTaskBox
         patrols={patrols}
         reports={reports}
         onAssignTask={assignTask}
       />
-    </>
+    </LoadScript>
   );
 }
 

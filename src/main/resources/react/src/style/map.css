@@ -23,3 +23,15 @@
 .yNHHyP-marker-view > div > div {
   pointer-events: auto !important;
 }
+
+#homeButton {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  z-index: 5;
+  bottom: 25px;
+  right: 60px;
+  padding: 5px;
+  background-color: #232b54;
+  border-radius: 5px;
+}
