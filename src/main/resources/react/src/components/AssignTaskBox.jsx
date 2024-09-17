@@ -85,7 +85,6 @@ function AssignTaskBox({ patrols, reports, onAssignTask, colors}) {
         );
         return distanceA - distanceB;
       });
-    console.log(sorted)
     setSortedPatrols(sorted);
   }, [selectedReport, patrols]);
 

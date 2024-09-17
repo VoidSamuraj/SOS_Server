@@ -18,7 +18,7 @@ const libraries = ["places"];
 function Home({ onLogout, patrols, updatePatrol }) {
   const { reports, addReport, editReport, removeReport } = useReports();
   const navigate = useNavigate();
-  const [locationJson, setLocationJson] = useState(null);
+  const [locationJson, setLocationJson] = useState(localStorage.getItem("HomeLocation"));
 
   useEffect(() => {
     document.documentElement.classList.add("indexStyle");

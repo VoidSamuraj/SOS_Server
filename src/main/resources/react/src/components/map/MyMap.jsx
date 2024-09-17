@@ -17,7 +17,6 @@ function MapController({ locationJson, refreshFlag }) {
     if (map) {
       const savedLocation = localStorage.getItem("HomeLocation");
       let locationData;
-
       try {
         locationData = locationJson
           ? JSON.parse(locationJson)
@@ -33,13 +32,14 @@ function MapController({ locationJson, refreshFlag }) {
         lat: locationData?.latitude ?? 51.9189046,
         lng: locationData?.longitude ?? 19.1343786,
       };
+
       map.panTo(defaultCenter);
     }
   };
 
   useEffect(() => {
     navigateHome();
-  }, [locationJson, map]);
+  }, [locationJson, map, refreshFlag]);
 
   return null;
 }
@@ -64,7 +64,7 @@ function MyMap({ patrols, reports, locationJson }) {
       >
         <CarMarkers cars={patrols} />
         <ReportMarkers reports={reports} />
-        <MapController locationJson={(locationJson, buttonState)} />
+        <MapController locationJson={locationJson} refreshFlag={buttonState} />
       </GoogleMap>
       <img id="homeButton" onClick={toggleButton} src={homeImg} alt="home" />
     </APIProvider>

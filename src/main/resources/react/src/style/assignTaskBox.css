@@ -12,6 +12,9 @@
 #bell > img {
   width: 48px;
   height: 48px;
+  display: inline-block;
+  animation: ring 2s infinite;
+  transform-origin: center 10%;
 }
 
 #assignTaskBox {
@@ -106,4 +109,13 @@
   background-color: gray !important;
   color: black !important;
   border-color: gray !important;
+}
+
+@keyframes ring {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(-15deg); }
+  20% { transform: rotate(15deg); }
+  30% { transform: rotate(-10deg); }
+  40% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
 }

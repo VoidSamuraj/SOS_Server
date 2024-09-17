@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
-import "../style/settingsMenu.css"; // Załaduj style dla tego komponentu
+import "../style/settingsMenu.css";
 import rightarrow from "../icons/right-arrow.svg";
 
 function SettingsMenu({
@@ -9,7 +9,7 @@ function SettingsMenu({
   locationJson,
   setLocationJson,
 }) {
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState(locationJson ? JSON.parse(locationJson)?.name ?? "":"");
   const [autocomplete, setAutocomplete] = useState(null);
 
   const handlePlaceChanged = () => {
@@ -17,6 +17,7 @@ function SettingsMenu({
       const place = autocomplete.getPlace();
       if (place.geometry) {
         const locationData = {
+          name: (place.formatted_address || place.name),
           latitude: place.geometry.location.lat(),
           longitude: place.geometry.location.lng(),
         };
