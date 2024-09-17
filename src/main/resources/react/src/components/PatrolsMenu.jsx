@@ -1,23 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../style/patrolsMenu.css"; // Załaduj style dla tego komponentu
 import leftarrow from "../icons/left-arrow.svg";
 import { usePatrols } from "./map/MapFunctions";
 
 function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
   const [sortByStatus, setSortByStatus] = useState(true);
+  const [sortedPatrols, setSortedPatrols] = useState([]);
 
   const { statusToCode } = usePatrols();
-  const sortedPatrols = Array.from(patrols.entries()).sort(
-    ([idA, { status: statusA }], [idB, { status: statusB }]) => {
-      if (sortByStatus) {
-        return statusA-statusB;
-      } else {
-        return idA - idB;
-      }
-      return 0;
-    }
-  );
 
+  useEffect(() => {
+    if (patrols) {
+      const sorted = Array.from(patrols.entries()).sort(
+        ([idA, { status: statusA }], [idB, { status: statusB }]) => {
+          if (sortByStatus) {
+            return statusA - statusB;
+          } else {
+            return idA - idB;
+          }
+        }
+      );
+      setSortedPatrols(sorted);
+    }
+  }, [sortByStatus, patrols]);
 
   return (
     <div
@@ -46,18 +51,24 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
         </button>
       </div>
       <div id="patrolsList">
-        {sortedPatrols.map(([id, { position, status, name, surname, phone }]) => (
-          <div style={{ backgroundColor: statusToCode(status) }} onClick={(event) => event.currentTarget.classList.toggle("expandedMenu")}>
-            <div
-              key={id}
-              className="patrol-item"
-            >
-              {id}
-            </div>
-            <p>{name+" "+surname}</p>
-            <p>{phone}</p>
-          </div>
-        ))}
+        {sortedPatrols
+          ? sortedPatrols.map(
+              ([id, { position, status, name, surname, phone }]) => (
+                <div
+                  style={{ backgroundColor: statusToCode(status) }}
+                  onClick={(event) =>
+                    event.currentTarget.classList.toggle("expandedMenu")
+                  }
+                >
+                  <div key={id} className="patrol-item">
+                    {id}
+                  </div>
+                  <p>{name + " " + surname}</p>
+                  <p>{phone}</p>
+                </div>
+              )
+            )
+          : ""}
       </div>
     </div>
   );

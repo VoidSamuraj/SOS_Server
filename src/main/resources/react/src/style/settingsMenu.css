@@ -38,11 +38,12 @@
   margin: 6px;
 }
 #locationBox > input[type="button"] {
+  transition: background-color 0.2s ease-in-out;
   margin-top: 0;
   width: 230px;
 }
 #locationBox > input[type="button"]:hover {
-  background-color: #fff2;
+  background-color: #40476b;
 }
 .pac-container{
     flex-direction:column;

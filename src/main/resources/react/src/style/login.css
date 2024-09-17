@@ -79,7 +79,7 @@ label:last-of-type {
 }
 #recoverPasswordButton:hover,
 #loginButton:hover {
-  background-color: #fff2;
+  background-color: #40476b;
 }
 
 #loginForm > a {

@@ -31,7 +31,7 @@ function Home({ onLogout, patrols, updatePatrol }) {
   }, []);
 
   const assignTask = (patrolId, reportId) => {
-    updatePatrol(patrolId, "#AAA", null);
+    updatePatrol(patrolId, 2, null);
     editReport(reportId, null, null, 1);
   };
 

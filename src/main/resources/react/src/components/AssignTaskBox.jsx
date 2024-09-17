@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "../style/assignTaskBox.css"; // Załaduj style dla tego komponentu
 import bell from "../icons/bell.svg";
+import { usePatrols } from "./map/MapFunctions";
 
-function AssignTaskBox({ patrols, reports, onAssignTask }) {
+function AssignTaskBox({ patrols, reports, onAssignTask, colors}) {
   const [hideBell, setHideBell] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPatrol, setSelectedPatrol] = useState(null);
@@ -10,6 +11,10 @@ function AssignTaskBox({ patrols, reports, onAssignTask }) {
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [sortedPatrols, setSortedPatrols] = useState([]);
   const [sortedReports, setSortedReports] = useState([]);
+
+
+  const { statusToCode } = usePatrols();
+
   function onBack() {
     if (nrOfMenu >= 2) setNrOfMenu(nrOfMenu - 1);
   }
@@ -58,11 +63,11 @@ function AssignTaskBox({ patrols, reports, onAssignTask }) {
 
   useEffect(() => {
     let sorted = Array.from(patrols.entries())
-      .filter(([, { color }]) => {
+      .filter(([, { status }]) => {
         if (patrols.size === 0 || selectedReport == null ) return false;
 
         return (
-          color.toUpperCase() == "#0F0" || color.toUpperCase() == "#00FF00"
+          status == 0
         );
       })
       .sort(([, { position: posA }], [, { position: posB }]) => {
@@ -80,7 +85,7 @@ function AssignTaskBox({ patrols, reports, onAssignTask }) {
         );
         return distanceA - distanceB;
       });
-
+    console.log(sorted)
     setSortedPatrols(sorted);
   }, [selectedReport, patrols]);
 
@@ -138,12 +143,12 @@ function AssignTaskBox({ patrols, reports, onAssignTask }) {
               </div>
             ))
           ) : nrOfMenu == 2 ? (
-            sortedPatrols.map(([id, { position, color }]) => (
+            sortedPatrols.map(([id, { position, status }]) => (
               <div
                 key={id}
                 onClick={() => setSelectedPatrol(id)}
                 className={`${id == selectedPatrol ? "selected" : ""}`}
-                style={{ backgroundColor: color }}
+                style={{ backgroundColor: statusToCode(status)}}
               >
                 {id}
               </div>

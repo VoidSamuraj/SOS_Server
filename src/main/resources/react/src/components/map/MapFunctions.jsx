@@ -48,7 +48,7 @@ const statusToCode = (status) => {
 
   const convertArrayToPatrolMap = (dataArray) => {
     return new Map(
-      dataArray.map(data => [
+      (dataArray || []).map(data => [
         data.id, {
           position: data.location || 'unknown',
           status: data.statusCode ,
