@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   AdvancedMarker,
   InfoWindow,
@@ -16,7 +16,7 @@ const ReportMarkers = ({ reports, selectReport }) => {
             <AlertIcon
               id={id}
               position={position}
-              date={new Date(date)}
+              date={date}
               status={status}
               selectReport={selectReport}
             />
@@ -31,7 +31,24 @@ const ReportMarkers = ({ reports, selectReport }) => {
 const AlertIcon = ({ id, position, date, status, selectReport }) => {
   const [infowindowOpen, setInfowindowOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
+  const [passedTime, setPassedTime] = useState(calculatePassedTime(date));
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newPassedTime = calculatePassedTime(date);
+      if (newPassedTime <= 0) {
+        clearInterval(interval);
+      }
+      setPassedTime(newPassedTime);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [date]);
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}m ${secs}s`;
+  };
   return (
     <>
       <AdvancedMarker
@@ -57,9 +74,9 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
           onCloseClick={() => setInfowindowOpen(false)}
         >
           <div style={{ fontWeight: "bold", padding: "8px 0" }}>
-            Data zgłoszenia:
+            Zgłoszenie oczekuje od:
           </div>
-          {date.toLocaleDateString()}
+          {formatTime(passedTime)}
           <input
             type="button"
             value="Przydziel zgłoszenie"
@@ -71,5 +88,9 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
     </>
   );
 };
-
+const calculatePassedTime = (date) => {
+  const now = new Date().getTime();
+  const timeDifference = now - date;
+  return Math.max(Math.floor(timeDifference / 1000), 0);
+};
 export default ReportMarkers;

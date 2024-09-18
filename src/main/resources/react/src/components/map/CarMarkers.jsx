@@ -1,11 +1,37 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   AdvancedMarker,
   InfoWindow,
   useAdvancedMarkerRef,
 } from "@vis.gl/react-google-maps";
 import { usePatrols } from "./MapFunctions";
+import config from "../../config";
 
+const fetchStreetName = async (lat, lng, setStreetName, streetName) => {
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${config.GOOGLE_API_KEY}`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status === "OK" && data.results.length > 0) {
+      const addressComponents = data.results[0].address_components;
+      const streetComponent = addressComponents.find((component) =>
+        component.types.includes("route")
+      );
+
+      if (streetComponent) {
+        setStreetName(streetComponent.short_name);
+      } else {
+        setStreetName(null);
+      }
+    } else {
+      console.error("Geocoding failed: ", data.status);
+    }
+  } catch (error) {
+    console.error("Error fetching geocoding data: ", error);
+  }
+};
 // Memoize markers to avoid unnecessary re-renders
 const CarMarkers = ({ cars }) => {
   const { statusToCode } = usePatrols();
@@ -41,6 +67,10 @@ const CarMarkers = ({ cars }) => {
 const CarIcon = ({ id, position, color, name, surname, phone }) => {
   const [infowindowOpen, setInfowindowOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
+  const [streetName, setStreetName] = useState(null);
+  useEffect(() => {
+    fetchStreetName(position.lat, position.lng, setStreetName, streetName);
+  }, [position]);
 
   return (
     <>
@@ -93,6 +123,14 @@ const CarIcon = ({ id, position, color, name, surname, phone }) => {
               <div className="table-cell key">Telefon:</div>
               <div className="table-cell value">{phone}</div>
             </div>
+            {streetName ? (
+              <div className="table-row">
+                <div className="table-cell key">Lokalizacja:</div>
+                <div className="table-cell value">{streetName}</div>
+              </div>
+            ) : (
+              ""
+            )}
           </div>
         </InfoWindow>
       )}
