@@ -3,8 +3,18 @@ import "../style/assignTaskBox.css"; // Załaduj style dla tego komponentu
 import bell from "../icons/bell.svg";
 import { usePatrols } from "./map/MapFunctions";
 
-function AssignTaskBox({ patrols, reports, onAssignTask, hideBell, setHideBell, selectedReport, setSelectedReport, nrOfMenu, setNrOfMenu}) {
-      const [selectedPatrol, setSelectedPatrol] = useState(null);
+function AssignTaskBox({
+  patrols,
+  reports,
+  onAssignTask,
+  hideBell,
+  setHideBell,
+  selectedReport,
+  setSelectedReport,
+  nrOfMenu,
+  setNrOfMenu,
+}) {
+  const [selectedPatrol, setSelectedPatrol] = useState(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [sortedPatrols, setSortedPatrols] = useState([]);
   const [sortedReports, setSortedReports] = useState([]);
@@ -15,14 +25,17 @@ function AssignTaskBox({ patrols, reports, onAssignTask, hideBell, setHideBell, 
     if (nrOfMenu >= 2) setNrOfMenu(nrOfMenu - 1);
   }
   function proceed() {
-    if (!isButtonDisabled && nrOfMenu <= 2)
-        setNrOfMenu(nrOfMenu + 1);
-    else if(selectedReport != null && selectedPatrol != null && nrOfMenu == 3){
-        setHideBell(false);
-        setNrOfMenu(1);
-        onAssignTask(selectedPatrol,selectedReport);
-        setSelectedPatrol(null)
-        setSelectedReport(null)
+    if (!isButtonDisabled && nrOfMenu <= 2) setNrOfMenu(nrOfMenu + 1);
+    else if (
+      selectedReport != null &&
+      selectedPatrol != null &&
+      nrOfMenu == 3
+    ) {
+      setHideBell(false);
+      setNrOfMenu(1);
+      onAssignTask(selectedPatrol, selectedReport);
+      setSelectedPatrol(null);
+      setSelectedReport(null);
     }
   }
   const updateButtonState = () => {
@@ -31,7 +44,6 @@ function AssignTaskBox({ patrols, reports, onAssignTask, hideBell, setHideBell, 
       (nrOfMenu === 2 && selectedPatrol === null);
     setIsButtonDisabled(newButtonState);
   };
-
 
   function haversineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // earth radius in km
@@ -61,11 +73,9 @@ function AssignTaskBox({ patrols, reports, onAssignTask, hideBell, setHideBell, 
   useEffect(() => {
     let sorted = Array.from(patrols.entries())
       .filter(([, { status }]) => {
-        if (patrols.size === 0 || selectedReport == null ) return false;
+        if (patrols.size === 0 || selectedReport == null) return false;
 
-        return (
-          status == 0
-        );
+        return status == 0;
       })
       .sort(([, { position: posA }], [, { position: posB }]) => {
         const distanceA = haversineDistance(
@@ -108,6 +118,7 @@ function AssignTaskBox({ patrols, reports, onAssignTask, hideBell, setHideBell, 
         className={`${reports.size > 0 && !hideBell ? "visible" : ""}`}
       >
         <img src={bell} alt="bell" />
+        {reports.size > 1 ? <div id="bellCounter">{reports.size}</div> : ""}
       </div>
       <div id="assignTaskMenu" className={`${hideBell ? "visible" : ""}`}>
         <div className="navButtons">
@@ -144,7 +155,7 @@ function AssignTaskBox({ patrols, reports, onAssignTask, hideBell, setHideBell, 
                 key={id}
                 onClick={() => setSelectedPatrol(id)}
                 className={`${id == selectedPatrol ? "selected" : ""}`}
-                style={{ backgroundColor: statusToCode(status)}}
+                style={{ backgroundColor: statusToCode(status) }}
               >
                 {id}
               </div>

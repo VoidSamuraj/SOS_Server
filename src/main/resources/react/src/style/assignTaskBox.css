@@ -1,6 +1,6 @@
 #bell {
   display: none;
-  background-color: #f008;
+  background-color: #fe7574;
   border-radius: 50%;
   border: 2px solid black;
   width: 48px;
@@ -15,6 +15,18 @@
   display: inline-block;
   animation: ring 2s infinite;
   transform-origin: center 10%;
+}
+#bellCounter{
+  background-color: #fe7574;
+  border-radius: 50%;
+  border: 2px solid black;
+  width: 18px;
+  height: 18px;
+  padding: 5px;
+  text-align: center;
+  position:absolute;
+  top:-7px;
+  right:-7px;
 }
 
 #assignTaskBox {
