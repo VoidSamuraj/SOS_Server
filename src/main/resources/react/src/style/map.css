@@ -40,3 +40,35 @@
 #homeButton:hover {
   background-color: #40476b;
 }
+
+.key-value-table {
+  display: table;
+  width: 100%;
+}
+
+.key-value-table .table-row {
+  display: table-row;
+}
+
+.key-value-table .table-cell {
+  display: table-cell;
+  padding: 8px;
+}
+
+.key-value-table .key {
+  font-weight: bold;
+  width: auto;
+}
+
+.key-value-table .value {
+  width: auto;
+}
+
+.assignReportButton {
+  background-color: #232b54;
+  width: 100%;
+  margin-top: 8px;
+}
+.assignReportButton:hover {
+  background-color: #40476b;
+}

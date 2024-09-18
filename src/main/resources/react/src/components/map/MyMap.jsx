@@ -9,6 +9,7 @@ import {
 import CarMarkers from "./CarMarkers.jsx";
 import ReportMarkers from "./ReportMarkers.jsx";
 import homeImg from "../../icons/home.svg";
+import AssignTaskBox from "../AssignTaskBox";
 
 function MapController({ locationJson, refreshFlag }) {
   const map = useMap();
@@ -44,30 +45,55 @@ function MapController({ locationJson, refreshFlag }) {
   return null;
 }
 
+function MyMap({ patrols, reports, locationJson, onAssignTask }) {
+  const [hideBell, setHideBell] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const [nrOfMenu, setNrOfMenu] = useState(1);
 
-function MyMap({ patrols, reports, locationJson }) {
+  const selectReport = (id) => {
+    setSelectedReport(id);
+    setNrOfMenu(2);
+    setHideBell(true);
+  };
+
   const [buttonState, setButtonState] = useState(true);
   const toggleButton = () => {
     setButtonState(!buttonState);
   };
 
   useEffect(() => {
-      toggleButton();
+    toggleButton();
   }, [locationJson]);
 
   return (
-    <APIProvider apiKey={config.GOOGLE_API_KEY}>
-      <GoogleMap
-        defaultZoom={7.5}
-        defaultCenter={{ lat: 51.9189046, lng: 19.1343786 }}
-        mapId={config.MAP_ID}
-      >
-        <CarMarkers cars={patrols} />
-        <ReportMarkers reports={reports} />
-        <MapController locationJson={locationJson} refreshFlag={buttonState} />
-      </GoogleMap>
-      <img id="homeButton" onClick={toggleButton} src={homeImg} alt="home" />
-    </APIProvider>
+    <>
+      <APIProvider apiKey={config.GOOGLE_API_KEY}>
+        <GoogleMap
+          defaultZoom={7.5}
+          defaultCenter={{ lat: 51.9189046, lng: 19.1343786 }}
+          mapId={config.MAP_ID}
+        >
+          <CarMarkers cars={patrols} />
+          <ReportMarkers reports={reports} selectReport={selectReport} />
+          <MapController
+            locationJson={locationJson}
+            refreshFlag={buttonState}
+          />
+        </GoogleMap>
+        <img id="homeButton" onClick={toggleButton} src={homeImg} alt="home" />
+      </APIProvider>
+      <AssignTaskBox
+        patrols={patrols}
+        reports={reports}
+        onAssignTask={onAssignTask}
+        hideBell={hideBell}
+        setHideBell={setHideBell}
+        selectedReport={selectedReport}
+        setSelectedReport={setSelectedReport}
+        nrOfMenu={nrOfMenu}
+        setNrOfMenu={setNrOfMenu}
+      />
+    </>
   );
 }
 

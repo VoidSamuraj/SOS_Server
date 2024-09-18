@@ -5,7 +5,6 @@ import SettingsMenu from "./components/SettingsMenu";
 import PatrolsMenu from "./components/PatrolsMenu";
 import MyMap from "./components/map/MyMap";
 import StatsOverlay from "./components/StatsOverlay";
-import AssignTaskBox from "./components/AssignTaskBox";
 import "./style/style.css";
 import car from "./icons/car.svg";
 import { useReports } from "./components/map/MapFunctions";
@@ -108,13 +107,8 @@ function Home({ onLogout, patrols, updatePatrol }) {
         onPatrolsToggle={togglePatrolList}
         patrols={patrols}
       />
-      <MyMap patrols={patrols} reports={reports} locationJson={locationJson}/>
+      <MyMap patrols={patrols} reports={reports} locationJson={locationJson} onAssignTask={assignTask}/>
       <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} />
-      <AssignTaskBox
-        patrols={patrols}
-        reports={reports}
-        onAssignTask={assignTask}
-      />
     </LoadScript>
   );
 }

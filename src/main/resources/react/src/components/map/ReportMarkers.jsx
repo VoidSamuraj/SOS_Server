@@ -1,21 +1,75 @@
-import { useMemo } from 'react';
-import { AdvancedMarker } from '@vis.gl/react-google-maps';
-import reportImage from '../../icons/SOSANIM.svg';
-import reportImageDot from '../../icons/sosdot.svg';
+import { useMemo, useState } from "react";
+import {
+  AdvancedMarker,
+  InfoWindow,
+  useAdvancedMarkerRef,
+} from "@vis.gl/react-google-maps";
+import reportImage from "../../icons/SOSANIM.svg";
+import reportImageDot from "../../icons/sosdot.svg";
 
-// Memoize markers to avoid unnecessary re-renders
-const ReportMarkers = ({ reports }) => {
-  return useMemo(() => (
+const ReportMarkers = ({ reports, selectReport }) => {
+  return useMemo(
+    () => (
+      <>
+        {Array.from(reports.entries()).map(
+          ([id, { position, date, status }]) => (
+            <AlertIcon
+              id={id}
+              position={position}
+              date={new Date(date)}
+              status={status}
+              selectReport={selectReport}
+            />
+          )
+        )}
+      </>
+    ),
+    [reports]
+  );
+};
+
+const AlertIcon = ({ id, position, date, status, selectReport }) => {
+  const [infowindowOpen, setInfowindowOpen] = useState(false);
+  const [markerRef, marker] = useAdvancedMarkerRef();
+
+  return (
     <>
-      {Array.from(reports.entries()).map(([id, {position, date, status}]) => (
-        <AdvancedMarker key={id} position={position}>
-          <div className="mapMarker" style={{ width: status === 0 ? '200px' : '50px', height: status === 0 ? '100px' : '50px' }}>
-            <img src={(status == 0)?reportImage:reportImageDot} alt="Report" />
+      <AdvancedMarker
+        key={id}
+        ref={markerRef}
+        position={position}
+        onClick={() => setInfowindowOpen(true)}
+      >
+        <div
+          className="mapMarker"
+          style={{
+            width: status === 0 ? "200px" : "50px",
+            height: status === 0 ? "100px" : "50px",
+          }}
+        >
+          <img src={status == 0 ? reportImage : reportImageDot} alt="Report" />
+        </div>
+      </AdvancedMarker>
+      {infowindowOpen && (
+        <InfoWindow
+          anchor={marker}
+          maxWidth={200}
+          onCloseClick={() => setInfowindowOpen(false)}
+        >
+          <div style={{ fontWeight: "bold", padding: "8px 0" }}>
+            Data zgłoszenia:
           </div>
-        </AdvancedMarker>
-      ))}
+          {date.toLocaleDateString()}
+          <input
+            type="button"
+            value="Przydziel zgłoszenie"
+            className="assignReportButton"
+            onClick={() => selectReport(id)}
+          />
+        </InfoWindow>
+      )}
     </>
-  ), [reports]);
+  );
 };
 
 export default ReportMarkers;

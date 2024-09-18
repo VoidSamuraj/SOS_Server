@@ -3,15 +3,11 @@ import "../style/assignTaskBox.css"; // Załaduj style dla tego komponentu
 import bell from "../icons/bell.svg";
 import { usePatrols } from "./map/MapFunctions";
 
-function AssignTaskBox({ patrols, reports, onAssignTask, colors}) {
-  const [hideBell, setHideBell] = useState(false);
-  const [selectedReport, setSelectedReport] = useState(null);
-  const [selectedPatrol, setSelectedPatrol] = useState(null);
-  const [nrOfMenu, setNrOfMenu] = useState(1);
+function AssignTaskBox({ patrols, reports, onAssignTask, hideBell, setHideBell, selectedReport, setSelectedReport, nrOfMenu, setNrOfMenu}) {
+      const [selectedPatrol, setSelectedPatrol] = useState(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [sortedPatrols, setSortedPatrols] = useState([]);
   const [sortedReports, setSortedReports] = useState([]);
-
 
   const { statusToCode } = usePatrols();
 
@@ -35,6 +31,7 @@ function AssignTaskBox({ patrols, reports, onAssignTask, colors}) {
       (nrOfMenu === 2 && selectedPatrol === null);
     setIsButtonDisabled(newButtonState);
   };
+
 
   function haversineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // earth radius in km

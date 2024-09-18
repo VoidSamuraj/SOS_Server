@@ -1,5 +1,5 @@
 import React from "react";
-import "../style/dropdownMenu.css"; // Załaduj style dla tego komponentu
+import "../style/dropdownMenu.css";
 import barchart from "../icons/bar-chart.svg";
 import cog from "../icons/cog.svg";
 import exit from "../icons/exit.svg";
