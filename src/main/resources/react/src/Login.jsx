@@ -22,7 +22,30 @@ function Login({ isLoggedIn, setIsLoggedIn }) {
   };
   const handleRecoverPassword = (event) => {
     event.preventDefault();
-    console.log("RECOVER");
+
+    const formData = new URLSearchParams();
+        formData.append("email", email);
+
+        fetch('http://localhost:8080/employee/remind-password', {
+            method: 'POST',
+            credentials: "include",
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Błąd: " + response.statusText);
+            }
+            return response.text();
+        })
+        .then(data => {
+            alert("Wiadomość z linkiem do przywrócenia hasła została wysłana na podany adres e-mail.");
+            window.location.href = '/login';
+        })
+        .catch(error => {
+            console.error("Błąd:", error);
+            alert("Błąd");
+        });
+
   };
 
   useEffect(() => {

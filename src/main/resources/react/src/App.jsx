@@ -82,7 +82,6 @@ socket.onclose = (event) => {
       <Routes>
         <Route path="/" element={<Navigate to="/home" />} />
         <Route path="/login" element={<Login isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-        //nesting Home in PrivateRoute
         <Route element={<PrivateRoute isLoggedIn={isLoggedIn} />}>
           <Route path="/home" element={
               <Home  onLogout={()=>setIsLoggedIn(false) } patrols={patrols} updatePatrol={updatePatrol}/>

@@ -65,6 +65,7 @@ dependencies {
 
     implementation("org.jsoup:jsoup:1.18.1")
 
+    implementation("org.simplejavamail:simple-java-mail:8.11.3")
 }
 tasks.withType<Test> {
     systemProperty("ktor.environment", "test")

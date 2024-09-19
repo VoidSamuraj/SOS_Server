@@ -360,6 +360,7 @@ fun Route.databaseRoutes() {
             val login = formParameters["login"]
             val password = formParameters["password"]
             val phone = formParameters["phone"]
+            val email = formParameters["email"]
             val name = formParameters["name"]
             val surname = formParameters["surname"]
             val roleCode = formParameters["roleCode"]?.toIntOrNull()
@@ -367,7 +368,7 @@ fun Route.databaseRoutes() {
             if(login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() ||  roleCode == null)
                 call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
-            val ret = DaoMethods.addEmployee(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString(), Employee.Role.fromInt(roleCode!!))
+            val ret = DaoMethods.addEmployee(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString(), email.toString(), Employee.Role.fromInt(roleCode!!))
             if(ret.first){
                 call.respond(HttpStatusCode.OK,"Employee added to database.")
             }else{
@@ -396,6 +397,7 @@ fun Route.databaseRoutes() {
             val password = formParameters["password"]
             val newPassword = formParameters["newPassword"]
             val phone = formParameters["phone"]
+            val email = formParameters["email"]
             val name = formParameters["name"]
             val surname = formParameters["surname"]
             val roleCode = formParameters["roleCode"]?.toIntOrNull()
@@ -404,7 +406,7 @@ fun Route.databaseRoutes() {
             if(id==null || password.isNullOrEmpty())
                 call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
-            val ret = DaoMethods.editEmployee(id!!,login, password.toString(), newPassword, name, surname, phone, role)
+            val ret = DaoMethods.editEmployee(id!!,login, password.toString(), newPassword, name, surname, phone,email, role)
             if(ret.first){
                 call.respond(HttpStatusCode.OK,"The employee has been edited.")
             }else{

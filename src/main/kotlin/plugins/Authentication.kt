@@ -1,5 +1,6 @@
 package plugins
 
+import Employee
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
@@ -51,10 +52,10 @@ fun createToken(employee: Employee): JWTToken{
     val token = JWT.create()
         .withClaim("id", employee.id)
         .withClaim("login", employee.login)
-        // .withClaim("password", employee.password)
         .withClaim("name", employee.name)
         .withClaim("surname", employee.surname)
         .withClaim("phone", employee.phone)
+        .withClaim("email", employee.email)
         .withClaim("roleCode", employee.roleCode.toInt())
         .withExpiresAt(Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000))
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
@@ -79,6 +80,7 @@ fun getEmployeeId(token: JWTToken?):Int?{
     }
     return null
 }
+
 fun getTokenExpirationDate(token: JWTToken?):Date?{
     val jwtToken = token?.token
     if(jwtToken!=null){

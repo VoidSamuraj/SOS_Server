@@ -87,6 +87,7 @@ object DaoMethods:DaoMethodsInterface {
         name = row[Employees.name],
         surname = row[Employees.surname],
         phone = row[Employees.phone],
+        email = row[Employees.email],
         roleCode = row[Employees.role],
         account_deleted = row[Employees.account_deleted]
     )
@@ -95,6 +96,7 @@ object DaoMethods:DaoMethodsInterface {
         name = row[Employees.name],
         surname = row[Employees.surname],
         phone = row[Employees.phone],
+        email = row[Employees.email],
         roleCode = row[Employees.role],
         account_deleted = row[Employees.account_deleted]
     )
@@ -473,7 +475,7 @@ object DaoMethods:DaoMethodsInterface {
 
     //Employee
 
-    override suspend fun addEmployee(login: String, password: String, name: String, surname: String, phone: String, role: Employee.Role): Triple<Boolean,String,Employee?> {
+    override suspend fun addEmployee(login: String, password: String, name: String, surname: String, phone: String, email:String, role: Employee.Role): Triple<Boolean,String,Employee?> {
         return transaction {
 
             if (Employees.select(Employees.login).where{ Employees.login eq login}.count() > 0) {
@@ -482,6 +484,9 @@ object DaoMethods:DaoMethodsInterface {
             if (Employees.select(Employees.phone).where{ Employees.phone eq phone}.count() > 0) {
                 return@transaction Triple(false, "Phone is already taken.",null)
             }
+            if (Employees.select(Employees.email).where{ Employees.email eq email}.count() > 0) {
+                return@transaction Triple(false, "Email is already taken.",null)
+            }
 
             val insertStatement = Employees.insert {
                 it[Employees.login] = login
@@ -489,6 +494,7 @@ object DaoMethods:DaoMethodsInterface {
                 it[Employees.name] = name
                 it[Employees.surname] = surname
                 it[Employees.phone] = phone
+                it[Employees.email] = email
                 it[Employees.role] = role.role.toShort()
                 it[Employees.account_deleted] = false
             }
@@ -514,7 +520,7 @@ object DaoMethods:DaoMethodsInterface {
             } > 0
         }
     }
-    override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, role:Employee.Role?): Pair<Boolean, String> {
+    override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, email: String?, role:Employee.Role?): Pair<Boolean, String> {
         return transaction {
 
             val employeeExists = Employees.selectAll().where{ (Employees.id eq id)}.singleOrNull()
@@ -527,10 +533,11 @@ object DaoMethods:DaoMethodsInterface {
 
             val updated = Employees.update({ Employees.id eq id }) {
                 login?.let { login -> it[Employees.login] = login }
-                newPassword?.let { newPassword -> it[Employees.password] = newPassword }
+                newPassword?.let { newPassword -> it[Employees.password] = HashPassword.hashPassword(newPassword) }
                 name?.let { name -> it[Employees.name] = name }
                 surname?.let { surname -> it[Employees.surname] = surname }
                 phone?.let { phone -> it[Employees.phone] = phone }
+                email?.let { email -> it[Employees.email] = email }
                 role?.let{role-> it[Employees.role] = role.role.toShort()}
             } > 0
             if (updated)
@@ -554,6 +561,23 @@ object DaoMethods:DaoMethodsInterface {
             return@transaction false to "Failed to update employee."
         }
     }
+    override suspend fun changeEmployeePassword(id:Int, password:String): Pair<Boolean, String>{
+        return transaction {
+
+            val employeeExists = Employees.selectAll().where{ (Employees.id eq id)}.singleOrNull()
+            if (employeeExists == null) {
+                return@transaction false to "Incorrect Id for the employee."
+            }
+
+            val updated = Employees.update({ Employees.id eq id }) {
+                it[Employees.password] = HashPassword.hashPassword(password)
+            } > 0
+            if (updated)
+                return@transaction true to "Employee updated successfully."
+            return@transaction false to "Failed to update employee."
+        }
+    }
+
     override suspend fun getEmployee(id: Int): Employee? {
         return transaction {
             Employees
@@ -562,7 +586,14 @@ object DaoMethods:DaoMethodsInterface {
                 .singleOrNull()
         }
     }
-
+   override suspend fun getEmployee(email: String): Employee? {
+        return transaction {
+            Employees
+                .selectAll().where { Employees.email eq email }
+                .mapNotNull(::resultRowToEmployee)
+                .singleOrNull()
+        }
+    }
     override suspend fun getEmployee(login:String, password: String): Pair<String, Employee?> {
         return transaction {
             val employee = Employees

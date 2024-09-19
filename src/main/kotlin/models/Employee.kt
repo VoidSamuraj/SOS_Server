@@ -4,10 +4,10 @@ import org.jetbrains.exposed.sql.Table
 
 
 @Serializable
-data class EmployeeInfo(val id:Int, val name: String, val surname: String, val phone: String, val roleCode:Short, val account_deleted:Boolean): Principal
+data class EmployeeInfo(val id:Int, val name: String, val surname: String, val phone: String, val email:String, val roleCode:Short, val account_deleted:Boolean): Principal
 
     @Serializable
-data class Employee(val id:Int, val login: String, val password:String, val name: String, val surname: String, val phone: String, val roleCode:Short, val account_deleted:Boolean): Principal{
+data class Employee(val id:Int, val login: String, val password:String, val name: String, val surname: String, val phone: String, val email:String, val roleCode:Short, val account_deleted:Boolean): Principal{
     /**
      * Enum representing role of worker.
      *
@@ -41,6 +41,7 @@ object Employees : Table() {
     val name = varchar("name",40)
     val surname = varchar("surname", 40)
     val phone =  varchar("phone", 20).uniqueIndex()
+    val email = varchar("email", 255).uniqueIndex()
     val role = short("role")
     val account_deleted=bool("account_deleted")
     override val primaryKey = PrimaryKey(id)

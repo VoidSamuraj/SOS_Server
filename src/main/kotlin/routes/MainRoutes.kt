@@ -19,6 +19,9 @@ fun Route.mainRoutes(){
             )*/
 
         }
+    get("/reset-password"){
+        call.respondFile(File("src/main/resources/helper_websites/ResetPassword.html"))
+    }
 
     get("{...}") {
         call.respondRedirect("/")

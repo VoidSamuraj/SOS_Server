@@ -20,7 +20,7 @@ fun Application.module() {
     //TEST
     CoroutineScope(Dispatchers.IO).launch {
         if(DaoMethods.getEmployees(1, 10).isEmpty())
-            DaoMethods.addEmployee("JanK", "123456789", "Jan", "Kowalski", "qwerty", Employee.Role.DISPATCHER)
+            DaoMethods.addEmployee("JanK", "qwerty", "Jan", "Kowalski", "123456789","zenusma4@gmail.com",  Employee.Role.DISPATCHER)
         if(DaoMethods.getGuards(1, 10).isEmpty()) {
             DaoMethods.addGuard("JAN", "qwerty", "Jan", "Pawel", "2221")
             DaoMethods.addGuard("JANn", "12we", "Jana", "Pawela", "222137")

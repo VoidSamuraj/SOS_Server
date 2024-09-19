@@ -5,6 +5,8 @@ import dao.DaoMethods
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
+import io.ktor.server.plugins.origin
+import io.ktor.server.request.port
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
@@ -17,21 +19,21 @@ import io.ktor.server.util.getOrFail
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import jwtExpirationSeconds
+import plugins.Mailer
 import plugins.checkPermission
 import plugins.createToken
 import plugins.decodeToken
+import plugins.getEmployeeId
 import plugins.getTokenExpirationDate
 import security.JWTToken
+import java.util.Base64
 import java.util.Date
 
-var mToken: JWTToken?=null
-var errorMessage:String=""
 
 suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(onSuccess:suspend ()->Unit){
     val token=call.sessions.get("userToken")as JWTToken?
     checkPermission(token = token,
         onSuccess = {
-            mToken=token
             onSuccess()
         },
         onFailure = {
@@ -40,14 +42,20 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(onSuccess
 }
 
 fun PipelineContext<Unit,ApplicationCall>.generateToken(employee: Employee): JWTToken?{
-    mToken = createToken(employee)
-    call.sessions.set(mToken)
-    return mToken!!
+    val token = createToken(employee)
+    call.sessions.set(token)
+    return token
 }
 
 suspend fun PipelineContext<Unit,ApplicationCall>.onAuthenticate(employee: Employee){
-    getTokenExpirationDate(generateToken(employee)).let { it1 -> call.attributes.put(AttributeKey("exp"), it1?.time.toString()) }
-    val responseObject = mapOf("message" to "Success", "exp" to Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000).time.toString())
+    val token = generateToken(employee) ?: return
+    getTokenExpirationDate(token)?.let { expirationDate ->
+        call.attributes.put(AttributeKey("exp"), expirationDate.time.toString())
+    }
+    val responseObject = mapOf(
+        "message" to "Success",
+        "exp" to Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000).time.toString()
+    )
     call.respond(HttpStatusCode.OK, responseObject)
 }
 suspend fun PipelineContext<Unit,ApplicationCall>.onAuthError(){
@@ -66,7 +74,7 @@ fun Route.authRoutes(){
             if(employee.second!=null)
                 onAuthenticate(employee.second!!)
             else {
-                errorMessage =employee.first
+               // errorMessage =employee.first
                 onAuthError()
             }
         }
@@ -82,6 +90,7 @@ fun Route.authRoutes(){
                         decodedToken.claims["name"]!!.asString(),
                         decodedToken.claims["surname"]!!.asString(),
                         decodedToken.claims["phone"]!!.asString(),
+                        decodedToken.claims["email"]!!.asString(),
                         decodedToken.claims["roleCode"]!!.asInt().toShort(),
                         false
                     )
@@ -106,7 +115,7 @@ fun Route.authRoutes(){
             if(employee.first)
                 onAuthenticate(employee.third!!)
             else {
-                errorMessage ="Register error"
+               // errorMessage ="Register error"
                 onAuthError()
             }
             */
@@ -114,6 +123,58 @@ fun Route.authRoutes(){
             var employee= DaoMethods.getEmployee(1)
             onAuthenticate(employee!!)
 
+        }
+        post("/remind-password"){
+            val formParameters = call.receiveParameters()
+            val email = formParameters.getOrFail("email")
+            val employee= DaoMethods.getEmployee(email)
+            if(employee!=null){
+                val host = call.request.origin.serverHost
+                val port = call.request.port()
+                val token = generateToken(employee)
+                if(token!=null) {
+                    Mailer.sendEmail(
+                        employee.name,
+                        employee.surname,
+                        employee.email,
+                        "http://$host:$port/reset-password?token=${token.token}"
+                    )
+                    call.respond(HttpStatusCode.OK, "Success")
+                }else
+                 call.respond(HttpStatusCode.InternalServerError, "Error generating token")
+            }else
+                call.respond(HttpStatusCode.NotFound, "Account with this email does not exist")
+
+        }
+        post("/reset-password"){
+            val formParameters = call.receiveParameters()
+            val newPassword = formParameters.getOrFail("password")
+            val tokenString = formParameters.getOrFail("token")
+                if(newPassword.isNotEmpty() && tokenString.isNotEmpty()) {
+                    val token=JWTToken(tokenString)
+                    checkPermission(token,{
+                        val sessionToken=call.sessions.get("userToken")as JWTToken?
+                        if (sessionToken==null ||  sessionToken.token!= tokenString) {
+                            call.respond(HttpStatusCode.BadRequest, "Invalid or expired token")
+                        }
+                        val id = getEmployeeId(token)
+                        if(id!=null) {
+                            val result = DaoMethods.changeEmployeePassword(id, newPassword)
+                            if(result.first) {
+                                call.sessions.clear("userToken")
+                                call.respond(HttpStatusCode.OK, "Success")
+                            }else
+                                call.respond(HttpStatusCode.InternalServerError, "Error during changing password: ${result.second}")
+
+                        }else
+                            call.respond(HttpStatusCode.BadRequest, "Wrong token")
+                    },{
+                        call.respond(HttpStatusCode.RequestTimeout, "Token has expired")
+                    })
+
+
+                }else
+                    call.respond(HttpStatusCode.BadRequest, "Wrong password or token")
         }
     }
 }

@@ -21,7 +21,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `should add employee`() = runTest {
-        val result = DaoMethods.addEmployee("JonnnD", "zaq1@WSX","John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        val result = DaoMethods.addEmployee("JonnnD", "zaq1@WSX","John", "Doe", "123456789","John@gmail.com", Employee.Role.DISPATCHER)
         assertTrue(result.first)
 
         val employee = transaction { Employees.selectAll().singleOrNull() }
@@ -30,28 +30,28 @@ class EmployeeServiceTest {
     }
     @Test
     fun `should add only three employees`() = runTest {
-        var result = DaoMethods.addEmployee("JonnnD", "zaq1@WSX","John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        var result = DaoMethods.addEmployee("JonnnD", "zaq1@WSX","John", "Doe", "123456789","John@gmail.com", Employee.Role.DISPATCHER)
         assertTrue(result.first)
 
-        result = DaoMethods.addEmployee("JonnnD", "zaq1@WSX2","John2", "Doe2", "1234567892", Employee.Role.DISPATCHER)
+        result = DaoMethods.addEmployee("JonnnD", "zaq1@WSX2","John2", "Doe2", "1234567892","John1@gmail.com", Employee.Role.DISPATCHER)
         assertFalse(result.first)
 
-        result = DaoMethods.addEmployee("JonnnD2", "zaq1@WSX","John2", "Doe2", "1234567892", Employee.Role.DISPATCHER)
+        result = DaoMethods.addEmployee("JonnnD2", "zaq1@WSX","John2", "Doe2", "1234567892","John2@gmail.com", Employee.Role.DISPATCHER)
         assertTrue(result.first)
 
-        result = DaoMethods.addEmployee("JonnnD3", "zaq1@WSX","John", "Doe3", "1234567893", Employee.Role.DISPATCHER)
+        result = DaoMethods.addEmployee("JonnnD3", "zaq1@WSX","John", "Doe3", "1234567893","John3@gmail.com", Employee.Role.DISPATCHER)
         assertTrue(result.first)
 
-        result = DaoMethods.addEmployee("JonnnD3", "zaq1@WSX","John3", "Doe", "1234567893", Employee.Role.DISPATCHER)
+        result = DaoMethods.addEmployee("JonnnD3", "zaq1@WSX","John3", "Doe", "1234567893","John4@gmail.com", Employee.Role.DISPATCHER)
         assertFalse(result.first)
 
-        result = DaoMethods.addEmployee("JonnnD3", "zaq1@WSX3","John3", "Doe3", "123456789", Employee.Role.DISPATCHER)
+        result = DaoMethods.addEmployee("JonnnD3", "zaq1@WSX3","John3", "Doe3", "123456789","John5@gmail.com", Employee.Role.DISPATCHER)
         assertFalse(result.first)
     }
 
     @Test
     fun `should edit employee`() = runTest {
-        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789","John@gmail.com", Employee.Role.DISPATCHER)
         val result = DaoMethods.editEmployee(1, name = "Jane", password = "zaq1@WSX")
         assertTrue(result.first)
 
@@ -61,7 +61,7 @@ class EmployeeServiceTest {
     }
     @Test
     fun `should not edit employee`() = runTest {
-        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789","John@gmail.com", Employee.Role.DISPATCHER)
         val result = DaoMethods.editEmployee(1, name = "Jane", password = "qwerty")
         assertFalse(result.first)
 
@@ -71,7 +71,7 @@ class EmployeeServiceTest {
     }
     @Test
     fun `should delete employee`() = runTest {
-        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789","John@gmail.com", Employee.Role.DISPATCHER)
         val result = DaoMethods.deleteEmployee(1)
         assertTrue(result)
 
@@ -82,14 +82,14 @@ class EmployeeServiceTest {
 
     @Test
     fun `should get employee by id`() = runTest {
-        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789","John@gmail.com", Employee.Role.DISPATCHER)
         val employee = DaoMethods.getEmployee(1)
         assertNotNull(employee)
         assertEquals("John", employee.name)
     }
     @Test
     fun `should get employee by login & password`() = runTest {
-        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", Employee.Role.DISPATCHER)
+        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456789","John@gmail.com", Employee.Role.DISPATCHER)
         val employee = DaoMethods.getEmployee("JonnnD", "zaq1@WSX")
         assertNotNull(employee.second)
         assertEquals("John", employee.second!!.name)
@@ -97,8 +97,8 @@ class EmployeeServiceTest {
 
     @Test
     fun `should get all employees`() = runTest {
-        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456987", Employee.Role.DISPATCHER)
-        DaoMethods.addEmployee("JaneD", "zaq1@WSX", "Jane", "Doe", "123456789", Employee.Role.DISPATCHER)
+        DaoMethods.addEmployee("JonnnD", "zaq1@WSX", "John", "Doe", "123456987","John1@gmail.com", Employee.Role.DISPATCHER)
+        DaoMethods.addEmployee("JaneD", "zaq1@WSX", "Jane", "Doe", "123456789","John2@gmail.com", Employee.Role.DISPATCHER)
 
         val employees = DaoMethods.getEmployees(page = 1, pageSize = 10)
         assertEquals(2, employees.size)

@@ -45,10 +45,12 @@ interface DaoMethodsInterface {
     //Employee
     suspend fun deleteEmployee(id:Int):Boolean
     suspend fun restoreEmployee(id:Int):Boolean
-    suspend fun editEmployee(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null,surname: String?=null, phone: String?=null, role:Employee.Role?=null): Pair<Boolean, String>
+    suspend fun editEmployee(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null,surname: String?=null, phone: String?=null, email:String?=null, role:Employee.Role?=null): Pair<Boolean, String>
     suspend fun changeEmployeeRole(id:Int, role:Employee.Role): Pair<Boolean, String>
-    suspend fun addEmployee(login: String, password: String, name: String,surname: String, phone: String, role:Employee.Role): Triple<Boolean,String,Employee?>
+    suspend fun changeEmployeePassword(id:Int, password:String): Pair<Boolean, String>
+    suspend fun addEmployee(login: String, password: String, name: String,surname: String, phone: String, email:String, role:Employee.Role): Triple<Boolean,String,Employee?>
     suspend fun getEmployee(id:Int):Employee?
+    suspend fun getEmployee(email:String):Employee?
     suspend fun getEmployee(login:String, password: String):Pair<String,Employee?>
     suspend fun getEmployees(page:Int, pageSize: Int):List<EmployeeInfo>
     suspend fun getAllEmployees():List<EmployeeInfo>
