@@ -13,6 +13,28 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.datetime.LocalDateTime
 
+private val GuardField = mapOf(
+    "id" to Guards.id ,
+    "name" to Guards.name,
+    "surname" to Guards.surname,
+    "phone" to Guards.phone,
+    "account_active" to Guards.account_deleted
+)
+private val CustomerField = mapOf(
+    "id" to Customers.id,
+    "phone" to Customers.phone,
+    "pesel" to Customers.pesel,
+    "email" to Customers.email,
+    "account_active" to Customers.account_deleted
+)
+private val EmployeeField = mapOf(
+    "id" to Employees.id,
+    "name" to Employees.name,
+    "surname" to Employees.surname,
+    "phone" to Employees.phone,
+    "role" to Employees.role,
+    "account_active" to Employees.account_deleted
+)
 fun Route.databaseRoutes() {
 
     //TODO check if authenticated
@@ -87,7 +109,12 @@ fun Route.databaseRoutes() {
         get("/getPage"){
             val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
             val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-            val customers = DaoMethods.getCustomers(page,size)
+            val filterColumn = call.request.queryParameters["filterColumn"]
+            val filterValue = call.request.queryParameters["filterValue"]
+            val filterType = call.request.queryParameters["filterType"]
+            val sortColumn = call.request.queryParameters["sortColumn"]
+            val sortDir = call.request.queryParameters["sortDir"]
+            val customers = DaoMethods.getCustomers(page,size, CustomerField[filterColumn], filterValue,filterType, CustomerField[sortColumn],sortDir)
             call.respond(HttpStatusCode.OK,customers)
         }
         patch("/restore"){
@@ -318,7 +345,12 @@ fun Route.databaseRoutes() {
         get("/getPage"){
             val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
             val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-            val guards = DaoMethods.getGuards(page,size)
+            val filterColumn = call.request.queryParameters["filterColumn"]
+            val filterValue = call.request.queryParameters["filterValue"]
+            val filterType = call.request.queryParameters["filterType"]
+            val sortColumn = call.request.queryParameters["sortColumn"]
+            val sortDir = call.request.queryParameters["sortDir"]
+            val guards = DaoMethods.getGuards(page,size, GuardField[filterColumn], filterValue,filterType, GuardField[sortColumn],sortDir)
             call.respond(HttpStatusCode.OK,guards)
         }
         get("/getAll"){
@@ -445,7 +477,12 @@ fun Route.databaseRoutes() {
         get("/getPage"){
             val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
             val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-            val employees = DaoMethods.getEmployees(page,size)
+            val filterColumn = call.request.queryParameters["filterColumn"]
+            val filterValue = call.request.queryParameters["filterValue"]
+            val filterType = call.request.queryParameters["filterType"]
+            val sortColumn = call.request.queryParameters["sortColumn"]
+            val sortDir = call.request.queryParameters["sortDir"]
+            val employees = DaoMethods.getEmployees(page,size, EmployeeField[filterColumn], filterValue,filterType, EmployeeField[sortColumn],sortDir)
             call.respond(HttpStatusCode.OK,employees)
         }
         get("/getAll"){

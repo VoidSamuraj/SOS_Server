@@ -4,6 +4,7 @@ import Employee
 import Intervention
 import Report
 import kotlinx.datetime.LocalDateTime
+import org.jetbrains.exposed.sql.Column
 
 interface DaoMethodsInterface {
 
@@ -14,7 +15,7 @@ interface DaoMethodsInterface {
     suspend fun restoreCustomer(id:Int):Boolean
     suspend fun getCustomer(id:Int):Customer?
     suspend fun getCustomer(login:String, password: String):Pair<String,Customer?>
-    suspend fun getCustomers(page:Int, pageSize:Int):List<CustomerInfo>
+    suspend fun getCustomers(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<CustomerInfo>
     suspend fun getAllCustomers():List<CustomerInfo>
 
     //Intervention
@@ -39,7 +40,7 @@ interface DaoMethodsInterface {
     suspend fun restoreGuard(id:Int):Boolean
     suspend fun getGuard(id:Int):Guard?
     suspend fun getGuard(login:String, password: String):Pair<String,Guard?>
-    suspend fun getGuards(page:Int, pageSize: Int):List<GuardInfo>
+    suspend fun getGuards(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<GuardInfo>
     suspend fun getAllGuards():List<GuardInfo>
 
     //Employee
@@ -52,6 +53,6 @@ interface DaoMethodsInterface {
     suspend fun getEmployee(id:Int):Employee?
     suspend fun getEmployee(email:String):Employee?
     suspend fun getEmployee(login:String, password: String):Pair<String,Employee?>
-    suspend fun getEmployees(page:Int, pageSize: Int):List<EmployeeInfo>
+    suspend fun getEmployees(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<EmployeeInfo>
     suspend fun getAllEmployees():List<EmployeeInfo>
 }

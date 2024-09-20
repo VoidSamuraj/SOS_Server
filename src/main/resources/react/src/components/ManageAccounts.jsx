@@ -23,12 +23,15 @@ const ManageAccounts = ({ guards }) => {
 
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
+  const [sortColumn, setSortColumn] = useState(null);
+  const [filterColumn, setFilterColumn] = useState(null);
+  const [filterColumnDebounced, setFilterColumnDebounced] = useState(null);
 
   useEffect(() => {
-    getClients(page, pageSize).then((data) => {
+    getClients(page, pageSize, filterColumn, sortColumn).then((data) => {
       setClients(data);
     });
-    getEmployees(page, pageSize).then((data) => {
+    getEmployees(page, pageSize, filterColumn, sortColumn).then((data) => {
       setEmployees(data);
     });
   }, []);
@@ -37,18 +40,28 @@ const ManageAccounts = ({ guards }) => {
     setPage(0);
   }, [selectedTab]);
 
+
+  useEffect(() => {
+ const timer = setTimeout(() => {
+      if (filterColumn) {
+        setFilterColumnDebounced(filterColumn);
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [filterColumn]);
+
   useEffect(() => {
     if (!modalOpen) {
       switch (selectedTab) {
         case "employees":
-          getEmployees(page, pageSize).then((data) => {
+          getEmployees(page, pageSize, filterColumn, sortColumn).then((data) => {
             setEmployees(data);
           });
           break;
         case "guards":
           break;
         case "customers":
-          getClients(page, pageSize).then((data) => {
+          getClients(page, pageSize, filterColumn, sortColumn).then((data) => {
             setClients(data);
           });
           break;
@@ -56,7 +69,7 @@ const ManageAccounts = ({ guards }) => {
           break;
       }
     }
-  }, [modalOpen, selectedTab, page, pageSize]);
+  }, [modalOpen, selectedTab, page, pageSize, sortColumn, filterColumnDebounced]);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -65,6 +78,33 @@ const ManageAccounts = ({ guards }) => {
   const handlePageSizeChange = (newPageSize) => {
     setPageSize(newPageSize);
   };
+
+  const handleEdit = (record) => {
+    setSelectedParams(record);
+    setModalOpen(true);
+  };
+
+  const handleDelete = (record) => {
+    // Logika usuwania rekordu
+  };
+
+  const handleClose = () => {
+    setModalOpen(false);
+    setSelectedParams(null);
+  };
+
+  const handleCreate = (values) => {
+    setModalOpen(false);
+  };
+ const handleSortModelChange = (sortModel)=>{
+    if (sortModel?.[0])
+        setSortColumn(sortModel?.[0])
+  }
+ const handleFilterModelChange = (filterModel)=>{
+    if (filterModel?.items?.[0])
+        setFilterColumn(filterModel?.items?.[0]);
+  }
+  const theme = createTheme(plPL);
 
   const getColumns = () => {
     switch (selectedTab) {
@@ -303,25 +343,6 @@ const ManageAccounts = ({ guards }) => {
         return [];
     }
   };
-  const handleEdit = (record) => {
-    setSelectedParams(record);
-    setModalOpen(true);
-  };
-
-  const handleDelete = (record) => {
-    // Logika usuwania rekordu
-  };
-
-  const handleClose = () => {
-    setModalOpen(false);
-    setSelectedParams(null);
-  };
-
-  const handleCreate = (values) => {
-    setModalOpen(false);
-  };
-
-  const theme = createTheme(plPL);
 
   return (
     <ThemeProvider theme={theme}>
@@ -345,6 +366,13 @@ const ManageAccounts = ({ guards }) => {
             onPageSizeChange={handlePageSizeChange}
             rowsPerPageOptions={[5, 10, 20]}
             localeText={plLanguage}
+              onSortModelChange={(sortModel) => {
+                handleSortModelChange(sortModel);
+              }}
+              // Capture filter model changes
+              onFilterModelChange={(filterModel) => {
+                handleFilterModelChange(filterModel);
+              }}
           />
         </Box>
         <AccountForm

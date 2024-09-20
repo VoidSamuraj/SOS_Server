@@ -43,11 +43,16 @@ const deletePerson = async (route, id, name) => {
   }
 };
 
-const getPersons = async (page, size, route) => {
+const getPersons = async (page, size, filterColumn, sortColumn, route ) => {
   try {
     const url = new URL(route, window.location.origin);
     url.searchParams.append("page", page);
     url.searchParams.append("size", size);
+    url.searchParams.append("filterColumn", (filterColumn == null || filterColumn.field === undefined) ? null : filterColumn.field);
+    url.searchParams.append("filterValue", (filterColumn == null || filterColumn.value === undefined) ? null : filterColumn.value);
+    url.searchParams.append("filterType", (filterColumn == null || filterColumn.operator === undefined) ? null : filterColumn.operator);
+    url.searchParams.append("sortColumn",  (sortColumn == null || sortColumn.field === undefined) ? null : sortColumn.field);
+    url.searchParams.append("sortDir", (sortColumn == null ||  sortColumn.sort === undefined) ? null : sortColumn.sort);
 
     const fetchOptions = {
       method: "GET",
@@ -148,8 +153,8 @@ export const logout = (redirect) => {
 
 //EMPLOYEE
 
-export const getEmployees = async (page, size) => {
-  return getPersons(page, size, "/employee/getPage");
+export const getEmployees = async (page, size, filterColumn, sortColumn) => {
+  return getPersons(page, size, filterColumn, sortColumn, "/employee/getPage");
 };
 
 export const deleteEmployee = async (id) => {
@@ -213,8 +218,8 @@ export const restoreGuard = async (id) => {
 //REPORT
 
 //CLIENT
-export const getClients = async (page, size) => {
-  return getPersons(page, size, "/client/getPage");
+export const getClients = async (page, size, filterColumn, sortColumn) => {
+  return getPersons(page, size, filterColumn, sortColumn, "/client/getPage");
 };
 export const deleteClient = async (id) => {
   deletePerson("/client", id, "Client");

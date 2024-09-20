@@ -15,6 +15,7 @@ import Employees
 import GuardInfo
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import security.HashPassword
@@ -213,17 +214,34 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getCustomers(page: Int, pageSize: Int): List<CustomerInfo>{
+    override suspend fun getCustomers(page:Int, pageSize: Int, filterColumn: Column<out Any>?, filterValue: String?, filterType:String?, sortBy: Column<out Any>?, sortDir: String?): List<CustomerInfo> {
         return transaction {
             val offset = (page - 1) * pageSize
-
-            Customers.selectAll()
-                .limit(pageSize, offset.toLong())
+            val query=Customers.selectAll().apply {
+                if (filterColumn != null && filterValue !=null) {
+                    when (filterType) {
+                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
+                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
+                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
+                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
+                    }
+                    if(filterColumn.columnType is StringColumnType){
+                        when (filterType) {
+                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
+                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
+                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                        }
+                    }
+                }
+            }
+            if (sortBy != null) {
+                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+            }
+            query.limit(pageSize, offset.toLong())
                 .map(::resultRowToClientInfo).toList()
+
         }
-
     }
-
     override suspend fun getAllCustomers(): List<CustomerInfo>{
         return transaction {
             Customers.selectAll()
@@ -452,15 +470,36 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getGuards(page:Int, pageSize: Int): List<GuardInfo> {
+    override suspend fun getGuards(page:Int, pageSize: Int, filterColumn: Column<out Any>?, filterValue: String?, filterType:String?, sortBy: Column<out Any>?, sortDir: String?): List<GuardInfo> {
         return transaction {
             val offset = (page - 1) * pageSize
-
-            Guards.selectAll()
-                .limit(pageSize, offset.toLong())
+            val query=Guards.selectAll().apply {
+                if (filterColumn != null && filterValue !=null) {
+                    when (filterType) {
+                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
+                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
+                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
+                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
+                    }
+                    if(filterColumn.columnType is StringColumnType){
+                        when (filterType) {
+                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
+                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
+                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                        }
+                    }
+                }
+            }
+            if (sortBy != null) {
+                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+            }
+            query.limit(pageSize, offset.toLong())
                 .map(::resultRowToGuardInfo).toList()
+
         }
     }
+
+
     override suspend fun getAllGuards(): List<GuardInfo> {
         return transaction {
 
@@ -610,12 +649,30 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getEmployees(page:Int, pageSize: Int): List<EmployeeInfo> {
+    override suspend fun getEmployees(page:Int, pageSize: Int, filterColumn: Column<out Any>?, filterValue: String?, filterType:String?, sortBy: Column<out Any>?, sortDir: String?): List<EmployeeInfo> {
         return transaction {
             val offset = (page - 1) * pageSize
-
-            Employees.selectAll()
-                .limit(pageSize, offset.toLong())
+            val query=Employees.selectAll().apply {
+                if (filterColumn != null && filterValue !=null) {
+                    when (filterType) {
+                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
+                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
+                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
+                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
+                    }
+                    if(filterColumn.columnType is StringColumnType){
+                        when (filterType) {
+                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
+                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
+                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                        }
+                    }
+                }
+            }
+            if (sortBy != null) {
+                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+            }
+            query.limit(pageSize, offset.toLong())
                 .map(::resultRowToEmployeeInfo).toList()
 
         }
