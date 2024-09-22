@@ -1,8 +1,9 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useState } from "react";
 import {
-  deleteEmployee,
-  restoreEmployee,
-  changeEmployeeRole,
+  editEmployeeById,
+  register,
+  editGuard,
+  editClient,
   deleteGuard,
   restoreGuard,
   deleteClient,
@@ -24,62 +25,15 @@ const AccountForm = ({
   selectedTab,
   selectedParams,
   editMode,
-  setIsEdited,
 }) => {
-  const [name, setName] = React.useState("");
-  const [surname, setSurname] = React.useState("");
-  const [phone, setPhone] = React.useState("");
-  const [pesel, setPesel] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [role, setRole] = React.useState("");
-  const [isActive, setIsActive] = React.useState(true);
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [phone, setPhone] = useState("");
+  const [pesel, setPesel] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("");
+  const [isActive, setIsActive] = useState(true);
 
-  const handleSave = () => {
-    const asyncOperations = [];
-    const wasAccountActive = Boolean(selectedParams.account_active);
-    const isAccountActive = isActive == "true";
-    switch (selectedTab) {
-      case "employees":
-        if (isAccountActive && !wasAccountActive) {
-          asyncOperations.push(restoreEmployee(selectedParams.id));
-          setIsEdited(true);
-        } else if (!isAccountActive && wasAccountActive) {
-          asyncOperations.push(deleteEmployee(selectedParams.id));
-          setIsEdited(true);
-        }
-        if (roleMapping[selectedParams.role] != role) {
-          asyncOperations.push(
-            changeEmployeeRole(selectedParams.id, roleMappingToCode[role])
-          );
-          setIsEdited(true);
-        }
-        break;
-      case "guards":
-        if (isAccountActive && !wasAccountActive) {
-          asyncOperations.push(restoreGuard(selectedParams.id));
-          setIsEdited(true);
-        } else if (!isAccountActive && wasAccountActive) {
-          asyncOperations.push(deleteGuard(selectedParams.id));
-          setIsEdited(true);
-        }
-
-        break;
-      case "customers":
-        if (isAccountActive && !wasAccountActive) {
-          asyncOperations.push(restoreClient(selectedParams.id));
-          setIsEdited(true);
-        } else if (!isAccountActive && wasAccountActive) {
-          asyncOperations.push(deleteClient(selectedParams.id));
-          setIsEdited(true);
-        }
-        break;
-      default:
-        break;
-    }
-    Promise.all(asyncOperations).then(() => {
-      onClose();
-    });
-  };
   const roleMapping = {
     Dyspozytor: "dispatcher",
     Administrator: "admin",
@@ -90,16 +44,81 @@ const AccountForm = ({
     admin: 2,
     manager: 1,
   };
-  useEffect(() => {
-    if (selectedParams) {
-      setName(selectedParams.name || "");
-      setSurname(selectedParams.surname || "");
-      setPhone(selectedParams.phone || "");
-      setPesel(selectedParams.pesel || "");
-      setEmail(selectedParams.email || "");
-      setRole(roleMapping[selectedParams.role] || "");
-      setIsActive(selectedParams.account_active ? "true" : "false" || "true");
+
+  const handleSave = () => {
+    const asyncOperations = [];
+    const wasAccountActive = Boolean(selectedParams.account_active);
+    const isAccountActive = isActive == "true";
+    if (editMode) {
+      switch (selectedTab) {
+        case "employees":
+          asyncOperations.push(
+            editEmployeeById(
+              selectedParams.id,
+              name,
+              surname,
+              phone,
+              email,
+              roleMappingToCode[role],
+              isActive
+            )
+          );
+          break;
+        case "guards":
+          if (isAccountActive && !wasAccountActive) {
+            asyncOperations.push(restoreGuard(selectedParams.id));
+          } else if (!isAccountActive && wasAccountActive) {
+            asyncOperations.push(deleteGuard(selectedParams.id));
+          }
+          /*
+          asyncOperations.push(
+            editGuard(selectedParams.id, name, surname, phone, isActive)
+          );*/
+          break;
+        case "customers":
+          if (isAccountActive && !wasAccountActive) {
+            asyncOperations.push(restoreClient(selectedParams.id));
+          } else if (!isAccountActive && wasAccountActive) {
+            asyncOperations.push(deleteClient(selectedParams.id));
+          }
+          /*
+          asyncOperations.push(
+            editClient(selectedParams.id, phone, pesel, email, isActive)
+          );*/
+          break;
+        default:
+          break;
+      }
+    } else {
+      switch (selectedTab) {
+        case "employees":
+          asyncOperations.push(
+            register(name, surname, phone, email, roleMappingToCode[role])
+          );
+          break;
+        case "guards":
+          //  asyncOperations.push(addGuard(selectedParams.id, name, surname, phone, isActive));
+          break;
+        case "customers":
+          // asyncOperations.push(addClient(selectedParams.id, phone, pesel, email, isActive));
+          break;
+        default:
+          break;
+      }
     }
+    Promise.all(asyncOperations).then(() => {
+      onClose();
+    });
+  };
+
+  useEffect(() => {
+    setName(selectedParams?.name || "");
+    setSurname(selectedParams?.surname || "");
+    setPhone(selectedParams?.phone || "");
+    setPesel(selectedParams?.pesel || "");
+    setEmail(selectedParams?.email || "");
+    setRole(roleMapping[selectedParams?.role] || "");
+    setIsActive(selectedParams?.account_active ? "true" : "false" || "true");
   }, [selectedParams]);
   return (
     <Modal open={open} onClose={onClose}>
@@ -124,7 +143,8 @@ const AccountForm = ({
             : "klienta"}
         </Typography>
 
-        {name ? (
+        {(name || !editMode) &&
+        (selectedTab == "employees" || selectedTab == "guards") ? (
           <TextField
             fullWidth
             margin="normal"
@@ -132,13 +152,14 @@ const AccountForm = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             variant="outlined"
-            disabled={editMode || false}
+            disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
 
-        {surname ? (
+        {(surname || !editMode) &&
+        (selectedTab == "employees" || selectedTab == "guards") ? (
           <TextField
             fullWidth
             margin="normal"
@@ -146,12 +167,12 @@ const AccountForm = ({
             value={surname}
             onChange={(e) => setSurname(e.target.value)}
             variant="outlined"
-            disabled={editMode || false}
+            disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
-        {phone ? (
+        {phone || !editMode ? (
           <TextField
             fullWidth
             margin="normal"
@@ -159,12 +180,40 @@ const AccountForm = ({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             variant="outlined"
-            disabled={editMode || false}
+            disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
-        {role ? (
+        {(pesel || !editMode) && selectedTab == "customers" ? (
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Pesel"
+            value={pesel}
+            onChange={(e) => setPesel(e.target.value)}
+            variant="outlined"
+            disabled={selectedTab !== "employees"}
+          />
+        ) : (
+          ""
+        )}
+
+        {(email || !editMode) &&
+        (selectedTab == "employees" || selectedTab == "customers") ? (
+          <TextField
+            fullWidth
+            margin="normal"
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            variant="outlined"
+            disabled={selectedTab !== "employees"}
+          />
+        ) : (
+          ""
+        )}
+        {(role || !editMode) && selectedTab == "employees" ? (
           <TextField
             fullWidth
             margin="normal"
@@ -181,35 +230,7 @@ const AccountForm = ({
         ) : (
           ""
         )}
-        {pesel ? (
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Pesel"
-            value={pesel}
-            onChange={(e) => setPesel(e.target.value)}
-            variant="outlined"
-            disabled={editMode || false}
-          />
-        ) : (
-          ""
-        )}
-
-        {email ? (
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            variant="outlined"
-            disabled={editMode || false}
-          />
-        ) : (
-          ""
-        )}
-
-        {isActive ? (
+        {editMode ? (
           <TextField
             fullWidth
             margin="normal"

@@ -12,6 +12,35 @@ import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
 import java.util.regex.Pattern
 
+fun generateRandomLogin(length: Int = 8): String {
+    val allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    return (1..length)
+        .map { allowedChars.random() }
+        .joinToString("")
+}
+
+fun generateRandomPassword(): String {
+    val lowercase = ('a'..'z').random()
+    val uppercase = ('A'..'Z').random()
+    val digit = ('0'..'9').random()
+    val specialChar = listOf('@', '$', '!', '%', '*', '?', '&').random()
+
+    val allChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@$!%*?&"
+
+    // Ensure that the password contains at least 8 characters by filling in with random characters.
+    val remainingChars = (1..4)
+        .map { allChars.random() }
+        .joinToString("")
+
+    // Shuffle and return the password to ensure randomness
+    return listOf(lowercase, uppercase, digit, specialChar, remainingChars)
+        .joinToString("")
+        .toList()
+        .shuffled()
+        .joinToString("")
+}
+
+
 //TODO use this methods
 fun sanitizeHtml(html: String): String {
     return Jsoup.clean(html, Safelist.none())

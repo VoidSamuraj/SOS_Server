@@ -172,6 +172,26 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
+    override suspend fun editCustomer(id:Int, phone: String?, pesel: String?, email: String?, isActive:Boolean?): Pair<Boolean, String>{
+
+        return transaction {
+
+            val customerExists = Customers.selectAll().where{(Customers.id eq id)}.singleOrNull()
+            if (customerExists == null) {
+                return@transaction false to "Incorrect id for."
+            }
+
+            val result = Customers.update({ Customers.id eq id }) {
+                phone?.let { phone -> it[Customers.phone] = phone }
+                pesel?.let { pesel -> it[Customers.pesel] = pesel }
+                email?.let { email -> it[Customers.email] = email }
+                isActive?.let{isActive-> it[Customers.account_deleted] = !isActive}
+            } > 0
+            if(result)
+                return@transaction true to "Customer updated successfully."
+            return@transaction false to "Failed to update customer."
+        }
+    }
     override suspend fun deleteCustomer(id: Int): Boolean {
         return transaction {
             Customers.update({ Customers.id eq id }) {
@@ -429,6 +449,26 @@ object DaoMethods:DaoMethodsInterface {
             return@transaction false to "Failed to update guard."
         }
     }
+    override suspend fun editGuard(id:Int, name:String?, surname:String?, phone: String?, isActive:Boolean?): Pair<Boolean, String>{
+        return transaction {
+
+            val guardExists = Guards.selectAll().where {(Guards.id eq id)}.singleOrNull()
+            if (guardExists == null) {
+                return@transaction false to "Incorrect Id for the Guard."
+            }
+
+            val updated = Guards.update({ Guards.id eq id }) {
+                name?.let { name -> it[Guards.name] = name }
+                surname?.let { surname -> it[Guards.surname] = surname }
+                phone?.let { phone -> it[Guards.phone] = phone }
+                isActive?.let{isActive-> it[Guards.account_deleted] = !isActive}
+            } > 0
+
+            if (updated)
+                return@transaction true to "Guard updated successfully."
+            return@transaction false to "Failed to update guard."
+        }
+    }
 
     override suspend fun deleteGuard(id: Int): Boolean {
         return transaction {
@@ -582,6 +622,27 @@ object DaoMethods:DaoMethodsInterface {
             if (updated)
                 return@transaction true to "Employee updated successfully."
                 return@transaction false to "Failed to update employee."
+        }
+    }
+    override suspend fun editEmployee(id:Int, name: String?,surname: String?, phone: String?, email:String?, role:Employee.Role?, isActive:Boolean?): Pair<Boolean, String>{
+        return transaction {
+
+            val employeeExists = Employees.selectAll().where{ (Employees.id eq id)}.singleOrNull()
+            if (employeeExists == null) {
+                return@transaction false to "Incorrect Id for the employee."
+            }
+
+            val updated = Employees.update({ Employees.id eq id }) {
+                name?.let { name -> it[Employees.name] = name }
+                surname?.let { surname -> it[Employees.surname] = surname }
+                phone?.let { phone -> it[Employees.phone] = phone }
+                email?.let { email -> it[Employees.email] = email }
+                role?.let{role-> it[Employees.role] = role.role.toShort()}
+                isActive?.let{isActive-> it[Employees.account_deleted] = !isActive}
+            } > 0
+            if (updated)
+                return@transaction true to "Employee updated successfully."
+            return@transaction false to "Failed to update employee."
         }
     }
     override suspend fun changeEmployeeRole(id: Int, role:Employee.Role): Pair<Boolean, String> {

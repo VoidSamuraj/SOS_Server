@@ -2,22 +2,28 @@ import React, { useState } from "react";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import "../style/settingsMenu.css";
 import rightarrow from "../icons/right-arrow.svg";
+import EditAccountData from "./EditAccountData";
 
 function SettingsMenu({
   isVisible,
   onSettingsToggle,
+  onEditedToggle,
   locationJson,
   setLocationJson,
+  canSetMapLoc,
 }) {
-  const [location, setLocation] = useState(locationJson ? JSON.parse(locationJson)?.name ?? "":"");
+  const [location, setLocation] = useState(
+    locationJson ? JSON.parse(locationJson)?.name ?? "" : ""
+  );
   const [autocomplete, setAutocomplete] = useState(null);
+  const [editAccountWindowOpen, setEditAccountWindowOpen] = useState(false);
 
   const handlePlaceChanged = () => {
     if (autocomplete) {
       const place = autocomplete.getPlace();
       if (place.geometry) {
         const locationData = {
-          name: (place.formatted_address || place.name),
+          name: place.formatted_address || place.name,
           latitude: place.geometry.location.lat(),
           longitude: place.geometry.location.lng(),
         };
@@ -44,7 +50,7 @@ function SettingsMenu({
         <br />
         <input type="range" id="mySlider" min="0" max="100" value="0" />
       </div>
-      {locationJson ? (
+      {canSetMapLoc && (
         <div id="locationBox">
           <label htmlFor="loc">Lokalizacja</label>
           <Autocomplete
@@ -68,8 +74,22 @@ function SettingsMenu({
             onClick={() => localStorage.setItem("HomeLocation", locationJson)}
           />
         </div>
-      ) : (
-        ""
+      )}
+      <input
+        type="button"
+        id="editAccount"
+        value="Edytuj dane"
+        placeholder="Edytuj dane"
+        onClick={() => setEditAccountWindowOpen(true)}
+      />
+      {editAccountWindowOpen && (
+        <EditAccountData
+          open={editAccountWindowOpen}
+          onClose={() => {
+            if (onEditedToggle) onEditedToggle();
+            setEditAccountWindowOpen(false);
+          }}
+        />
       )}
     </div>
   );

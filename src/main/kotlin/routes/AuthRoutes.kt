@@ -19,16 +19,25 @@ import io.ktor.server.util.getOrFail
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import jwtExpirationSeconds
+import kotlinx.serialization.Serializable
 import plugins.Mailer
 import plugins.checkPermission
 import plugins.createToken
 import plugins.decodeToken
+import plugins.generateRandomLogin
+import plugins.generateRandomPassword
 import plugins.getEmployeeId
 import plugins.getTokenExpirationDate
 import security.JWTToken
 import java.util.Base64
 import java.util.Date
 
+@Serializable
+data class ResponseObject(
+    val message: String,
+    val exp: String,
+    val user: EmployeeInfo
+)
 
 suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(onSuccess:suspend ()->Unit){
     val token=call.sessions.get("userToken")as JWTToken?
@@ -48,13 +57,16 @@ fun PipelineContext<Unit,ApplicationCall>.generateToken(employee: Employee): JWT
 }
 
 suspend fun PipelineContext<Unit,ApplicationCall>.onAuthenticate(employee: Employee){
+
+
     val token = generateToken(employee) ?: return
     getTokenExpirationDate(token)?.let { expirationDate ->
         call.attributes.put(AttributeKey("exp"), expirationDate.time.toString())
     }
-    val responseObject = mapOf(
-        "message" to "Success",
-        "exp" to Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000).time.toString()
+    val responseObject = ResponseObject(
+        message = "Success",
+        exp = (System.currentTimeMillis() + jwtExpirationSeconds * 1000).toString(),
+        user = employee.toEmployeeInfo()
     )
     call.respond(HttpStatusCode.OK, responseObject)
 }
@@ -71,9 +83,9 @@ fun Route.authRoutes(){
             val login = formParameters.getOrFail("login")
             val password = formParameters.getOrFail("password")
             val employee= DaoMethods.getEmployee(login, password)
-            if(employee.second!=null)
+            if(employee.second!=null) {
                 onAuthenticate(employee.second!!)
-            else {
+            }else {
                // errorMessage =employee.first
                 onAuthError()
             }
@@ -105,25 +117,40 @@ fun Route.authRoutes(){
             call.sessions.clear("userToken")
             call.respond(HttpStatusCode.OK, "Success")
         }
-        post("/register") {
-            val formParameters = call.receiveParameters()
-            val login = formParameters.getOrFail("login")
-            val password = formParameters.getOrFail("password")
-            // TODO
-            /*
-            val employee= DaoMethods.addEmployee(login,password,)
-            if(employee.first)
-                onAuthenticate(employee.third!!)
-            else {
-               // errorMessage ="Register error"
-                onAuthError()
-            }
-            */
-            //TEST
-            var employee= DaoMethods.getEmployee(1)
-            onAuthenticate(employee!!)
 
+        //TODO add verify if employee has permission to edit
+        post("/register"){
+            val formParameters = call.receiveParameters()
+            val phone = formParameters["phone"]
+            val email = formParameters["email"]
+            val name = formParameters["name"]
+            val surname = formParameters["surname"]
+            val roleCode = formParameters["roleCode"]?.toIntOrNull()
+
+            val login = generateRandomLogin()
+            val password = generateRandomPassword()
+            println("REJESTRACJAFAZA 1")
+            if(phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() ||  roleCode == null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+            val ret = DaoMethods.addEmployee(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString(), email.toString(), Employee.Role.fromInt(roleCode!!))
+
+            println("REJESTRACJAFAZA 2"+ret.first+" "+ret.second+" "+ret.third)
+            if(ret.first && ret.third != null){
+                Mailer.sendNewAccountEmail(
+                    ret.third!!.name,
+                    ret.third!!.surname,
+                    ret.third!!.email,
+                    login,
+                    password
+                )
+
+                println("REJESTRACJAFAZA 3")
+                call.respond(HttpStatusCode.OK,"Employee added to database.")
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to add entry to the database. ${ret.second}")
+            }
         }
+
         post("/remind-password"){
             val formParameters = call.receiveParameters()
             val email = formParameters.getOrFail("email")
@@ -133,7 +160,7 @@ fun Route.authRoutes(){
                 val port = call.request.port()
                 val token = generateToken(employee)
                 if(token!=null) {
-                    Mailer.sendEmail(
+                    Mailer.sendPasswordRestorationEmail(
                         employee.name,
                         employee.surname,
                         employee.email,

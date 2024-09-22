@@ -98,6 +98,7 @@ function Home({ onLogout, patrols, updatePatrol }) {
         onSettingsToggle={toggleSettings}
         locationJson={locationJson}
         setLocationJson={setLocationJson}
+        canSetMapLoc={true}
       />
       <div id="patrolsButton" onClick={togglePatrolList}>
         <img src={car} alt="patrols" />

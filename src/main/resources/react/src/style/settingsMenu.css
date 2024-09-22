@@ -37,12 +37,12 @@
   width: 210px;
   margin: 6px;
 }
-#locationBox > input[type="button"] {
+#locationBox > input[type="button"], #editAccount {
   transition: background-color 0.2s ease-in-out;
   margin-top: 0;
   width: 230px;
 }
-#locationBox > input[type="button"]:hover {
+#locationBox > input[type="button"]:hover, #editAccount:hover{
   background-color: #40476b;
 }
 .pac-container{
@@ -55,4 +55,11 @@
 }
 .settingsMenuHidden {
   right: -100%;
+}
+#editAccount{
+  transition: background-color 0.2s ease-in-out;
+  margin:6px;
+  width: 230px;
+  border-top: 1px solid white;
+  align-items: center;
 }

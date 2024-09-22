@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./style/login.css";
 import { useNavigate } from "react-router-dom";
-import {login} from "./script/ApiService.js"
+import {login, remindPassword} from "./script/ApiService.js"
 
 function Login({ isLoggedIn, setIsLoggedIn }) {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -17,35 +17,14 @@ function Login({ isLoggedIn, setIsLoggedIn }) {
 
   const handleLogin = (event) => {
     event.preventDefault();
-    login(loginValue, password, setIsLoggedIn);
-    navigate("/home");
+    login(loginValue, password, ()=>{
+        setIsLoggedIn(true);
+        navigate("/home");
+        });
   };
   const handleRecoverPassword = (event) => {
     event.preventDefault();
-
-    const formData = new URLSearchParams();
-        formData.append("email", email);
-
-        fetch('http://localhost:8080/employee/remind-password', {
-            method: 'POST',
-            credentials: "include",
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Błąd: " + response.statusText);
-            }
-            return response.text();
-        })
-        .then(data => {
-            alert("Wiadomość z linkiem do przywrócenia hasła została wysłana na podany adres e-mail.");
-            window.location.href = '/login';
-        })
-        .catch(error => {
-            console.error("Błąd:", error);
-            alert("Błąd");
-        });
-
+    remindPassword(email);
   };
 
   useEffect(() => {

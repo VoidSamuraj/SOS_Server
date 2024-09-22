@@ -6,7 +6,7 @@ import org.jetbrains.exposed.sql.Table
 @Serializable
 data class EmployeeInfo(val id:Int, val name: String, val surname: String, val phone: String, val email:String, val roleCode:Short, val account_deleted:Boolean): Principal
 
-    @Serializable
+@Serializable
 data class Employee(val id:Int, val login: String, val password:String, val name: String, val surname: String, val phone: String, val email:String, val roleCode:Short, val account_deleted:Boolean): Principal{
     /**
      * Enum representing role of worker.
@@ -32,6 +32,10 @@ data class Employee(val id:Int, val login: String, val password:String, val name
 
     val role: Role
         get() = Role.fromInt(roleCode.toInt())
+
+    fun toEmployeeInfo():EmployeeInfo{
+        return EmployeeInfo(id,name,surname,phone,email,roleCode,account_deleted)
+    }
 }
 
 object Employees : Table() {

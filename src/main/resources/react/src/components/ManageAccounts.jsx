@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { IconButton, Box, Tabs, Tab } from "@mui/material";
+import { IconButton, Box, Tabs, Tab, Button } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { plPL } from "@mui/material/locale";
 import { DataGrid } from "@mui/x-data-grid";
@@ -11,7 +11,7 @@ import { plLanguage } from "../script/plLanguage.js";
 import { getClients, getEmployees } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
 
-const ManageAccounts = ({ guards }) => {
+const ManageAccounts = ({ guards, editedRecord }) => {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
 
@@ -19,8 +19,6 @@ const ManageAccounts = ({ guards }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedParams, setSelectedParams] = useState(null);
   const [editMode, setEditMode] = useState(true);
-  const [isEdited, setIsEdited] = useState(false);
-
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(5);
   const [sortColumn, setSortColumn] = useState(null);
@@ -40,9 +38,8 @@ const ManageAccounts = ({ guards }) => {
     setPage(0);
   }, [selectedTab]);
 
-
   useEffect(() => {
- const timer = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (filterColumn) {
         setFilterColumnDebounced(filterColumn);
       }
@@ -54,9 +51,11 @@ const ManageAccounts = ({ guards }) => {
     if (!modalOpen) {
       switch (selectedTab) {
         case "employees":
-          getEmployees(page, pageSize, filterColumn, sortColumn).then((data) => {
-            setEmployees(data);
-          });
+          getEmployees(page, pageSize, filterColumn, sortColumn).then(
+            (data) => {
+              setEmployees(data);
+            }
+          );
           break;
         case "guards":
           break;
@@ -69,7 +68,15 @@ const ManageAccounts = ({ guards }) => {
           break;
       }
     }
-  }, [modalOpen, selectedTab, page, pageSize, sortColumn, filterColumnDebounced]);
+  }, [
+    modalOpen,
+    selectedTab,
+    page,
+    pageSize,
+    sortColumn,
+    filterColumnDebounced,
+    editedRecord
+  ]);
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -80,7 +87,14 @@ const ManageAccounts = ({ guards }) => {
   };
 
   const handleEdit = (record) => {
+    setEditMode(true);
     setSelectedParams(record);
+    setModalOpen(true);
+  };
+
+  const handleAdd = () => {
+    setSelectedParams(null);
+    setEditMode(false);
     setModalOpen(true);
   };
 
@@ -96,14 +110,12 @@ const ManageAccounts = ({ guards }) => {
   const handleCreate = (values) => {
     setModalOpen(false);
   };
- const handleSortModelChange = (sortModel)=>{
-    if (sortModel?.[0])
-        setSortColumn(sortModel?.[0])
-  }
- const handleFilterModelChange = (filterModel)=>{
-    if (filterModel?.items?.[0])
-        setFilterColumn(filterModel?.items?.[0]);
-  }
+  const handleSortModelChange = (sortModel) => {
+    if (sortModel?.[0]) setSortColumn(sortModel?.[0]);
+  };
+  const handleFilterModelChange = (filterModel) => {
+    if (filterModel?.items?.[0]) setFilterColumn(filterModel?.items?.[0]);
+  };
   const theme = createTheme(plPL);
 
   const getColumns = () => {
@@ -114,6 +126,7 @@ const ManageAccounts = ({ guards }) => {
           { field: "name", headerName: "Imie", width: 150 },
           { field: "surname", headerName: "Nazwisko", width: 150 },
           { field: "phone", headerName: "Telefon", width: 150 },
+          { field: "email", headerName: "E-mail", width: 250 },
           { field: "role", headerName: "Rola", width: 150 },
           {
             field: "account_active",
@@ -299,11 +312,20 @@ const ManageAccounts = ({ guards }) => {
       case "employees":
         return employees && employees.length > 0
           ? employees.map(
-              ({ id, name, surname, phone, roleCode, account_deleted }) => ({
+              ({
                 id,
                 name,
                 surname,
                 phone,
+                email,
+                roleCode,
+                account_deleted,
+              }) => ({
+                id,
+                name,
+                surname,
+                phone,
+                email,
                 role:
                   roleCode === 0
                     ? "Dyspozytor"
@@ -347,15 +369,30 @@ const ManageAccounts = ({ guards }) => {
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ padding: 2 }} style={{ paddingTop: "70px" }}>
-        <Tabs
-          value={selectedTab}
-          onChange={(e, newValue) => setSelectedTab(newValue)}
-          aria-label="Tabs for accounts"
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 2,
+          }}
         >
-          <Tab label="Pracownicy" value="employees" />
-          <Tab label="Ochroniarze" value="guards" />
-          <Tab label="Klienci" value="customers" />
-        </Tabs>
+          <Tabs
+            value={selectedTab}
+            onChange={(e, newValue) => setSelectedTab(newValue)}
+            aria-label="Tabs for accounts"
+          >
+            <Tab label="Pracownicy" value="employees" />
+            <Tab label="Ochroniarze" value="guards" />
+            <Tab label="Klienci" value="customers" />
+          </Tabs>
+          {
+             selectedTab == "employees" ? (
+            <Button variant="contained" color="primary" onClick={handleAdd}>
+              Dodaj Pracownika
+            </Button>
+           ):("")}
+        </Box>
         <Box sx={{ marginTop: 2, height: 400 }}>
           <DataGrid
             rows={getRows()}
@@ -366,13 +403,13 @@ const ManageAccounts = ({ guards }) => {
             onPageSizeChange={handlePageSizeChange}
             rowsPerPageOptions={[5, 10, 20]}
             localeText={plLanguage}
-              onSortModelChange={(sortModel) => {
-                handleSortModelChange(sortModel);
-              }}
-              // Capture filter model changes
-              onFilterModelChange={(filterModel) => {
-                handleFilterModelChange(filterModel);
-              }}
+            onSortModelChange={(sortModel) => {
+              handleSortModelChange(sortModel);
+            }}
+            // Capture filter model changes
+            onFilterModelChange={(filterModel) => {
+              handleFilterModelChange(filterModel);
+            }}
           />
         </Box>
         <AccountForm
@@ -381,7 +418,6 @@ const ManageAccounts = ({ guards }) => {
           selectedTab={selectedTab}
           selectedParams={selectedParams}
           editMode={editMode}
-          setIsEdited={setIsEdited}
         />
       </Box>
     </ThemeProvider>

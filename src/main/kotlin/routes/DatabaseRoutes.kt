@@ -12,6 +12,9 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.datetime.LocalDateTime
+import plugins.Mailer
+import plugins.generateRandomLogin
+import plugins.generateRandomPassword
 
 private val GuardField = mapOf(
     "id" to Guards.id ,
@@ -71,6 +74,26 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
             val ret = DaoMethods.editCustomer(id!!,login, password.toString(), newPassword, phone, pesel, email)
+            if(ret.first){
+                call.respond(HttpStatusCode.OK,"The client has been edited.")
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.second}")
+            }
+        }
+
+        //TODO add verify if employee has permission to edit
+        patch("/editSudo"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+            val phone = formParameters["phone"]
+            val pesel = formParameters["pesel"]
+            val email = formParameters["email"]
+            val isActive = formParameters["isActive"].toBoolean()
+
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val ret = DaoMethods.editCustomer(id!!, phone, pesel, email, isActive)
             if(ret.first){
                 call.respond(HttpStatusCode.OK,"The client has been edited.")
             }else{
@@ -313,6 +336,24 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to edit guard. ${ret.second}")
             }
         }
+        //TODO add verify if employee has permission to edit
+        patch("/editSudo"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+            val name = formParameters["name"]
+            val surname = formParameters["surname"]
+            val phone = formParameters["phone"]
+            val isActive = formParameters["isActive"].toBoolean()
+
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+            val ret = DaoMethods.editGuard(id!!, phone, name, surname, isActive)
+            if(ret.first){
+                call.respond(HttpStatusCode.OK,"The client has been edited.")
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.second}")
+            }
+        }
         get("/getById"){
             val formParameters = call.receiveParameters()
             val id = formParameters["id"]?.toIntOrNull()
@@ -407,6 +448,7 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to add entry to the database. ${ret.second}")
             }
         }
+
         patch("/changeRole"){
             val formParameters = call.receiveParameters()
             val id = formParameters["id"]?.toIntOrNull()
@@ -435,10 +477,34 @@ fun Route.databaseRoutes() {
             val roleCode = formParameters["roleCode"]?.toIntOrNull()
             val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
 
+            println("DOSTALE "+id+" "+password)
             if(id==null || password.isNullOrEmpty())
                 call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
             val ret = DaoMethods.editEmployee(id!!,login, password.toString(), newPassword, name, surname, phone,email, role)
+            if(ret.first){
+                call.respond(HttpStatusCode.OK,"The employee has been edited.")
+            }else{
+                call.respond(HttpStatusCode.InternalServerError, "Failed to edit employee. ${ret.second}")
+            }
+        }
+
+        //TODO add verify if employee has permission to edit
+        patch("/editSudo"){
+            val formParameters = call.receiveParameters()
+            val id = formParameters["id"]?.toIntOrNull()
+            val phone = formParameters["phone"]
+            val email = formParameters["email"]
+            val name = formParameters["name"]
+            val surname = formParameters["surname"]
+            val roleCode = formParameters["roleCode"]?.toIntOrNull()
+            val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
+            val isActive = formParameters["isActive"].toBoolean()
+
+            if(id==null)
+                call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+
+            val ret = DaoMethods.editEmployee(id!!, name, surname, phone,email, role, isActive)
             if(ret.first){
                 call.respond(HttpStatusCode.OK,"The employee has been edited.")
             }else{

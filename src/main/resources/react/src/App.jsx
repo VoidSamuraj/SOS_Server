@@ -44,6 +44,8 @@ function App() {
             setPatrols(convertArrayToPatrolMap(data));
         })
   }, []);
+
+
 /*
     const [data, setData] = useState([]);
      useEffect(() => {
@@ -78,24 +80,25 @@ socket.onclose = (event) => {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Navigate to="/home" />} />
-        <Route path="/login" element={<Login isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
-        <Route element={<PrivateRoute isLoggedIn={isLoggedIn} />}>
-          <Route path="/home" element={
-              <Home  onLogout={()=>setIsLoggedIn(false) } patrols={patrols} updatePatrol={updatePatrol}/>
-          } />
-          <Route path="/administration" element={
-              <Administration onLogout={()=>setIsLoggedIn(false) } isLoggedIn={isLoggedIn} guards={patrols} />
-          }/>
-        </Route>
-        <Route
-          path="*"
-          element={<Navigate to={isLoggedIn ? "/home" : "/login"} />}
-        />
-      </Routes>
-    </Router>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Navigate to="/home" />} />
+            <Route path="/login" element={<Login isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} />
+            <Route element={<PrivateRoute isLoggedIn={isLoggedIn} />}>
+              <Route path="/home" element={
+                    <Home  onLogout={()=>setIsLoggedIn(false) } patrols={patrols} updatePatrol={updatePatrol}/>
+
+              } />
+              <Route path="/administration" element={
+                  <Administration onLogout={()=>setIsLoggedIn(false) } isLoggedIn={isLoggedIn} guards={patrols} />
+              }/>
+            </Route>
+            <Route
+              path="*"
+              element={<Navigate to={isLoggedIn ? "/home" : "/login"} />}
+            />
+          </Routes>
+        </Router>
   );
 }
 

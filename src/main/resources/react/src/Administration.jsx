@@ -10,6 +10,7 @@ export default function Administration({ onLogout, isLoggedIn, guards }) {
   const navigate = useNavigate();
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [editedRecord, setEditedRecord] = useState(false);
   useEffect(() => {
     if (!isLoggedIn) {
       navigate("/login");
@@ -21,6 +22,9 @@ export default function Administration({ onLogout, isLoggedIn, guards }) {
   };
   const toggleSettings = () => {
     setIsSettingsVisible(!isSettingsVisible);
+  };
+  const toggleEdited = () => {
+    setEditedRecord(!editedRecord);
   };
   return (
     <div id="StatsBox">
@@ -34,8 +38,10 @@ export default function Administration({ onLogout, isLoggedIn, guards }) {
       <SettingsMenu
         isVisible={isSettingsVisible}
         onSettingsToggle={toggleSettings}
+        onEditedToggle={toggleEdited}
+        canSetMapLoc={false}
       />
-      <ManageAccounts guards={guards} />
+      <ManageAccounts guards={guards} editedRecord={editedRecord} />
     </div>
   );
 }

@@ -11,6 +11,7 @@ interface DaoMethodsInterface {
     //Customer
     suspend fun addCustomer(login: String, password: String, phone: String, pesel: String, email: String): Triple<Boolean, String, Customer?>
     suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, phone: String?=null, pesel: String?=null, email: String?=null): Pair<Boolean, String>
+    suspend fun editCustomer(id:Int, phone: String?=null, pesel: String?=null, email: String?=null, isActive:Boolean?=null): Pair<Boolean, String>
     suspend fun deleteCustomer(id:Int):Boolean
     suspend fun restoreCustomer(id:Int):Boolean
     suspend fun getCustomer(id:Int):Customer?
@@ -36,6 +37,7 @@ interface DaoMethodsInterface {
     //Guard
     suspend fun addGuard(login: String, password: String, name:String, surname:String, phone: String): Triple<Boolean, String,Guard?>
     suspend fun editGuard(id:Int, login: String?=null, password: String, newPassword: String?=null, name:String?=null, surname:String?=null, phone: String?=null): Pair<Boolean, String>
+    suspend fun editGuard(id:Int, name:String?=null, surname:String?=null, phone: String?=null, isActive:Boolean?=null): Pair<Boolean, String>
     suspend fun deleteGuard(id:Int):Boolean
     suspend fun restoreGuard(id:Int):Boolean
     suspend fun getGuard(id:Int):Guard?
@@ -47,6 +49,7 @@ interface DaoMethodsInterface {
     suspend fun deleteEmployee(id:Int):Boolean
     suspend fun restoreEmployee(id:Int):Boolean
     suspend fun editEmployee(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null,surname: String?=null, phone: String?=null, email:String?=null, role:Employee.Role?=null): Pair<Boolean, String>
+    suspend fun editEmployee(id:Int, name: String?=null,surname: String?=null, phone: String?=null, email:String?=null, role:Employee.Role?=null, isActive:Boolean?=null): Pair<Boolean, String>
     suspend fun changeEmployeeRole(id:Int, role:Employee.Role): Pair<Boolean, String>
     suspend fun changeEmployeePassword(id:Int, password:String): Pair<Boolean, String>
     suspend fun addEmployee(login: String, password: String, name: String,surname: String, phone: String, email:String, role:Employee.Role): Triple<Boolean,String,Employee?>
