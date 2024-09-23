@@ -12,9 +12,6 @@ import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.datetime.LocalDateTime
-import plugins.Mailer
-import plugins.generateRandomLogin
-import plugins.generateRandomPassword
 
 private val GuardField = mapOf(
     "id" to Guards.id ,
@@ -37,6 +34,23 @@ private val EmployeeField = mapOf(
     "phone" to Employees.phone,
     "role" to Employees.role,
     "account_active" to Employees.account_deleted
+)
+private val ReportField = mapOf(
+    "id" to Reports.id,
+    "client_id" to Reports.client_id,
+    "location" to Reports.location,
+    "date" to Reports.date,
+    "status" to Reports.status
+)
+private val InterventionField = mapOf(
+    "id" to Interventions.id,
+    "report_id" to Interventions.report_id,
+    "guard_id" to Interventions.guard_id,
+    "employee_id" to Interventions.employee_id,
+    "start_time" to Interventions.start_time,
+    "end_time" to Interventions.end_time,
+    "status" to Interventions.status,
+    "patrol_number" to Interventions.patrol_number,
 )
 fun Route.databaseRoutes() {
 
@@ -195,11 +209,15 @@ fun Route.databaseRoutes() {
                 call.respond(HttpStatusCode.InternalServerError, "Failed to get intervention.")
         }
         get("/getPage"){
-            val formParameters = call.receiveParameters()
-            val page = formParameters["page"]
-            val size = formParameters["size"]
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+            val filterColumn = call.request.queryParameters["filterColumn"]
+            val filterValue = call.request.queryParameters["filterValue"]
+            val filterType = call.request.queryParameters["filterType"]
+            val sortColumn = call.request.queryParameters["sortColumn"]
+            val sortDir = call.request.queryParameters["sortDir"]
 
-            val customers = DaoMethods.getInterventions(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
+            val customers = DaoMethods.getInterventions(page,size, InterventionField[filterColumn], filterValue,filterType, InterventionField[sortColumn],sortDir)
             call.respond(HttpStatusCode.OK,customers)
         }
 
@@ -271,11 +289,15 @@ fun Route.databaseRoutes() {
             }
         }
         get("/getPage"){
-            val formParameters = call.receiveParameters()
-            val page = formParameters["page"]
-            val size = formParameters["size"]
+            val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
+            val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
+            val filterColumn = call.request.queryParameters["filterColumn"]
+            val filterValue = call.request.queryParameters["filterValue"]
+            val filterType = call.request.queryParameters["filterType"]
+            val sortColumn = call.request.queryParameters["sortColumn"]
+            val sortDir = call.request.queryParameters["sortDir"]
 
-            val reports = DaoMethods.getReports(page?.toIntOrNull()?:1,size?.toIntOrNull()?:10)
+            val reports = DaoMethods.getReports(page,size, ReportField[filterColumn], filterValue,filterType, ReportField[sortColumn],sortDir)
             call.respond(HttpStatusCode.OK,reports)
         }
 

@@ -22,7 +22,7 @@ interface DaoMethodsInterface {
     //Intervention
     suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, start_time: LocalDateTime, end_time: LocalDateTime, status:Intervention.InterventionStatus, patrol_number: Int):Boolean
     suspend fun getIntervention(id:Int):Intervention?
-    suspend fun getInterventions(page: Int, pageSize: Int):List<Intervention>
+    suspend fun getInterventions(page: Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<Intervention>
     suspend fun getAllInterventions():List<Intervention>
 
     //Report
@@ -31,7 +31,7 @@ interface DaoMethodsInterface {
     suspend fun updateReportLocation(id:Int, location: String):Boolean
     suspend fun changeReportStatus(id:Int, status:Report.ReportStatus):Boolean
     suspend fun getReport(id:Int):Report?
-    suspend fun getReports(page:Int, pageSize: Int):List<Report>
+    suspend fun getReports(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<Report>
     suspend fun getAllReports():List<Report>
 
     //Guard
