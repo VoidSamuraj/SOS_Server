@@ -46,7 +46,7 @@ class InterventionServiceTest {
 
     @Test
     fun `should add intervention`() = runTest {
-        val result = DaoMethods.addIntervention(1, 1, 1, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED , 101)
+        val result = DaoMethods.addIntervention(1, 1, 1, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED )
         assertTrue(result)
 
         val intervention = transaction { Interventions.selectAll().singleOrNull() }
@@ -57,7 +57,7 @@ class InterventionServiceTest {
 
     @Test
     fun `should get intervention by id`() = runTest {
-        DaoMethods.addIntervention(1, 1, 1, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED ,  101)
+        DaoMethods.addIntervention(1, 1, 1, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED)
         val intervention = DaoMethods.getIntervention(1)
         assertNotNull(intervention)
         assertEquals(1, intervention.report_id)
@@ -65,8 +65,8 @@ class InterventionServiceTest {
 
     @Test
     fun `should get all interventions`() = runTest {
-        DaoMethods.addIntervention(1, 1, 1, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED , 101)
-        DaoMethods.addIntervention(2, 2, 2, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED , 102)
+        DaoMethods.addIntervention(1, 1, 1, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED)
+        DaoMethods.addIntervention(2, 2, 2, Clock.System.now().toLocalDateTime(TimeZone.UTC),  Clock.System.now().plus(1.hours).toLocalDateTime(TimeZone.UTC), Intervention.InterventionStatus.FINISHED)
 
         val interventions = DaoMethods.getInterventions(page = 1, pageSize = 10)
         assertEquals(2, interventions.size)

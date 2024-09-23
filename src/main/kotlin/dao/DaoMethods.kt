@@ -31,14 +31,16 @@ object DaoMethods:DaoMethodsInterface {
         phone = row[Customers.phone],
         pesel = row[Customers.pesel],
         email = row[Customers.email],
-        account_deleted = row[Customers.account_deleted]
+        account_deleted = row[Customers.account_deleted],
+        protection_expiration_date = row[Customers.protection_expiration_date]
     )
     private fun resultRowToClientInfo(row: ResultRow) = CustomerInfo(
         id = row[Customers.id],
         phone = row[Customers.phone],
         pesel = row[Customers.pesel],
         email = row[Customers.email],
-        account_deleted = row[Customers.account_deleted]
+        account_deleted = row[Customers.account_deleted],
+        protection_expiration_date = row[Customers.protection_expiration_date]
     )
 
     private fun resultRowToIntervention(row: ResultRow) = Intervention(
@@ -49,7 +51,6 @@ object DaoMethods:DaoMethodsInterface {
         start_time = row[Interventions.start_time],
         end_time = row[Interventions.end_time],
         statusCode = row[Interventions.status],
-        patrol_number = row[Interventions.patrol_number]
     )
 
     private fun resultRowToReport(row: ResultRow) = Report(
@@ -111,7 +112,8 @@ object DaoMethods:DaoMethodsInterface {
         password: String,
         phone: String,
         pesel: String,
-        email: String
+        email: String,
+        protectionExpirationDate: LocalDateTime?
     ): Triple<Boolean,String, Customer?> {
         return transaction {
             if (Customers.select(Customers.login).where{ Customers.login eq login}.count() > 0) {
@@ -134,10 +136,11 @@ object DaoMethods:DaoMethodsInterface {
                 it[Customers.pesel] = pesel
                 it[Customers.email] = email
                 it[Customers.account_deleted] = false
+                it[Customers.protection_expiration_date] = protectionExpirationDate
             }
             if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToClient) != null)
                 return@transaction Triple(true, "Customer created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToClient(resultRow) })
-                return@transaction Triple(false, "Failed to create client.", null)
+            return@transaction Triple(false, "Failed to create client.", null)
         }
     }
 
@@ -148,7 +151,8 @@ object DaoMethods:DaoMethodsInterface {
         newPassword: String?,
         phone: String?,
         pesel: String?,
-        email: String?
+        email: String?,
+        protectionExpirationDate: LocalDateTime?
     ): Pair<Boolean,String> {
         return transaction {
 
@@ -165,14 +169,15 @@ object DaoMethods:DaoMethodsInterface {
                 phone?.let { phone -> it[Customers.phone] = phone }
                 pesel?.let { pesel -> it[Customers.pesel] = pesel }
                 email?.let { email -> it[Customers.email] = email }
+                protectionExpirationDate?.let{protectionExpirationDate -> it[Customers.protection_expiration_date] = protectionExpirationDate}
             } > 0
             if(result)
                 return@transaction true to "Customer updated successfully."
-                return@transaction false to "Failed to update customer."
+            return@transaction false to "Failed to update customer."
         }
     }
 
-    override suspend fun editCustomer(id:Int, phone: String?, pesel: String?, email: String?, isActive:Boolean?): Pair<Boolean, String>{
+    override suspend fun editCustomer(id:Int, phone: String?, pesel: String?, email: String?, isActive:Boolean?, protectionExpirationDate: LocalDateTime?): Pair<Boolean, String>{
 
         return transaction {
 
@@ -186,6 +191,7 @@ object DaoMethods:DaoMethodsInterface {
                 pesel?.let { pesel -> it[Customers.pesel] = pesel }
                 email?.let { email -> it[Customers.email] = email }
                 isActive?.let{isActive-> it[Customers.account_deleted] = !isActive}
+                protectionExpirationDate?.let{protectionExpirationDate -> it[Customers.protection_expiration_date] = protectionExpirationDate}
             } > 0
             if(result)
                 return@transaction true to "Customer updated successfully."
@@ -239,23 +245,37 @@ object DaoMethods:DaoMethodsInterface {
             val offset = (page - 1) * pageSize
             val query=Customers.selectAll().apply {
                 if (filterColumn != null && filterValue !=null) {
-                    when (filterType) {
-                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
-                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
-                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
-                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
-                    }
-                    if(filterColumn.columnType is StringColumnType){
-                        when (filterType) {
-                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
-                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
-                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                    try {
+                        if (filterColumn.columnType is StringColumnType) {
+                            val column = filterColumn as? Column<String>
+                            if(column != null)
+                                when (filterType) {
+                                    "contains" -> where { column like "%$filterValue%" }
+                                    "startsWith" -> where { column like "$filterValue%" }
+                                    "endsWith" -> where { column like "%$filterValue" }
+                                }
+                        }else{
+                            val column = filterColumn as? Column<Any>
+                            if(column != null)
+                                when (filterType) {
+                                    "equals" -> where { column eq filterValue }
+                                    "isEmpty" -> where { filterColumn.isNull() or (column eq "") }
+                                    "isNotEmpty" -> where { filterColumn.isNotNull() and ( column neq "") }
+                                    "isAnyOf" -> where { column eq filterValue }
+                                }
                         }
+                    }catch(e:Error){
+                        System.err.println("Error: ${e.message}")
                     }
+
                 }
             }
             if (sortBy != null) {
-                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                try{
+                    query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                }catch(e:Error){
+                    System.err.println("Error: ${e.message}")
+                }
             }
             query.limit(pageSize, offset.toLong())
                 .map(::resultRowToClientInfo).toList()
@@ -274,16 +294,15 @@ object DaoMethods:DaoMethodsInterface {
 
     //Intervention
 
-    override suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, start_time: LocalDateTime, end_time: LocalDateTime, status:Intervention.InterventionStatus, patrol_number: Int):Boolean {
+    override suspend fun addIntervention(reportId: Int, guardId: Int, employeeId: Int, startTime: LocalDateTime, endTime: LocalDateTime, status:Intervention.InterventionStatus):Boolean {
         return transaction {
             val insertStatement = Interventions.insert {
-                it[Interventions.report_id] = report_id
-                it[Interventions.guard_id] = guard_id
-                it[Interventions.employee_id] = employee_id
-                it[Interventions.start_time] = start_time
-                it[Interventions.end_time] = end_time
+                it[Interventions.report_id] = reportId
+                it[Interventions.guard_id] = guardId
+                it[Interventions.employee_id] = employeeId
+                it[Interventions.start_time] = startTime
+                it[Interventions.end_time] = endTime
                 it[Interventions.status] = status.status.toShort()
-                it[Interventions.patrol_number] = patrol_number
             }
             insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToIntervention) != null
         }
@@ -304,23 +323,36 @@ object DaoMethods:DaoMethodsInterface {
 
             val query = Interventions.selectAll().apply {
                 if (filterColumn != null && filterValue !=null) {
-                    when (filterType) {
-                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
-                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
-                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
-                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
-                    }
-                    if(filterColumn.columnType is StringColumnType){
-                        when (filterType) {
-                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
-                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
-                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                    try{
+                        if(filterColumn.columnType is StringColumnType){
+                            val column = filterColumn as? Column<String>
+                            if(column != null)
+                                when (filterType) {
+                                    "contains" -> where { column like "%$filterValue%" }
+                                    "startsWith" -> where { column like "$filterValue%" }
+                                    "endsWith" -> where { column like "%$filterValue" }
+                                }
+                        }else{
+                            val column = filterColumn as? Column<Any>
+                            if(column != null)
+                                when (filterType) {
+                                    "equals" -> where { column eq filterValue }
+                                    "isEmpty" -> where { filterColumn.isNull() or (column eq "") }
+                                    "isNotEmpty" -> where { filterColumn.isNotNull() and (column neq "") }
+                                    "isAnyOf" -> where { column eq filterValue }
+                                }
                         }
+                    }catch(e:Error){
+                        System.err.println("Error: ${e.message}")
                     }
                 }
             }
             if (sortBy != null) {
-                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                try{
+                    query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                }catch(e:Error){
+                    System.err.println("Error: ${e.message}")
+                }
             }
             query.limit(pageSize, offset.toLong())
                 .map(::resultRowToIntervention).toList()
@@ -391,23 +423,36 @@ object DaoMethods:DaoMethodsInterface {
 
             val query=Reports.selectAll().apply {
                 if (filterColumn != null && filterValue !=null) {
-                    when (filterType) {
-                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
-                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
-                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
-                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
-                    }
-                    if(filterColumn.columnType is StringColumnType){
-                        when (filterType) {
-                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
-                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
-                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                    try{
+                        if(filterColumn.columnType is StringColumnType){
+                            val column = filterColumn as? Column<String>
+                            if(column != null)
+                                when (filterType) {
+                                    "contains" -> where { column like "%$filterValue%" }
+                                    "startsWith" -> where { column like "$filterValue%" }
+                                    "endsWith" -> where { column like "%$filterValue" }
+                                }
+                        }else{
+                            val column = filterColumn as? Column<Any>
+                            if(column != null)
+                                when (filterType) {
+                                    "equals" -> where { column eq filterValue }
+                                    "isEmpty" -> where { filterColumn.isNull() or (column eq "") }
+                                    "isNotEmpty" -> where { filterColumn.isNotNull() and (column neq "") }
+                                    "isAnyOf" -> where { column eq filterValue }
+                                }
                         }
+                    }catch(e:Error){
+                        System.err.println("Error: ${e.message}")
                     }
                 }
             }
             if (sortBy != null) {
-                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                try{
+                    query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                }catch(e:Error){
+                    System.err.println("Error: ${e.message}")
+                }
             }
             query.limit(pageSize, offset.toLong())
                 .map(::resultRowToReport).toList()
@@ -451,7 +496,7 @@ object DaoMethods:DaoMethodsInterface {
             }
             if(insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToGuard) != null)
                 return@transaction Triple(true, "Guard created successfully.", insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToGuard(resultRow) })
-                return@transaction Triple(false, "Failed to create guard.", null)
+            return@transaction Triple(false, "Failed to create guard.", null)
         }
     }
 
@@ -554,23 +599,36 @@ object DaoMethods:DaoMethodsInterface {
             val offset = (page - 1) * pageSize
             val query=Guards.selectAll().apply {
                 if (filterColumn != null && filterValue !=null) {
-                    when (filterType) {
-                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
-                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
-                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
-                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
-                    }
-                    if(filterColumn.columnType is StringColumnType){
-                        when (filterType) {
-                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
-                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
-                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                    try{
+                        if(filterColumn.columnType is StringColumnType){
+                            val column = filterColumn as? Column<String>
+                            if(column != null)
+                                when (filterType) {
+                                    "contains" -> where { column like "%$filterValue%" }
+                                    "startsWith" -> where { column like "$filterValue%" }
+                                    "endsWith" -> where { column like "%$filterValue" }
+                                }
+                        }else{
+                            val column = filterColumn as? Column<Any>
+                            if(column != null)
+                                when (filterType) {
+                                    "equals" -> where { column eq filterValue }
+                                    "isEmpty" -> where { filterColumn.isNull() or (column eq "") }
+                                    "isNotEmpty" -> where { filterColumn.isNotNull() and (column neq "") }
+                                    "isAnyOf" -> where { column eq filterValue }
+                                }
                         }
+                    }catch(e:Error){
+                        System.err.println("Error: ${e.message}")
                     }
                 }
             }
             if (sortBy != null) {
-                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                try{
+                    query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                }catch(e:Error){
+                    System.err.println("Error: ${e.message}")
+                }
             }
             query.limit(pageSize, offset.toLong())
                 .map(::resultRowToGuardInfo).toList()
@@ -619,7 +677,7 @@ object DaoMethods:DaoMethodsInterface {
 
             if (insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToEmployee) != null)
                 return@transaction Triple(true, "Employee created successfully.",insertStatement.resultedValues?.firstOrNull()?.let { resultRow -> resultRowToEmployee(resultRow) })
-                return@transaction Triple(false, "Failed to create employee.",null)
+            return@transaction Triple(false, "Failed to create employee.",null)
         }
     }
 
@@ -660,7 +718,7 @@ object DaoMethods:DaoMethodsInterface {
             } > 0
             if (updated)
                 return@transaction true to "Employee updated successfully."
-                return@transaction false to "Failed to update employee."
+            return@transaction false to "Failed to update employee."
         }
     }
     override suspend fun editEmployee(id:Int, name: String?,surname: String?, phone: String?, email:String?, role:Employee.Role?, isActive:Boolean?): Pair<Boolean, String>{
@@ -725,7 +783,7 @@ object DaoMethods:DaoMethodsInterface {
                 .singleOrNull()
         }
     }
-   override suspend fun getEmployee(email: String): Employee? {
+    override suspend fun getEmployee(email: String): Employee? {
         return transaction {
             Employees
                 .selectAll().where { Employees.email eq email }
@@ -742,7 +800,7 @@ object DaoMethods:DaoMethodsInterface {
             if (employee == null) {
                 return@transaction "Incorrect Id for the employee." to null
             }
-            if(!comparePasswords(password,employee!!.password))
+            if(!comparePasswords(password,employee.password))
                 return@transaction "Incorrect password for the employee." to null
             return@transaction "Success" to employee
 
@@ -754,23 +812,37 @@ object DaoMethods:DaoMethodsInterface {
             val offset = (page - 1) * pageSize
             val query=Employees.selectAll().apply {
                 if (filterColumn != null && filterValue !=null) {
-                    when (filterType) {
-                        "equals" -> where { filterColumn as Column<Any> eq filterValue }
-                        "isEmpty" -> where { filterColumn.isNull() or (filterColumn as Column<Any> eq "") }
-                        "isNotEmpty" -> where { filterColumn.isNotNull() and (filterColumn as Column<Any> neq "") }
-                        "isAnyOf" -> where { filterColumn as Column<Any> eq filterValue }
-                    }
-                    if(filterColumn.columnType is StringColumnType){
-                        when (filterType) {
-                            "contains" -> where { (filterColumn as Column<String>) like "%$filterValue%" }
-                            "startsWith" -> where { (filterColumn as Column<String>) like "$filterValue%" }
-                            "endsWith" -> where { (filterColumn as Column<String>) like "%$filterValue" }
+                    try{
+
+                        if(filterColumn.columnType is StringColumnType){
+                            val column = filterColumn as? Column<String>
+                            if(column != null)
+                                when (filterType) {
+                                    "contains" -> where {column like "%$filterValue%" }
+                                    "startsWith" -> where { column like "$filterValue%" }
+                                    "endsWith" -> where { column like "%$filterValue" }
+                                }
+                        }else{
+                            val column = filterColumn as? Column<Any>
+                            if(column != null)
+                                when (filterType) {
+                                    "equals" -> where { column eq filterValue }
+                                    "isEmpty" -> where { filterColumn.isNull() or (column eq "") }
+                                    "isNotEmpty" -> where { filterColumn.isNotNull() and (column neq "") }
+                                    "isAnyOf" -> where { column eq filterValue }
+                                }
                         }
+                    }catch(e:Error){
+                        System.err.println("Error: ${e.message}")
                     }
                 }
             }
             if (sortBy != null) {
-                query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                try{
+                    query.orderBy(sortBy, if(sortDir=="desc") SortOrder.DESC else SortOrder.ASC)
+                }catch(e:Error){
+                    System.err.println("Error: ${e.message}")
+                }
             }
             query.limit(pageSize, offset.toLong())
                 .map(::resultRowToEmployeeInfo).toList()

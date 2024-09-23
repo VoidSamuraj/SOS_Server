@@ -9,9 +9,9 @@ import org.jetbrains.exposed.sql.Column
 interface DaoMethodsInterface {
 
     //Customer
-    suspend fun addCustomer(login: String, password: String, phone: String, pesel: String, email: String): Triple<Boolean, String, Customer?>
-    suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, phone: String?=null, pesel: String?=null, email: String?=null): Pair<Boolean, String>
-    suspend fun editCustomer(id:Int, phone: String?=null, pesel: String?=null, email: String?=null, isActive:Boolean?=null): Pair<Boolean, String>
+    suspend fun addCustomer(login: String, password: String, phone: String, pesel: String, email: String, protectionExpirationDate: LocalDateTime?=null): Triple<Boolean, String, Customer?>
+    suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
+    suspend fun editCustomer(id:Int, phone: String?=null, pesel: String?=null, email: String?=null, isActive:Boolean?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
     suspend fun deleteCustomer(id:Int):Boolean
     suspend fun restoreCustomer(id:Int):Boolean
     suspend fun getCustomer(id:Int):Customer?
@@ -20,7 +20,7 @@ interface DaoMethodsInterface {
     suspend fun getAllCustomers():List<CustomerInfo>
 
     //Intervention
-    suspend fun addIntervention(report_id: Int, guard_id: Int, employee_id: Int, start_time: LocalDateTime, end_time: LocalDateTime, status:Intervention.InterventionStatus, patrol_number: Int):Boolean
+    suspend fun addIntervention(reportId: Int, guardId: Int, employeeId: Int, startTime: LocalDateTime, endTime: LocalDateTime, status:Intervention.InterventionStatus):Boolean
     suspend fun getIntervention(id:Int):Intervention?
     suspend fun getInterventions(page: Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<Intervention>
     suspend fun getAllInterventions():List<Intervention>

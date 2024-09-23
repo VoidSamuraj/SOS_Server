@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.datetime
 
 @Serializable
-data class Intervention(val id:Int,val report_id: Int,val guard_id:Int, val employee_id:Int, val start_time:LocalDateTime, val end_time:LocalDateTime, val statusCode:Short, val patrol_number:Int){
+data class Intervention(val id:Int,val report_id: Int,val guard_id:Int, val employee_id:Int, val start_time:LocalDateTime, val end_time:LocalDateTime, val statusCode:Short){
     /**
      * Enum representing status of Intervention.
      *
@@ -39,6 +39,5 @@ object Interventions : Table() {
     val start_time = datetime("start_time")
     val end_time = datetime("end_time")
     val status = short("status")
-    val patrol_number = integer("patrol_number")
     override val primaryKey = PrimaryKey(id)
 }

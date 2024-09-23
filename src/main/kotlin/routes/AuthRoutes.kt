@@ -127,12 +127,10 @@ fun Route.authRoutes(){
 
             val login = generateRandomLogin()
             val password = generateRandomPassword()
-            println("REJESTRACJAFAZA 1")
             if(phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() ||  roleCode == null)
                 call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
             val ret = DaoMethods.addEmployee(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString(), email.toString(), Employee.Role.fromInt(roleCode!!))
 
-            println("REJESTRACJAFAZA 2"+ret.first+" "+ret.second+" "+ret.third)
             if(ret.first && ret.third != null){
                 Mailer.sendNewAccountEmail(
                     ret.third!!.name,
@@ -142,7 +140,6 @@ fun Route.authRoutes(){
                     password
                 )
 
-                println("REJESTRACJAFAZA 3")
                 call.respond(HttpStatusCode.OK,"Employee added to database.")
             }else{
                 call.respond(HttpStatusCode.InternalServerError, "Failed to add entry to the database. ${ret.second}")
