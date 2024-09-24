@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import TopBar from "./components/TopBar";
 import DropdownMenu from "./components/DropdownMenu";
 import SettingsMenu from "./components/SettingsMenu";
-import "./administration.css";
+import "./style/administration.css";
 
 export default function Administration({ onLogout, isLoggedIn, guards }) {
   const navigate = useNavigate();
