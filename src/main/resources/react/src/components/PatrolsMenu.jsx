@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "../style/patrolsMenu.css"; // Załaduj style dla tego komponentu
 import leftarrow from "../icons/left-arrow.svg";
 import { usePatrols } from "./map/MapFunctions";
 

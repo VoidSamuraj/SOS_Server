@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from "react";
-import "./style/login.css";
-import { useNavigate } from "react-router-dom";
-import {login, remindPassword} from "./script/ApiService.js"
+import React, { useState } from "react";
+import {login, remindPassword} from "../script/ApiService.js"
 
-function Login({ isLoggedIn, setIsLoggedIn }) {
+function Login() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showRecoverForm, setShowRecoverForm] = useState(false);
-  const navigate = useNavigate();
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
@@ -18,20 +15,13 @@ function Login({ isLoggedIn, setIsLoggedIn }) {
   const handleLogin = (event) => {
     event.preventDefault();
     login(loginValue, password, ()=>{
-        setIsLoggedIn(true);
-        navigate("/home");
-        });
+         window.location.href = "/map";
+    });
   };
   const handleRecoverPassword = (event) => {
     event.preventDefault();
     remindPassword(email);
   };
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      navigate("/home");
-    }
-  }, [isLoggedIn]);
 
   return (
     <>

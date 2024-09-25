@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "../style/assignTaskBox.css"; // Załaduj style dla tego komponentu
 import bell from "../icons/bell.svg";
 import { usePatrols } from "./map/MapFunctions";
 

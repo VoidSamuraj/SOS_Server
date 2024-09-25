@@ -47,9 +47,9 @@ const AccountForm = ({
 
   const handleSave = () => {
     const asyncOperations = [];
-    const wasAccountActive = Boolean(selectedParams.account_active);
     const isAccountActive = isActive == "true";
     if (editMode) {
+      const wasAccountActive = Boolean(selectedParams.account_active ?? false);
       switch (selectedTab) {
         case "employees":
           asyncOperations.push(

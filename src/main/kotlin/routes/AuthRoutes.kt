@@ -18,8 +18,6 @@ import io.ktor.server.sessions.set
 import io.ktor.server.util.getOrFail
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
-import jwtExpirationSeconds
-import kotlinx.serialization.Serializable
 import plugins.Mailer
 import plugins.checkPermission
 import plugins.createToken
@@ -30,43 +28,29 @@ import plugins.getEmployeeId
 import plugins.getTokenExpirationDate
 import security.JWTToken
 
-@Serializable
-data class ResponseObject(
-    val message: String,
-    val exp: String,
-    val user: EmployeeInfo
-)
-
-suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(onSuccess:suspend ()->Unit){
+suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(onSuccess:suspend ()->Unit, onFailure: (suspend () -> Unit)? = null ){
     val token=call.sessions.get("userToken")as JWTToken?
     checkPermission(token = token,
         onSuccess = {
             onSuccess()
         },
         onFailure = {
-            call.respondRedirect("/")
+            if(onFailure != null)
+                onFailure.invoke()
+            else
+                call.respondRedirect("/login")
         })
 }
 
-fun PipelineContext<Unit,ApplicationCall>.generateToken(employee: Employee): JWTToken?{
+fun PipelineContext<Unit,ApplicationCall>.generateAndSetToken(employee: Employee): JWTToken?{
     val token = createToken(employee)
     call.sessions.set(token)
     return token
 }
 
 suspend fun PipelineContext<Unit,ApplicationCall>.onAuthenticate(employee: Employee){
-
-
-    val token = generateToken(employee) ?: return
-    getTokenExpirationDate(token)?.let { expirationDate ->
-        call.attributes.put(AttributeKey("exp"), expirationDate.time.toString())
-    }
-    val responseObject = ResponseObject(
-        message = "Success",
-        exp = (System.currentTimeMillis() + jwtExpirationSeconds * 1000).toString(),
-        user = employee.toEmployeeInfo()
-    )
-    call.respond(HttpStatusCode.OK, responseObject)
+    generateAndSetToken(employee)
+    call.respond(HttpStatusCode.OK, employee.toEmployeeInfo())
 }
 suspend fun PipelineContext<Unit,ApplicationCall>.onAuthError(){
     call.respondRedirect("/")
@@ -81,8 +65,11 @@ fun Route.authRoutes(){
             val login = formParameters.getOrFail("login")
             val password = formParameters.getOrFail("password")
             val employee= DaoMethods.getEmployee(login, password)
+            println("LOGOLGWW "+employee.first)
+            println(employee.second)
             if(employee.second!=null) {
                 onAuthenticate(employee.second!!)
+
             }else {
                // errorMessage =employee.first
                 onAuthError()
@@ -104,7 +91,7 @@ fun Route.authRoutes(){
                         decodedToken.claims["roleCode"]!!.asInt().toShort(),
                         false
                     )
-                    getTokenExpirationDate(generateToken(employee))?.time?.let { it1 -> call.attributes.put(AttributeKey("exp"), it1.toString()) }
+                    getTokenExpirationDate(generateAndSetToken(employee))?.time?.let { it1 -> call.attributes.put(AttributeKey("exp"), it1.toString()) }
 
                     call.respond(HttpStatusCode.OK, "Success")
                 },
@@ -153,7 +140,7 @@ fun Route.authRoutes(){
             if(employee!=null){
                 val host = call.request.origin.serverHost
                 val port = call.request.port()
-                val token = generateToken(employee)
+                val token = generateAndSetToken(employee)
                 if(token!=null) {
                     Mailer.sendPasswordRestorationEmail(
                         employee.name,

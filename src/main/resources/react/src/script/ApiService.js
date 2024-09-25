@@ -161,15 +161,12 @@ export const login = (login, password, onSuccess) => {
       }
     })
     .then((data) => {
-      if (data.exp) {
-        localStorage.setItem("exp", data.exp);
-        if (data.user) {
-          saveUserData(data.user.id, data.user.phone, data.user.email);
+        if (data) {
+          saveUserData(data.id, data.phone, data.email);
+          onSuccess();
         } else {
           console.error("User data is not available");
         }
-        onSuccess();
-      }
     })
     .catch((error) => console.error("Error:", error));
 };
@@ -343,6 +340,9 @@ export const getAllGuards = async () => {
     console.error("Fetch error:", error);
     return null;
   }
+};
+export const getGuards = async (page, size, filterColumn, sortColumn) => {
+  return getPersons(page, size, filterColumn, sortColumn, "/guard/getPage");
 };
 export const editGuard = async (id, name, surname, phone, isActive) => {
   try {

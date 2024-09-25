@@ -9,7 +9,7 @@ body > div {
   box-sizing: border-box;
 }
 #root {
-  background-image: url("../earth.jpg");
+  background-image: url("../images/earth.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

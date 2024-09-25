@@ -1,23 +1,23 @@
-import { useState, useEffect, useCallback } from "react";
-import TopBar from "./components/TopBar";
-import DropdownMenu from "./components/DropdownMenu";
-import SettingsMenu from "./components/SettingsMenu";
-import PatrolsMenu from "./components/PatrolsMenu";
-import MyMap from "./components/map/MyMap";
-import StatsOverlay from "./components/StatsOverlay";
-import "./style/style.css";
-import car from "./icons/car.svg";
-import { useReports } from "./components/map/MapFunctions";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import TopBar from "./TopBar";
+import DropdownMenu from "./DropdownMenu";
+import SettingsMenu from "./SettingsMenu";
+import PatrolsMenu from "./PatrolsMenu";
+import MyMap from "./map/MyMap";
+import StatsOverlay from "./StatsOverlay";
+import car from "../icons/car.svg";
+import { useReports, usePatrols } from "./map/MapFunctions";
+import {getAllGuards} from "../script/ApiService.js";
 
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
-import config from "./config";
+import config from "../config";
 const libraries = ["places"];
 
-function Home({ onLogout, patrols, updatePatrol }) {
+function Home() {
+  const {patrols, setPatrols, updatePatrol,  convertArrayToPatrolMap} =usePatrols();
   const { reports, addReport, editReport, removeReport } = useReports();
-  const navigate = useNavigate();
   const [locationJson, setLocationJson] = useState(localStorage.getItem("HomeLocation"));
+
 
   useEffect(() => {
     document.documentElement.classList.add("indexStyle");
@@ -28,12 +28,44 @@ function Home({ onLogout, patrols, updatePatrol }) {
       document.body.classList.remove("indexStyle");
     };
   }, []);
-
+  useEffect(() => {
+    getAllGuards()
+    .then(data => {
+            setPatrols(convertArrayToPatrolMap(data));
+        })
+  }, []);
   const assignTask = (patrolId, reportId) => {
     updatePatrol(patrolId, 2, null);
     editReport(reportId, null, null, 1);
   };
+/*
+    const [data, setData] = useState([]);
+     useEffect(() => {
+         const socket = new WebSocket('ws://localhost:8080/updates');
 
+         socket.onopen = () => {
+             console.log('WebSocket connection established');
+         };
+
+         socket.onmessage = (event) => {
+             console.log('Received data:', event.data);
+             const newData = event.data.split(', ').map(item => item.trim());
+             setData(newData);
+         };
+
+         socket.onerror = (error) => {
+             console.error('WebSocket error:', error);
+         };
+
+socket.onclose = (event) => {
+        console.log('Closed websocket');
+};
+
+         return () => {
+             socket.close();
+         };
+     }, []);
+*/
   //TEST
 
   useEffect(() => {
@@ -90,8 +122,7 @@ function Home({ onLogout, patrols, updatePatrol }) {
         isVisible={isDropdownVisible}
         onSettingsToggle={toggleSettings}
         onStatsToggle={toggleStats}
-        onLogout={onLogout}
-        onAdminClick={() => navigate("/administration")}
+        onAdminClick={() => window.location.href = "/administration"}
       />
       <SettingsMenu
         isVisible={isSettingsVisible}

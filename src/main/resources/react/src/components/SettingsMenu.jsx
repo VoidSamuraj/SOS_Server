@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
-import "../style/settingsMenu.css";
 import rightarrow from "../icons/right-arrow.svg";
 import EditAccountData from "./EditAccountData";
 
