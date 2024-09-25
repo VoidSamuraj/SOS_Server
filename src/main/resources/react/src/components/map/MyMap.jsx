@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import "../../style/map.css";
+import React, { useState, useEffect, useRef } from "react";
 import config from "../../config";
 import {
   APIProvider,

@@ -1,5 +1,4 @@
 import React from 'react';
-import '../style/topBar.css'; // Załaduj style dla tego komponentu
 import menu from '../icons/menu.svg';
 
 function TopBar({ onDropdownToggle, guards}) {

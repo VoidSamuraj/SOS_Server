@@ -1,5 +1,4 @@
 import React from "react";
-import "../style/statsOverlay.css";
 import x from "../icons/x.svg";
 
 function StatsOverlay({ isVisible, onStatsToggle }) {

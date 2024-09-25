@@ -1,22 +1,18 @@
 import React from "react";
-import "../style/dropdownMenu.css";
 import barchart from "../icons/bar-chart.svg";
 import cog from "../icons/cog.svg";
 import exit from "../icons/exit.svg";
 import group from "../icons/group.svg";
 import mapIcon from "../icons/map.svg";
 import { logout } from "../script/ApiService.js";
-import { useNavigate } from "react-router-dom";
 
 function DropdownMenu({
   isVisible,
   onSettingsToggle,
   onStatsToggle,
-  onLogout,
   onAdminClick,
   onMapClick,
 }) {
-  const navigate = useNavigate();
 
   return (
     <div
@@ -54,8 +50,7 @@ function DropdownMenu({
       <button
         onClick={() =>
           logout(() => {
-            navigate("/login");
-            onLogout();
+            window.location.href = "/login";
           })
         }
         className="icon-button"

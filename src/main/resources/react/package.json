@@ -20,6 +20,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "webpackbuild": "cross-env NODE_ENV=production webpack --config config/webpack.config.js",
+    "webpackstart": "cross-env NODE_ENV=development webpack serve --config config/webpack.config.js --open",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -41,5 +43,16 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "copy-webpack-plugin": "^12.0.2",
+    "cross-env": "^7.0.3",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.0",
+    "mini-css-extract-plugin": "^2.9.1",
+    "postcss-loader": "^8.1.1",
+    "style-loader": "^4.0.0",
+    "webpack-cli": "^5.1.4"
   }
 }

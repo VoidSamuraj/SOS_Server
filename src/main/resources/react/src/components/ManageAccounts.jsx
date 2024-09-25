@@ -10,27 +10,32 @@ import x from "../icons/x.svg";
 import { plLanguage } from "../script/plLanguage.js";
 import { getClients, getEmployees } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
+import { getGuards } from "../script/ApiService.js";
 
-const ManageAccounts = ({ guards, editedRecord }) => {
+const ManageAccounts = ({editedRecord }) => {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [patrols, setPatrols] = useState([]);
 
   const [selectedTab, setSelectedTab] = useState("employees");
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedParams, setSelectedParams] = useState(null);
   const [editMode, setEditMode] = useState(true);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(20);
   const [sortColumn, setSortColumn] = useState(null);
   const [filterColumn, setFilterColumn] = useState(null);
   const [filterColumnDebounced, setFilterColumnDebounced] = useState(null);
 
   useEffect(() => {
-    getClients(page, pageSize, filterColumn, sortColumn).then((data) => {
+    getClients(page, pageSize, null, null).then((data) => {
       setClients(data);
     });
-    getEmployees(page, pageSize, filterColumn, sortColumn).then((data) => {
+    getEmployees(page, pageSize, null, null).then((data) => {
       setEmployees(data);
+    });
+    getGuards(page, pageSize, null, null).then((data) => {
+      setPatrols(data);
     });
   }, []);
 
@@ -58,6 +63,10 @@ const ManageAccounts = ({ guards, editedRecord }) => {
           );
           break;
         case "guards":
+          getGuards(page, pageSize, filterColumn, sortColumn).then((data) => {
+              console.log(data);
+            setPatrols(data);
+          });
           break;
         case "customers":
           getClients(page, pageSize, filterColumn, sortColumn).then((data) => {
@@ -338,9 +347,8 @@ const ManageAccounts = ({ guards, editedRecord }) => {
           : [];
         break;
       case "guards":
-        return guards && guards.size > 0
-          ? Array.from(guards.entries()).map(
-              ([id, { name, surname, phone, account_deleted }]) => ({
+        return patrols && patrols.length > 0
+          ? patrols.map(({id, name, surname, phone, account_deleted }) => ({
                 id,
                 name,
                 surname,
@@ -386,12 +394,13 @@ const ManageAccounts = ({ guards, editedRecord }) => {
             <Tab label="Ochroniarze" value="guards" />
             <Tab label="Klienci" value="customers" />
           </Tabs>
-          {
-             selectedTab == "employees" ? (
+          {selectedTab == "employees" ? (
             <Button variant="contained" color="primary" onClick={handleAdd}>
               Dodaj Pracownika
             </Button>
-           ):("")}
+          ) : (
+            ""
+          )}
         </Box>
         <Box sx={{ marginTop: 2, height: 400 }}>
           <DataGrid

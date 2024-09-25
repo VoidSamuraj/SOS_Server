@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from "react";
 import ManageAccounts from "./components/ManageAccounts";
-import { useNavigate } from "react-router-dom";
 import TopBar from "./components/TopBar";
 import DropdownMenu from "./components/DropdownMenu";
 import SettingsMenu from "./components/SettingsMenu";
-import "./style/administration.css";
 
-export default function Administration({ onLogout, isLoggedIn, guards }) {
-  const navigate = useNavigate();
+function Administration() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [editedRecord, setEditedRecord] = useState(false);
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/login");
-    }
-  }, [isLoggedIn]);
+
+
+  let guards ={}
   const toggleDropdown = () => {
     setIsDropdownVisible(!isDropdownVisible);
     if (isSettingsVisible) setIsSettingsVisible(false);
@@ -32,8 +27,7 @@ export default function Administration({ onLogout, isLoggedIn, guards }) {
       <DropdownMenu
         isVisible={isDropdownVisible}
         onSettingsToggle={toggleSettings}
-        onLogout={onLogout}
-        onMapClick={() => navigate("/home")}
+        onMapClick={() =>  window.location.href = "/map"}
       />
       <SettingsMenu
         isVisible={isSettingsVisible}
@@ -45,3 +39,5 @@ export default function Administration({ onLogout, isLoggedIn, guards }) {
     </div>
   );
 }
+
+export default Administration;

@@ -70,11 +70,14 @@ dependencies {
 tasks.withType<Test> {
     systemProperty("ktor.environment", "test")
 }
+
+/*
 tasks.register<Exec>("buildReact") {
     workingDir = file("src/main/resources/react")
-    commandLine("npm", "run", "build")
+    commandLine("npm", "run", "webpackbuild")
 }
 // before processResources run buildReact
 tasks.named("processResources") {
     dependsOn("buildReact")
 }
+*/
