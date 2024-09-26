@@ -12,7 +12,7 @@ fun Application.configureSession() {
         cookie<JWTToken>("userToken", directorySessionStorage(File("build/.sessions"))) {
             transform(SessionTransportTransformerEncrypt(Keys.EncryptKey, Keys.SignKey))
             //to enable using cookies by js
-            cookie.httpOnly=false
+            cookie.httpOnly=true
             cookie.secure=true
             cookie.maxAgeInSeconds =jwtExpirationSeconds
         }

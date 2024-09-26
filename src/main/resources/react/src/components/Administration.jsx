@@ -4,6 +4,17 @@ import TopBar from "./TopBar";
 import DropdownMenu from "./DropdownMenu";
 import SettingsMenu from "./SettingsMenu";
 
+
+/**
+ * Administration component serves as a control panel for managing settings,
+ * dropdown menus, and accounts within the application.
+ *
+ * This component includes a top bar with a dropdown menu, settings menu,
+ * and an account management section. It manages the visibility of the dropdown
+ * and settings menus and allows for the editing of account records.
+ *
+ * @returns {JSX.Element} The rendered administration component.
+ */
 function Administration() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);

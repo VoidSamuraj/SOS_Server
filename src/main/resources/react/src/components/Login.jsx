@@ -1,6 +1,16 @@
 import React, { useState } from "react";
 import {login, remindPassword} from "../script/ApiService.js"
 
+
+/**
+ * Login component allows users to log in or recover their password.
+ *
+ * This component provides a form for user login and an option to recover the password.
+ * It maintains the visibility of the password field and handles the submission of both login
+ * and recovery forms.
+ *
+ * @returns {JSX.Element} The rendered component.
+ */
 function Login() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [showRecoverForm, setShowRecoverForm] = useState(false);

@@ -10,6 +10,20 @@ import ReportMarkers from "./ReportMarkers.jsx";
 import homeImg from "../../icons/home.svg";
 import AssignTaskBox from "../AssignTaskBox";
 
+
+/**
+ * MapController component manages the map's center location based on
+ * provided location data or previously saved home location in local storage.
+ * It pans the map to the specified coordinates when locationJson or
+ * refreshFlag changes.
+ *
+ * @param {string} props.locationJson - A JSON string representing the location
+ * coordinates (latitude and longitude) to navigate to.
+ * @param {boolean} props.refreshFlag - A flag that triggers the map to refresh
+ * its position when changed.
+ *
+ * @returns {null} The component does not render anything.
+ */
 function MapController({ locationJson, refreshFlag }) {
   const map = useMap();
 
@@ -44,6 +58,24 @@ function MapController({ locationJson, refreshFlag }) {
   return null;
 }
 
+
+
+/**
+ * MyMap component renders a Google Map with car markers and report markers.
+ * It provides functionalities to assign tasks based on selected reports,
+ * and includes a button to reset the map's center location to the default.
+ *
+ * @param {Map} props.patrols - Aa Map containing patrol used for rendering
+ * car markers on the map.
+ * @param {Map} props.reports - A Map containing report data used for rendering
+ * report markers on the map.
+ * @param {string} props.locationJson - A JSON string representing the location
+ * coordinates to navigate the map.
+ * @param {function} props.onAssignTask - A callback function to handle task assignment
+ * for selected reports.
+ *
+ * @returns {JSX.Element} The rendered map component.
+ */
 function MyMap({ patrols, reports, locationJson, onAssignTask }) {
   const [hideBell, setHideBell] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);

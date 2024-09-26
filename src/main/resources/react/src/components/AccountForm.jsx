@@ -1,5 +1,6 @@
 import React, { useEffect,useState } from "react";
 import {
+  RoleCodes,
   editEmployeeById,
   register,
   editGuard,
@@ -19,6 +20,20 @@ import {
   Button,
 } from "@mui/material";
 
+
+/**
+ * AccountForm component is a modal form used for editing or creating account records
+ * for employees, guards, and customers. It provides fields for entering account details
+ * such as name, surname, phone number, PESEL, email, role, and account status.
+ *
+ * @param {boolean} props.open - Indicates if the modal is open.
+ * @param {function} props.onClose - Function to close the modal.
+ * @param {string} props.selectedTab - Indicates the currently selected tab (employees, guards, customers).
+ * @param {Object} props.selectedParams - The parameters of the selected account being edited or created.
+ * @param {boolean} props.editMode - Indicates if the form is in edit mode.
+ *
+ * @returns {JSX.Element} The rendered account form component.
+ */
 const AccountForm = ({
   open,
   onClose,
@@ -39,11 +54,6 @@ const AccountForm = ({
     Administrator: "admin",
     Menedżer: "manager",
   };
-  const roleMappingToCode = {
-    dispatcher: 0,
-    admin: 2,
-    manager: 1,
-  };
 
   const handleSave = () => {
     const asyncOperations = [];
@@ -59,7 +69,7 @@ const AccountForm = ({
               surname,
               phone,
               email,
-              roleMappingToCode[role],
+              RoleCodes[role],
               isActive
             )
           );
@@ -93,7 +103,7 @@ const AccountForm = ({
       switch (selectedTab) {
         case "employees":
           asyncOperations.push(
-            register(name, surname, phone, email, roleMappingToCode[role])
+            register(name, surname, phone, email, RoleCodes[role])
           );
           break;
         case "guards":

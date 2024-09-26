@@ -12,6 +12,17 @@ import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
 import java.util.regex.Pattern
 
+
+/**
+ * Generates a random login string of specified length.
+ *
+ * The login consists of uppercase letters, lowercase letters, and digits.
+ * The default length is set to 8 characters, but it can be customized by passing
+ * a different length as a parameter.
+ *
+ * @param length The length of the generated login string (default is 8).
+ * @return A random login string consisting of allowed characters.
+ */
 fun generateRandomLogin(length: Int = 8): String {
     val allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     return (1..length)
@@ -19,6 +30,18 @@ fun generateRandomLogin(length: Int = 8): String {
         .joinToString("")
 }
 
+
+/**
+ * Generates a random password string that meets complexity requirements.
+ *
+ * The password will contain at least one lowercase letter, one uppercase letter,
+ * one digit, and one special character. Additionally, the password will be at least
+ * 8 characters long. The remaining characters are filled in with random selections
+ * from a predefined set of allowed characters, which includes uppercase and lowercase
+ * letters, digits, and special characters.
+ *
+ * @return A random password string that satisfies the complexity requirements.
+ */
 fun generateRandomPassword(): String {
     val lowercase = ('a'..'z').random()
     val uppercase = ('A'..'Z').random()

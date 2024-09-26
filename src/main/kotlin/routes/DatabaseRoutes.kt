@@ -698,13 +698,13 @@ fun Route.databaseRoutes() {
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
                 val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
 
-                println("DOSTALE "+id+" "+password)
                 if(id==null || password.isNullOrEmpty())
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
                 val ret = DaoMethods.editEmployee(id!!,login, password.toString(), newPassword, name, surname, phone,email, role)
                 if(ret.first){
-                    call.respond(HttpStatusCode.OK,"The employee has been edited.")
+                    val response = mapOf("message" to "The employee has been edited.", "employee" to ret.third)
+                    call.respond(HttpStatusCode.OK,response)
                 }else{
                     call.respond(HttpStatusCode.InternalServerError, "Failed to edit employee. ${ret.second}")
                 }

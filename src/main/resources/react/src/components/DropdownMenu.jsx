@@ -6,6 +6,24 @@ import group from "../icons/group.svg";
 import mapIcon from "../icons/map.svg";
 import { logout } from "../script/ApiService.js";
 
+
+/**
+ * DropdownMenu component displays a menu for user actions such as settings,
+ * statistics, administration, and logout.
+ *
+ * This component conditionally renders buttons based on the visibility
+ * and the presence of callback functions for specific actions.
+ * Each button is associated with an action like navigating to settings,
+ * displaying statistics, or logging out.
+ *
+ * @param {boolean} props.isVisible - Indicates if the dropdown menu is visible.
+ * @param {function} props.onSettingsToggle - Function to call when settings button is clicked.
+ * @param {function} props.onStatsToggle - Function to call when statistics button is clicked.
+ * @param {function} [props.onAdminClick] - Optional function to call when admin button is clicked.
+ * @param {function} [props.onMapClick] - Optional function to call when map button is clicked.
+ *
+ * @returns {JSX.Element} The rendered dropdown menu component.
+ */
 function DropdownMenu({
   isVisible,
   onSettingsToggle,
@@ -49,9 +67,7 @@ function DropdownMenu({
       )}
       <button
         onClick={() =>
-          logout(() => {
-            window.location.href = "/login";
-          })
+          logout()
         }
         className="icon-button"
       >

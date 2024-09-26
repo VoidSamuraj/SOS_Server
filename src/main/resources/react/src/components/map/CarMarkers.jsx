@@ -6,35 +6,20 @@ import {
 } from "@vis.gl/react-google-maps";
 import { usePatrols } from "./MapFunctions";
 import config from "../../config";
+import {fetchStreetName} from "../../script/ApiService.js";
 
-const fetchStreetName = async (lat, lng, setStreetName, streetName) => {
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${config.GOOGLE_API_KEY}`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === "OK" && data.results.length > 0) {
-      const addressComponents = data.results[0].address_components;
-      const streetComponent = addressComponents.find((component) =>
-        component.types.includes("route")
-      );
-
-      if (streetComponent) {
-        setStreetName(streetComponent.short_name);
-      } else {
-        setStreetName(null);
-      }
-    } else {
-      console.error("Geocoding failed: ", data.status);
-    }
-  } catch (error) {
-    console.error("Error fetching geocoding data: ", error);
-  }
-};
-// Memoize markers to avoid unnecessary re-renders
+/**
+ * CarMarkers component renders markers for each car in the provided cars data.
+ * It filters out invalid positions and uses the CarIcon component to display each marker.
+ *
+ * @param {Map} props.cars - A Map containing car data, including position, status, and identification information.
+ *
+ * @returns {JSX.Element} The rendered car markers.
+ */
 const CarMarkers = ({ cars }) => {
   const { statusToCode } = usePatrols();
+
+// Memoize markers to avoid unnecessary re-renders
   return useMemo(
     () => (
       <>
@@ -64,12 +49,27 @@ const CarMarkers = ({ cars }) => {
   );
 };
 
+
+/**
+ * CarIcon component represents an individual car marker on the map.
+ * It displays the car's information in an info window when clicked,
+ * including the driver's name, surname, phone number, and street name.
+ *
+ * @param {string} props.id - The unique identifier for the car.
+ * @param {Object} props.position - The position of the car, containing latitude and longitude.
+ * @param {string} props.color - The color of the car marker.
+ * @param {string} props.name - The first name of the driver.
+ * @param {string} props.surname - The surname of the driver.
+ * @param {string} props.phone - The phone number of the driver.
+ *
+ * @returns {JSX.Element} The rendered car icon with an info window.
+ */
 const CarIcon = ({ id, position, color, name, surname, phone }) => {
   const [infowindowOpen, setInfowindowOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [streetName, setStreetName] = useState(null);
   useEffect(() => {
-    fetchStreetName(position.lat, position.lng, setStreetName, streetName);
+    fetchStreetName(position.lat, position.lng, config.GOOGLE_API_KEY, setStreetName, streetName);
   }, [position]);
 
   return (

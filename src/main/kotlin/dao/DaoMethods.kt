@@ -13,6 +13,7 @@ import Employee
 import EmployeeInfo
 import Employees
 import GuardInfo
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SortOrder
@@ -105,7 +106,13 @@ object DaoMethods:DaoMethodsInterface {
 
 
 
-    //Customer
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //                                    Customer Section
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     override suspend fun addCustomer(
         login: String,
@@ -292,7 +299,12 @@ object DaoMethods:DaoMethodsInterface {
 
 
 
-    //Intervention
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //                                    Intervention Section
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     override suspend fun addIntervention(reportId: Int, guardId: Int, employeeId: Int, startTime: LocalDateTime, endTime: LocalDateTime, status:Intervention.InterventionStatus):Boolean {
         return transaction {
@@ -368,7 +380,14 @@ object DaoMethods:DaoMethodsInterface {
     }
 
 
-    //Report
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //                                    Report Section
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     override suspend fun addReport(
         clientId: Int,
@@ -473,8 +492,11 @@ object DaoMethods:DaoMethodsInterface {
 
 
 
-
-    //Guard
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //                                    Guard Section
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     override suspend fun addGuard( login: String, password: String, name: String, surname: String, phone: String): Triple<Boolean, String, Guard?> {
         return transaction {
@@ -637,7 +659,6 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-
     override suspend fun getAllGuards(): List<GuardInfo> {
         return transaction {
 
@@ -650,7 +671,11 @@ object DaoMethods:DaoMethodsInterface {
 
 
 
-    //Employee
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //                                    Employee Section
+    //
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     override suspend fun addEmployee(login: String, password: String, name: String, surname: String, phone: String, email:String, role: Employee.Role): Triple<Boolean,String,Employee?> {
         return transaction {
@@ -697,16 +722,16 @@ object DaoMethods:DaoMethodsInterface {
             } > 0
         }
     }
-    override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, email: String?, role:Employee.Role?): Pair<Boolean, String> {
+    override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, email: String?, role:Employee.Role?): Triple<Boolean, String, EmployeeInfo?> {
         return transaction {
 
             val employeeExists = Employees.selectAll().where{ (Employees.id eq id)}.singleOrNull()
             if (employeeExists == null) {
-                return@transaction false to "Incorrect Id for the employee."
+                return@transaction Triple(false, "Incorrect Id for the employee.", null)
             }
 
             if(!comparePasswords(password,resultRowToEmployee(employeeExists).password))
-                return@transaction false to "Incorrect password for the employee."
+                return@transaction Triple(false, "Incorrect password for the employee.", null)
 
             val updated = Employees.update({ Employees.id eq id }) {
                 login?.let { login -> it[Employees.login] = login }
@@ -717,9 +742,11 @@ object DaoMethods:DaoMethodsInterface {
                 email?.let { email -> it[Employees.email] = email }
                 role?.let{role-> it[Employees.role] = role.role.toShort()}
             } > 0
-            if (updated)
-                return@transaction true to "Employee updated successfully."
-            return@transaction false to "Failed to update employee."
+            if (updated) {
+                val employeeInfo =  runBlocking{ getEmployee(id)?.toEmployeeInfo()}
+                return@transaction Triple(true, "Employee updated successfully.", employeeInfo)
+            }
+            return@transaction Triple(false, "Failed to update employee.", null)
         }
     }
     override suspend fun editEmployee(id:Int, name: String?,surname: String?, phone: String?, email:String?, role:Employee.Role?, isActive:Boolean?): Pair<Boolean, String>{

@@ -3,6 +3,20 @@ import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import rightarrow from "../icons/right-arrow.svg";
 import EditAccountData from "./EditAccountData";
 
+
+/**
+ * SettingsMenu component displays a menu for adjusting settings,
+ * including theme toggles, contrast adjustments, and location settings.
+ *
+ * @param {boolean} props.isVisible - Determines if the settings menu is visible.
+ * @param {Function} props.onSettingsToggle - Function to be called when the settings toggle is activated.
+ * @param {Function} props.onEditedToggle - Function to be called when the account editing window is toggled.
+ * @param {string} props.locationJson - JSON string representing the current location data.
+ * @param {Function} props.setLocationJson - Function to update the location data in JSON format.
+ * @param {boolean} props.canSetMapLoc - Indicates whether the user can set a default map location.
+ *
+ * @returns {JSX.Element} The rendered settings menu component.
+ */
 function SettingsMenu({
   isVisible,
   onSettingsToggle,

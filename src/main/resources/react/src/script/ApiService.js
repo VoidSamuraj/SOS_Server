@@ -1,5 +1,28 @@
-//HELPERS
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                    Helpers Section
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * @enum {number}
+ * Role codes for the employee.
+ */
+export const RoleCodes = {
+    dispatcher: 0,
+    manager: 1,
+    admin: 2,
+};
+
+/**
+ * Restores a person by making a PATCH request to the provided route with the person's ID.
+ * Restores a person by changing their flag.
+ *
+ * @param {string} route - The route to send the PATCH request to.
+ * @param {string} id - The ID of the person to be restored.
+ * @param {string} name - The name of the entity (used in error logging).
+ */
 const restorePerson = async (route, id, name) => {
   try {
     const response = await fetch(route, {
@@ -21,6 +44,15 @@ const restorePerson = async (route, id, name) => {
     console.error(name + " restore error:", error);
   }
 };
+
+/**
+ * Deletes a person by making a DELETE request to the provided route with the person's ID.
+ * Deletes a person by changing their flag.
+ *
+ * @param {string} route - The route to send the DELETE request to.
+ * @param {string} id - The ID of the person to be deleted.
+ * @param {string} name - The name of the entity (used in error logging).
+ */
 const deletePerson = async (route, id, name) => {
   try {
     const response = await fetch(route, {
@@ -43,6 +75,16 @@ const deletePerson = async (route, id, name) => {
   }
 };
 
+/**
+ * Fetches a list of persons with pagination, filtering, and sorting parameters.
+ *
+ * @param {number} page - The page number to fetch, starts from 0.
+ * @param {number} size - The number of items per page.
+ * @param {object} filterColumn - The column and value to filter by (optional).
+ * @param {object} sortColumn - The column and sort direction (optional).
+ * @param {string} route - The route to send the GET request to.
+ * @returns {Promise<object|null>} The fetched data or null in case of an error.
+ */
 const getPersons = async (page, size, filterColumn, sortColumn, route) => {
   try {
     const url = new URL(route, window.location.origin);
@@ -101,6 +143,13 @@ const getPersons = async (page, size, filterColumn, sortColumn, route) => {
   }
 };
 
+/**
+ * Saves user data (id, phone, email) to localStorage.
+ *
+ * @param {string} id - The user's ID.
+ * @param {string} phone - The user's phone number.
+ * @param {string} email - The user's email address.
+ */
 const saveUserData = (id, phone, email) => {
   const data = {
     id: id,
@@ -110,7 +159,29 @@ const saveUserData = (id, phone, email) => {
   localStorage.setItem("userData", JSON.stringify(data));
 };
 
-//EMPLOYEE AUTH
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                    Employee Auth Section
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Registers a new employee.
+ *
+ * @param {string} name - The employee's first name.
+ * @param {string} surname - The employee's surname.
+ * @param {string} phone - The employee's phone number.
+ * @param {string} email - The employee's email address.
+ * @param {RoleCodes} roleCode - The role code assigned to the employee.
+ * One of the following:
+ * - `RoleCodes.dispatcher (0)`
+ * - `RoleCodes.manager (1)`
+ * - `RoleCodes.admin (2)`
+ */
 
 export const register = async (name, surname, phone, email, roleCode) => {
   try {
@@ -140,7 +211,14 @@ export const register = async (name, surname, phone, email, roleCode) => {
   }
 };
 
-export const login = (login, password, onSuccess) => {
+/**
+ * Logs in the employee and stores their data (id, phone, email).
+ *
+ * @param {string} login - The login credentials.
+ * @param {string} password - The password.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ */
+export const login = async (login, password, onSuccess) => {
   const formData = new URLSearchParams();
   formData.append("login", login);
   formData.append("password", password);
@@ -170,7 +248,14 @@ export const login = (login, password, onSuccess) => {
     })
     .catch((error) => console.error("Error:", error));
 };
-export const remindPassword = (email) => {
+
+
+/**
+ * Sends a password recovery email to the employee.
+ *
+ * @param {string} email - The employee's email address.
+ */
+export const remindPassword = async (email) => {
   const formData = new URLSearchParams();
   formData.append("email", email);
 
@@ -196,8 +281,50 @@ export const remindPassword = (email) => {
       alert("Błąd");
     });
 };
+/**
+ * Resets the user's password using a token and a new password.
+ * Sends a POST request to the server to update the password, and if successful,
+ * redirects the user to the login page. In case of an error, it logs the error
+ * and displays an alert to the user.
+ *
+ * @async
+ * @function resetPassword
+ * @param {string} token - The reset token used to authenticate the password change.
+ * @param {string} password - The new password to be set for the user.
+ *
+ * @returns {Promise<void>} No return value, but triggers a redirect on success.
+ *
+ * @throws {Error} Will throw an error if the response is not successful (status code other than 200).
+ */
+export const resetPassword = async(token, password)=>{
+    const formData = new URLSearchParams();
+    formData.append('token', token);
+    formData.append('password', password);
 
-export const logout = (redirect) => {
+    try {
+      const response = await fetch('http://localhost:8080/employee/reset-password', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Error: ' + response.statusText);
+      }
+
+      alert('Hasło zostało zmienione.');
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Wystąpił błąd przy zmianie hasła.');
+    }
+
+}
+
+/**
+ * Logs out the currently logged-in employee and redirects to /login.
+ */
+export const logout = () => {
   fetch("/employee/logout", {
     method: "POST",
     credentials: "include",
@@ -205,19 +332,54 @@ export const logout = (redirect) => {
     if (response.ok) {
       localStorage.clear();
       setTimeout(() => {
-        redirect("/login");
+        window.location.href = "/login";
       }, 1000);
     } else {
     }
   });
 };
 
-//EMPLOYEE
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                    Employee Section
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Fetches a list of employees with pagination, filtering, and sorting parameters.
+ *
+ * @param {number} page - The page number to fetch, starts from 0.
+ * @param {number} size - The number of items per page.
+ * @param {object} filterColumn - The column and value to filter by (optional).
+ * @param {object} sortColumn - The column and sort direction (optional).
+ * @param {string} route - The route to send the GET request to.
+ * @returns {Promise<object|null>} The fetched data or null in case of an error.
+ */
 export const getEmployees = async (page, size, filterColumn, sortColumn) => {
   return getPersons(page, size, filterColumn, sortColumn, "/employee/getPage");
 };
 
+
+/**
+ * Edits an employee's details by their ID.
+ *
+ * @param {string} id - The ID of the employee to be edited.
+ * @param {string} name - The new name of the employee.
+ * @param {string} surname - The new surname of the employee.
+ * @param {string} phone - The new phone number of the employee.
+ * @param {string} email - The new email address of the employee.
+ * @param {RoleCodes} roleCode - The role code assigned to the employee.
+ * One of the following:
+ * - `RoleCodes.dispatcher (0)`
+ * - `RoleCodes.manager (1)`
+ * - `RoleCodes.admin (2)`
+ * @param {boolean} isActive - The new active status of the employee.
+ * @throws Will throw an error if the edit operation fails.
+ */
 export const editEmployeeById = async (
   id,
   name,
@@ -253,6 +415,17 @@ export const editEmployeeById = async (
   }
 };
 
+/**
+ * Edits the employee's profile details, verified by password. And save id, phone, email in local storage
+ *
+ * @param {string} id - The ID of the employee to be edited.
+ * @param {string} password - The current password of the employee.
+ * @param {string} [newPassword] - The new password for the employee (optional).
+ * @param {string} [phone] - The new phone number of the employee (optional).
+ * @param {string} [email] - The new email address of the employee (optional).
+ * @param {function} onSuccess - Callback function to execute upon successful edit.
+ * @throws Will throw an error if the edit operation fails.
+ */
 export const editEmployee = async (
   id,
   password,
@@ -283,15 +456,32 @@ export const editEmployee = async (
 
     if (!response.ok) {
       const errorMessage = await response.text();
+
       console.error("Employee edit error:", errorMessage);
       throw new Error(errorMessage);
-    }else
+    }else{
+        let data = await response.json().employee;
+        saveUserData(data.id, data.phone, data.email);
         onSuccess();
+
+    }
   } catch (error) {
     console.error("Employee edit error:", error);
   }
 };
 
+
+/**
+ * Changes the role of an employee by their ID.
+ *
+ * @param {string} id - The ID of the employee whose role is to be changed.
+ * @param {RoleCodes} roleCode - The role code assigned to the employee.
+ * One of the following:
+ * - `RoleCodes.dispatcher (0)`
+ * - `RoleCodes.manager (1)`
+ * - `RoleCodes.admin (2)`
+ * @throws Will throw an error if the role change operation fails.
+ */
 export const changeEmployeeRole = async (id, roleCode) => {
   try {
     let formData = new FormData();
@@ -313,15 +503,42 @@ export const changeEmployeeRole = async (id, roleCode) => {
     console.error("Employee role change error:", error);
   }
 };
+
+/**
+ * Deletes an employee by their ID by changing flag.
+ *
+ * @param {string} id - The ID of the employee to be deleted.
+ * @returns {Promise<void>} A promise that resolves when the employee is deleted.
+ */
 export const deleteEmployee = async (id) => {
   return await deletePerson("/employee", id, "Employee");
 };
 
+/**
+ * Restores an employee by their ID, by changing flag.
+ *
+ * @param {string} id - The ID of the employee to be restored.
+ * @returns {Promise<void>} A promise that resolves when the employee is restored.
+ */
 export const restoreEmployee = async (id) => {
   return await restorePerson("/employee/restore", id, "Employee");
 };
-//GUARD
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                    Guard Section
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Fetches all guards.
+ *
+ * @returns {Promise<Array|null>} An array of all guards or null in case of an error.
+ */
 export const getAllGuards = async () => {
   try {
     const response = await fetch("/guard/getAll", {
@@ -341,9 +558,30 @@ export const getAllGuards = async () => {
     return null;
   }
 };
+
+/**
+ * Fetches paginated guards with filtering and sorting.
+ *
+ * @param {number} page - The page number to fetch, starts from 0.
+ * @param {number} size - The number of guards per page.
+ * @param {object} filterColumn - The column and value to filter by (optional).
+ * @param {object} sortColumn - The column and sort direction (optional).
+ * @returns {Promise<object|null>} The fetched data or null in case of an error.
+ */
 export const getGuards = async (page, size, filterColumn, sortColumn) => {
   return getPersons(page, size, filterColumn, sortColumn, "/guard/getPage");
 };
+
+/**
+ * Edits a guard's details by their ID.
+ *
+ * @param {string} id - The ID of the guard to be edited.
+ * @param {string} name - The new name of the guard.
+ * @param {string} surname - The new surname of the guard.
+ * @param {string} phone - The new phone number of the guard.
+ * @param {boolean} isActive - The new active status of the guard.
+ * @throws Will throw an error if the edit operation fails.
+ */
 export const editGuard = async (id, name, surname, phone, isActive) => {
   try {
     let formData = new FormData();
@@ -368,19 +606,61 @@ export const editGuard = async (id, name, surname, phone, isActive) => {
     console.error("Guard edit error:", error);
   }
 };
+
+/**
+ * Deletes a guard by their ID, by changing flag.
+ *
+ * @param {string} id - The ID of the guard to be deleted.
+ * @returns {Promise<void>} A promise that resolves when the guard is deleted.
+ */
 export const deleteGuard = async (id) => {
   return await deletePerson("/guard", id, "Guard");
 };
 
+/**
+ * Restores a guard by their ID, by changing flag.
+ *
+ * @param {string} id - The ID of the guard to be restored.
+ * @returns {Promise<void>} A promise that resolves when the guard is restored.
+ */
 export const restoreGuard = async (id) => {
   return await restorePerson("/guard/restore", id, "Guard");
 };
-//REPORT
 
-//CLIENT
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                    Client Section
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Fetches paginated clients with filtering and sorting.
+ *
+ * @param {number} page - The page number to fetch starts from 0.
+ * @param {number} size - The number of clients per page.
+ * @param {object} filterColumn - The column and value to filter by (optional).
+ * @param {object} sortColumn - The column and sort direction (optional).
+ * @returns {Promise<object|null>} The fetched data or null in case of an error.
+ */
 export const getClients = async (page, size, filterColumn, sortColumn) => {
   return getPersons(page, size, filterColumn, sortColumn, "/client/getPage");
 };
+
+
+/**
+ * Edits a client's details by their ID.
+ *
+ * @param {string} id - The ID of the client to be edited.
+ * @param {string} phone - The new phone number of the client.
+ * @param {string} pesel - The new PESEL number of the client.
+ * @param {string} email - The new email address of the client.
+ * @param {boolean} isActive - The new active status of the client.
+ * @throws Will throw an error if the edit operation fails.
+ */
 export const editClient = async (id, phone, pesel, email, isActive) => {
   try {
     let formData = new FormData();
@@ -405,10 +685,70 @@ export const editClient = async (id, phone, pesel, email, isActive) => {
     console.error("Client edit error:", error);
   }
 };
+/**
+ * Deletes a client by their ID, by changing flag.
+ *
+ * @param {string} id - The ID of the client to be deleted.
+ * @returns {Promise<void>} A promise that resolves when the client is deleted.
+ */
 export const deleteClient = async (id) => {
   return await deletePerson("/client", id, "Client");
 };
 
+/**
+ * Restores a client by their ID, by changing flag.
+ *
+ * @param {string} id - The ID of the client to be restored.
+ * @returns {Promise<void>} A promise that resolves when the client is restored.
+ */
 export const restoreClient = async (id) => {
   return await restorePerson("/client/restore", id, "Client");
+};
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//                                    Other Section
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * fetchStreetName function retrieves the street name based on the provided latitude and longitude.
+ * It updates the street name state using the setStreetName function.
+ *
+ * @param {number} lat - The latitude of the location.
+ * @param {number} lng - The longitude of the location.
+ * @param {string} key - The Google map api key.
+ * @param {function} setStreetName - The function to update the street name state.
+ * @param {string} streetName - The current value of the street name (unused in the function).
+ *
+ * @returns {Promise<void>} A promise that resolves when the street name is fetched and set.
+ */
+export const fetchStreetName = async (lat, lng, key, setStreetName, streetName) => {
+  const url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+","+lng+"&key="+key;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.status === "OK" && data.results.length > 0) {
+      const addressComponents = data.results[0].address_components;
+      const streetComponent = addressComponents.find((component) =>
+        component.types.includes("route")
+      );
+
+      if (streetComponent) {
+        setStreetName(streetComponent.short_name);
+      } else {
+        setStreetName(null);
+      }
+    } else {
+      console.error("Geocoding failed: ", data.status);
+    }
+  } catch (error) {
+    console.error("Error fetching geocoding data: ", error);
+  }
 };

@@ -11,6 +11,18 @@ object Mailer {
         .withSMTPServer("smtp.gmail.com", 587, emailAddress, emailPassword)
         .withTransportStrategy(TransportStrategy.SMTP_TLS)
         .buildMailer()
+
+
+    /**
+     * Sends an email with a link to restore the account.
+     *
+     * @param name Recipient's first name.
+     * @param surname Recipient's last name.
+     * @param email Recipient's email address.
+     * @param link Link to the password reset form.
+     *
+     * The email contains both a plain text version and an HTML version with a button leading to the reset link.
+     */
     fun sendPasswordRestorationEmail(name: String, surname: String, email: String, link: String) {
         val plainTextMessage = """
             Drogi (a) ${name} ${surname} otrzymaliśmy prośbę o odzyskanie konta powiązanego z tym adresem e-mail. 
@@ -111,6 +123,19 @@ object Mailer {
             e.printStackTrace()
         }
     }
+
+    /**
+     * Sends an email with login details for the new account.
+     *
+     * @param name Recipient's first name.
+     * @param surname Recipient's last name.
+     * @param email Recipient's email address.
+     * @param login Login assigned to the new account.
+     * @param password Temporary password assigned to the new account.
+     *
+     * The email contains both a plain text version and an HTML version, informing about the successful
+     * account creation and advising to change the password after the first login.
+     */
     fun sendNewAccountEmail(name: String, surname: String, email: String, login: String, password: String) {
         val plainTextMessage = """
         Drogi (a) ${name} ${surname},
@@ -202,6 +227,4 @@ object Mailer {
             e.printStackTrace()
         }
     }
-
-
 }

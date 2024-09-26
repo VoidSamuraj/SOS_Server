@@ -7,6 +7,19 @@ import {
 import reportImage from "../../icons/SOSANIM.svg";
 import reportImageDot from "../../icons/sosdot.svg";
 
+
+/**
+ * ReportMarkers component renders a list of report markers on a map.
+ * Each marker is represented by an AlertIcon, which displays information
+ * about the report, including its position, date, and status.
+ *
+ * @param {Map} props.reports - A Map containing report data, where the key is the report ID
+ * and the value is an object with position, date, and status.
+ * @param {function} props.selectReport - Function to handle report selection when the
+ * "Przydziel zgłoszenie" button is clicked.
+ *
+ * @returns {JSX.Element} The rendered report markers component.
+ */
 const ReportMarkers = ({ reports, selectReport }) => {
   return useMemo(
     () => (
@@ -28,6 +41,25 @@ const ReportMarkers = ({ reports, selectReport }) => {
   );
 };
 
+
+/**
+ * AlertIcon component represents a single report marker on the map.
+ * It displays the marker based on its status and provides an infowindow
+ * with additional information about the report when clicked.
+ *
+ * @param {string} props.id - The unique identifier of the report.
+ * @param {Object} props.position - The geographical position of the report marker.
+ * @param {number} props.date - The date when the report was created.
+ * @param {number} props.status - The status code.style
+ * One of the following:
+ * WAITING(0),
+ * IN_PROGRESS(1),
+ * FINISHED(2);
+ * @param {function} props.selectReport - Function to handle report selection when the
+ * "Przydziel zgłoszenie" button is clicked.
+ *
+ * @returns {JSX.Element} The rendered alert icon component.
+ */
 const AlertIcon = ({ id, position, date, status, selectReport }) => {
   const [infowindowOpen, setInfowindowOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
@@ -44,6 +76,7 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
 
     return () => clearInterval(interval);
   }, [date]);
+
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -88,6 +121,14 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
     </>
   );
 };
+
+
+/**
+ * calculatePassedTime calculates the time that has passed since the given date.
+ *
+ * @param {number} date - The date to compare against (timestamp).
+ * @returns {number} The number of seconds that have passed since the date.
+ */
 const calculatePassedTime = (date) => {
   const now = new Date().getTime();
   const timeDifference = now - date;

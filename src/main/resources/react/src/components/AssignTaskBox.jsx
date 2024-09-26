@@ -2,6 +2,27 @@ import React, { useState, useEffect } from "react";
 import bell from "../icons/bell.svg";
 import { usePatrols } from "./map/MapFunctions";
 
+
+
+/**
+ * AssignTaskBox component allows users to assign tasks to patrols based on reports.
+ *
+ * This component displays a dropdown menu where users can select a report and a patrol.
+ * It features a navigation system with multiple steps for selecting the report and patrol,
+ * and includes functionality to handle the assignment of tasks.
+ *
+ * @param {Array} props.patrols - An array of patrols available for task assignment.
+ * @param {Map} props.reports - A map of reports that can be assigned to patrols.
+ * @param {function} props.onAssignTask - Callback function to execute when a task is assigned.
+ * @param {boolean} props.hideBell - Indicates if the notification bell is hidden.
+ * @param {function} props.setHideBell - Function to toggle the visibility of the notification bell.
+ * @param {string|null} props.selectedReport - Currently selected report for task assignment.
+ * @param {function} props.setSelectedReport - Function to set the selected report.
+ * @param {number} props.nrOfMenu - Current menu step in the assignment process.
+ * @param {function} props.setNrOfMenu - Function to set the current menu step.
+ *
+ * @returns {JSX.Element} The rendered task assignment box component.
+ */
 function AssignTaskBox({
   patrols,
   reports,
@@ -64,10 +85,6 @@ function AssignTaskBox({
   useEffect(() => {
     updateButtonState();
   }, [nrOfMenu, selectedReport, selectedPatrol]);
-
-  /*
-    const sortedPatrols = Array.from(patrols.entries()).sort(([, { color: colorA }], [, { color: colorB }]) => {return colorA.localeCompare(colorB);});
-*/
 
   useEffect(() => {
     let sorted = Array.from(patrols.entries())

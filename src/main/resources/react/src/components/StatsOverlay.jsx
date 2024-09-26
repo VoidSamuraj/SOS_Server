@@ -1,6 +1,15 @@
 import React from "react";
 import x from "../icons/x.svg";
 
+
+/**
+ * StatsOverlay component displays a statistics overlay with a legend and a close button.
+ *
+ * @param {boolean} props.isVisible - Determines if the overlay is visible.
+ * @param {Function} props.onStatsToggle - Function to be called when the close button is clicked to toggle the overlay.
+ *
+ * @returns {JSX.Element} The rendered statistics overlay component.
+ */
 function StatsOverlay({ isVisible, onStatsToggle }) {
   return (
     <div

@@ -13,6 +13,16 @@ import { LoadScript, Autocomplete } from "@react-google-maps/api";
 import config from "../config";
 const libraries = ["places"];
 
+
+/**
+ * Home component serves as the main interface for managing patrols and reports.
+ *
+ * This component allows users to view and interact with patrols and reports.
+ * It includes features such as dropdown menus for settings and statistics,
+ * as well as the ability to assign tasks to patrols.
+ *
+ * @returns {JSX.Element} The rendered component.
+ */
 function Home() {
   const {patrols, setPatrols, updatePatrol,  convertArrayToPatrolMap} =usePatrols();
   const { reports, addReport, editReport, removeReport } = useReports();

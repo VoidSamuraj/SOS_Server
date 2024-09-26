@@ -11,6 +11,18 @@ import {
   Button,
 } from "@mui/material";
 
+/**
+ * EditAccountData component allows users to edit their account information.
+ *
+ * This modal component provides fields for changing passwords, phone numbers,
+ * and email addresses. It retrieves existing data from localStorage and saves
+ * changes when the user confirms. Changes are saved in database and localStorage updated.
+ *
+ * @param {boolean} props.open - Indicates if the modal is open.
+ * @param {function} props.onClose - Function to call when the modal is closed.
+ *
+ * @returns {JSX.Element} The rendered modal component.
+ */
 const EditAccountData = memo(({
   open,
   onClose,

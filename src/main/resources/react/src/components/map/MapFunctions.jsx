@@ -2,17 +2,16 @@ import React, { useState } from "react";
 
 export const usePatrols = () => {
   const [patrols, setPatrols] = useState(new Map());
-//(data.statusCode == 0 ? 'green':(data.statusCode == 1 ? 'gray': 'red'))
-const statusToCode = (status) => {
-  switch (status) {
-    case 0:
-      return '#00ff00';
-    case 2:
-      return '#ff0000';
-    default:
-      return '#cccccc';
-  }
-};
+  const statusToCode = (status) => {
+    switch (status) {
+      case 0:
+        return "#00ff00";
+      case 2:
+        return "#ff0000";
+      default:
+        return "#cccccc";
+    }
+  };
   const addPatrol = (id, position, status, name, surname, phone) => {
     setPatrols((prevPatrols) =>
       new Map(prevPatrols).set(id, { position, status, name, surname, phone })
@@ -33,7 +32,7 @@ const statusToCode = (status) => {
         name: currentPatrol.name,
         surname: currentPatrol.surname,
         phone: currentPatrol.phone,
-        account_deleted: currentPatrol.account_deleted
+        account_deleted: currentPatrol.account_deleted,
       });
 
       return updatedPatrols;
@@ -48,20 +47,29 @@ const statusToCode = (status) => {
 
   const convertArrayToPatrolMap = (dataArray) => {
     return new Map(
-      (dataArray || []).map(data => [
-        data.id, {
-          position: data.location || 'unknown',
-          status: data.statusCode ,
+      (dataArray || []).map((data) => [
+        data.id,
+        {
+          position: data.location || "unknown",
+          status: data.statusCode,
           name: data.name,
           surname: data.surname,
           phone: data.phone,
-          account_deleted: data.account_deleted
-        }
+          account_deleted: data.account_deleted,
+        },
       ])
     );
   };
 
-  return { patrols, statusToCode, setPatrols, addPatrol, updatePatrol, removePatrol, convertArrayToPatrolMap };
+  return {
+    patrols,
+    statusToCode,
+    setPatrols,
+    addPatrol,
+    updatePatrol,
+    removePatrol,
+    convertArrayToPatrolMap,
+  };
 };
 
 export const useReports = () => {

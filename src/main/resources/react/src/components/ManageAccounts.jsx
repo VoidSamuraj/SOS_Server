@@ -8,10 +8,17 @@ import xCircle from "../icons/x-circle.svg";
 import checkCircle from "../icons/check-circle.svg";
 import x from "../icons/x.svg";
 import { plLanguage } from "../script/plLanguage.js";
-import { getClients, getEmployees } from "../script/ApiService.js";
+import { getClients, getEmployees, getGuards } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
-import { getGuards } from "../script/ApiService.js";
 
+
+/**
+ * ManageAccounts component manages the display and editing of employee, guard, and customer accounts.
+ *
+ * @param {Object} props.editedRecord - flag used to download updated data.
+ *
+ * @returns {JSX.Element} The rendered component.
+ */
 const ManageAccounts = ({editedRecord }) => {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
