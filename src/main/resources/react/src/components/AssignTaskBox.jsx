@@ -115,6 +115,7 @@ function AssignTaskBox({
         id="bell"
         onClick={() => setHideBell(true)}
         className={`${reports.size > 0 && !hideBell ? "visible" : ""}`}
+        title="Przydziel zgłoszenie"
       >
         <img src={bell} alt="bell" />
         {reports.size > 1 ? <div id="bellCounter">{reports.size}</div> : ""}

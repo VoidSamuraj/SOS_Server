@@ -79,7 +79,7 @@ function MyMap({ patrols, reports, locationJson, onAssignTask }) {
             refreshFlag={buttonState}
           />
         </GoogleMap>
-        <img id="homeButton" onClick={toggleButton} src={homeImg} alt="home" />
+        <img id="homeButton" onClick={toggleButton} src={homeImg} alt="home" title="Pokaż domyślną lokalizację"/>
       </APIProvider>
       <AssignTaskBox
         patrols={patrols}

@@ -51,7 +51,7 @@ function SettingsMenu({
       </div>
       {canSetMapLoc && (
         <div id="locationBox">
-          <label htmlFor="loc">Lokalizacja</label>
+          <label htmlFor="loc">Lokalizacja domyślna</label>
           <Autocomplete
             onLoad={(autocomplete) => {
               setAutocomplete(autocomplete);
@@ -61,6 +61,7 @@ function SettingsMenu({
             <input
               type="text"
               placeholder="Wpisz adres..."
+              title="Lokalizacja domyślna służąca do szybkiego nawigowania na mapie"
               value={location}
               onChange={(event) => setLocation(event.target.value)}
             />
@@ -70,6 +71,7 @@ function SettingsMenu({
             id="saveLocation"
             value="Zapisz Lokalizację"
             placeholder="Zapisz Lokalizację"
+            title="Zapisz lokalizację domyślna służąca do szybkiego nawigowania na mapie"
             onClick={() => localStorage.setItem("HomeLocation", locationJson)}
           />
         </div>
@@ -77,8 +79,9 @@ function SettingsMenu({
       <input
         type="button"
         id="editAccount"
-        value="Edytuj dane"
-        placeholder="Edytuj dane"
+        value="Edytuj swoje dane"
+        placeholder="Edytuj swoje dane"
+        title
         onClick={() => setEditAccountWindowOpen(true)}
       />
       {editAccountWindowOpen && (

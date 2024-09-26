@@ -107,10 +107,6 @@ const ManageAccounts = ({editedRecord }) => {
     setModalOpen(true);
   };
 
-  const handleDelete = (record) => {
-    // Logika usuwania rekordu
-  };
-
   const handleClose = () => {
     setModalOpen(false);
     setSelectedParams(null);
@@ -169,21 +165,7 @@ const ManageAccounts = ({editedRecord }) => {
                       width: "30px",
                       height: "30px",
                     }}
-                  />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  onClick={() => handleDelete(params.row)}
-                >
-                  <img
-                    src={x}
-                    alt="delete"
-                    style={{
-                      filter:
-                        "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
-                      width: "30px",
-                      height: "30px",
-                    }}
+                  title="Edytuj pracownika"
                   />
                 </IconButton>
               </Box>
@@ -229,21 +211,7 @@ const ManageAccounts = ({editedRecord }) => {
                       width: "30px",
                       height: "30px",
                     }}
-                  />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  onClick={() => handleDelete(params.row)}
-                >
-                  <img
-                    src={x}
-                    alt="delete"
-                    style={{
-                      filter:
-                        "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
-                      width: "30px",
-                      height: "30px",
-                    }}
+                  title="Edytuj ochroniarza"
                   />
                 </IconButton>
               </Box>
@@ -289,21 +257,7 @@ const ManageAccounts = ({editedRecord }) => {
                       width: "30px",
                       height: "30px",
                     }}
-                  />
-                </IconButton>
-                <IconButton
-                  color="error"
-                  onClick={() => handleDelete(params.row)}
-                >
-                  <img
-                    src={x}
-                    alt="delete"
-                    style={{
-                      filter:
-                        "invert(1) sepia(1) saturate(5) hue-rotate(180deg)",
-                      width: "30px",
-                      height: "30px",
-                    }}
+                  title="Edytuj klienta"
                   />
                 </IconButton>
               </Box>

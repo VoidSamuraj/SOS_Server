@@ -55,7 +55,7 @@ const EditAccountData = memo(({
       }}
     >
       <Typography variant="h6" component="h2" gutterBottom>
-        Edytuj pracownika
+        Edytuj swoje dane
       </Typography>
 
       <TextField
@@ -65,6 +65,7 @@ const EditAccountData = memo(({
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         variant="outlined"
+        required
       />
       <TextField
         fullWidth

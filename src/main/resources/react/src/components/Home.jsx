@@ -131,7 +131,7 @@ socket.onclose = (event) => {
         setLocationJson={setLocationJson}
         canSetMapLoc={true}
       />
-      <div id="patrolsButton" onClick={togglePatrolList}>
+      <div id="patrolsButton" onClick={togglePatrolList} title="Lista patroli">
         <img src={car} alt="patrols" />
       </div>
       <PatrolsMenu
