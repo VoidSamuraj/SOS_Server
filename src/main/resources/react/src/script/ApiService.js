@@ -1,4 +1,3 @@
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                    Helpers Section
@@ -10,9 +9,9 @@
  * Role codes for the employee.
  */
 export const RoleCodes = {
-    dispatcher: 0,
-    manager: 1,
-    admin: 2,
+  dispatcher: 0,
+  manager: 1,
+  admin: 2,
 };
 
 /**
@@ -159,10 +158,6 @@ const saveUserData = (id, phone, email) => {
   localStorage.setItem("userData", JSON.stringify(data));
 };
 
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                    Employee Auth Section
@@ -181,9 +176,19 @@ const saveUserData = (id, phone, email) => {
  * - `RoleCodes.dispatcher (0)`
  * - `RoleCodes.manager (1)`
  * - `RoleCodes.admin (2)`
+ * @param {function} onSuccess - The function to call upon successful employee creation.
+ * @param {function} onFailure - The function to call if an error occurs during employee creation.
  */
 
-export const register = async (name, surname, phone, email, roleCode) => {
+export const register = async (
+  name,
+  surname,
+  phone,
+  email,
+  roleCode,
+  onSuccess,
+  onFailure
+) => {
   try {
     const formData = new URLSearchParams();
     formData.append("phone", phone);
@@ -202,10 +207,13 @@ export const register = async (name, surname, phone, email, roleCode) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      const errorMessage = errorData.message || "Unknown error";
-      throw new Error(`Server error: ${errorMessage}`);
+      return response.text().then((errorData) => {
+        onFailure(errorData);
+        const errorMessage = errorData || "Unknown error";
+        throw new Error(`Server error: ${errorMessage}`);
+      });
     }
+    onSuccess();
   } catch (error) {
     console.error("Error:", error);
   }
@@ -217,8 +225,9 @@ export const register = async (name, surname, phone, email, roleCode) => {
  * @param {string} login - The login credentials.
  * @param {string} password - The password.
  * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon login failure.
  */
-export const login = async (login, password, onSuccess) => {
+export const login = async (login, password, onSuccess, onFailure) => {
   const formData = new URLSearchParams();
   formData.append("login", login);
   formData.append("password", password);
@@ -232,30 +241,32 @@ export const login = async (login, password, onSuccess) => {
       if (response.ok) {
         return response.json();
       } else {
-        return response.json().then((errorData) => {
-          const errorMessage = errorData.message || "Unknown error";
+        return response.text().then((errorData) => {
+          const errorMessage = errorData || "Unknown error";
+          onFailure(response);
           throw new Error(`Server error: ${errorMessage}`);
         });
       }
     })
     .then((data) => {
-        if (data) {
-          saveUserData(data.id, data.phone, data.email);
-          onSuccess();
-        } else {
-          console.error("User data is not available");
-        }
+      if (data) {
+        saveUserData(data.id, data.phone, data.email);
+        onSuccess();
+      } else {
+        console.error("User data is not available");
+      }
     })
     .catch((error) => console.error("Error:", error));
 };
-
 
 /**
  * Sends a password recovery email to the employee.
  *
  * @param {string} email - The employee's email address.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  */
-export const remindPassword = async (email) => {
+export const remindPassword = async (email, onSuccess, onFailure) => {
   const formData = new URLSearchParams();
   formData.append("email", email);
 
@@ -271,14 +282,12 @@ export const remindPassword = async (email) => {
       return response.text();
     })
     .then((data) => {
-      alert(
-        "Wiadomość z linkiem do przywrócenia hasła została wysłana na podany adres e-mail."
-      );
+      onSuccess();
       window.location.href = "/login";
     })
     .catch((error) => {
+      onFailure();
       console.error("Błąd:", error);
-      alert("Błąd");
     });
 };
 /**
@@ -296,30 +305,32 @@ export const remindPassword = async (email) => {
  *
  * @throws {Error} Will throw an error if the response is not successful (status code other than 200).
  */
-export const resetPassword = async(token, password)=>{
-    const formData = new URLSearchParams();
-    formData.append('token', token);
-    formData.append('password', password);
+export const resetPassword = async (token, password) => {
+  const formData = new URLSearchParams();
+  formData.append("token", token);
+  formData.append("password", password);
 
-    try {
-      const response = await fetch('http://localhost:8080/employee/reset-password', {
-        method: 'POST',
-        credentials: 'include',
+  try {
+    const response = await fetch(
+      "http://localhost:8080/employee/reset-password",
+      {
+        method: "POST",
+        credentials: "include",
         body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Error: ' + response.statusText);
       }
+    );
 
-      alert('Hasło zostało zmienione.');
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Wystąpił błąd przy zmianie hasła.');
+    if (!response.ok) {
+      throw new Error("Error: " + response.statusText);
     }
 
-}
+    alert("Hasło zostało zmienione.");
+    window.location.href = "/login";
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Wystąpił błąd przy zmianie hasła.");
+  }
+};
 
 /**
  * Logs out the currently logged-in employee and redirects to /login.
@@ -339,15 +350,54 @@ export const logout = () => {
   });
 };
 
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                    Employee Section
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const addEmployee = async (
+  login,
+  password,
+  name,
+  surname,
+  phone,
+  email,
+  roleCode,
+  onSuccess,
+  onFailure
+) => {
+  try {
+    const formData = new URLSearchParams();
+    formData.append("login", login);
+    formData.append("password", password);
+    formData.append("phone", phone);
+    formData.append("email", email);
+    formData.append("name", name);
+    formData.append("surname", surname);
+    formData.append("roleCode", roleCode);
+
+    const response = await fetch("/employee/add", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      return response.text().then((errorData) => {
+        onFailure(errorData);
+        const errorMessage = errorData || "Unknown error";
+        throw new Error(`Server error: ${errorMessage}`);
+      });
+    }
+    onSuccess();
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
 /**
  * Fetches a list of employees with pagination, filtering, and sorting parameters.
@@ -362,7 +412,6 @@ export const logout = () => {
 export const getEmployees = async (page, size, filterColumn, sortColumn) => {
   return getPersons(page, size, filterColumn, sortColumn, "/employee/getPage");
 };
-
 
 /**
  * Edits an employee's details by their ID.
@@ -406,9 +455,10 @@ export const editEmployeeById = async (
     });
 
     if (!response.ok) {
-      const errorMessage = await response.text();
-      console.error("Employee edit error:", errorMessage);
-      throw new Error(errorMessage);
+      return response.text().then((errorData) => {
+        const errorMessage = errorData || "Unknown error";
+        throw new Error(`Server error: ${errorMessage}`);
+      });
     }
   } catch (error) {
     console.error("Employee edit error:", error);
@@ -424,6 +474,7 @@ export const editEmployeeById = async (
  * @param {string} [phone] - The new phone number of the employee (optional).
  * @param {string} [email] - The new email address of the employee (optional).
  * @param {function} onSuccess - Callback function to execute upon successful edit.
+ * @param {function} onFailure - Callback function to execute upon unsuccessful edit.
  * @throws Will throw an error if the edit operation fails.
  */
 export const editEmployee = async (
@@ -432,7 +483,8 @@ export const editEmployee = async (
   newPassword,
   phone,
   email,
-  onSuccess
+  onSuccess,
+  onFailure
 ) => {
   try {
     let formData = new FormData();
@@ -455,19 +507,20 @@ export const editEmployee = async (
     });
 
     if (!response.ok) {
-      const errorMessage = await response.text();
-      console.error("Employee edit error:", errorMessage);
-      throw new Error(errorMessage);
-    }else{
-        let data = await response.json();
-        saveUserData(data.id, data.phone, data.email);
-        onSuccess();
+      return response.text().then((errorData) => {
+        onFailure(response);
+        const errorMessage = errorData || "Unknown error";
+        throw new Error(`Server error: ${errorMessage}`);
+      });
+    } else {
+      let data = await response.json();
+      saveUserData(data.id, data.phone, data.email);
+      onSuccess();
     }
   } catch (error) {
     console.error("Employee edit error:", error);
   }
 };
-
 
 /**
  * Changes the role of an employee by their ID.
@@ -493,9 +546,11 @@ export const changeEmployeeRole = async (id, roleCode) => {
     });
 
     if (!response.ok) {
-      const errorMessage = await response.text();
-      console.error("Employee role change error:", errorMessage);
-      throw new Error(errorMessage);
+      return response.text().then((errorData) => {
+        const errorMessage = errorData || "Unknown error";
+        console.error("Employee role change error:", errorMessage);
+        throw new Error(errorMessage);
+      });
     }
   } catch (error) {
     console.error("Employee role change error:", error);
@@ -521,10 +576,6 @@ export const deleteEmployee = async (id) => {
 export const restoreEmployee = async (id) => {
   return await restorePerson("/employee/restore", id, "Employee");
 };
-
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -596,9 +647,11 @@ export const editGuard = async (id, name, surname, phone, isActive) => {
     });
 
     if (!response.ok) {
-      const errorMessage = await response.text();
-      console.error("Guard edit error:", errorMessage);
-      throw new Error(errorMessage);
+      return response.text().then((errorData) => {
+        const errorMessage = errorData || "Unknown error";
+        console.error("Guard edit error:", errorMessage);
+        throw new Error(errorMessage);
+      });
     }
   } catch (error) {
     console.error("Guard edit error:", error);
@@ -625,10 +678,6 @@ export const restoreGuard = async (id) => {
   return await restorePerson("/guard/restore", id, "Guard");
 };
 
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                    Client Section
@@ -647,7 +696,6 @@ export const restoreGuard = async (id) => {
 export const getClients = async (page, size, filterColumn, sortColumn) => {
   return getPersons(page, size, filterColumn, sortColumn, "/client/getPage");
 };
-
 
 /**
  * Edits a client's details by their ID.
@@ -675,9 +723,11 @@ export const editClient = async (id, phone, pesel, email, isActive) => {
     });
 
     if (!response.ok) {
-      const errorMessage = await response.text();
-      console.error("Client edit error:", errorMessage);
-      throw new Error(errorMessage);
+      return response.text().then((errorData) => {
+        const errorMessage = errorData || "Unknown error";
+        console.error("Client edit error:", errorMessage);
+        throw new Error(errorMessage);
+      });
     }
   } catch (error) {
     console.error("Client edit error:", error);
@@ -703,10 +753,6 @@ export const restoreClient = async (id) => {
   return await restorePerson("/client/restore", id, "Client");
 };
 
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                    Other Section
@@ -725,8 +771,20 @@ export const restoreClient = async (id) => {
  *
  * @returns {Promise<void>} A promise that resolves when the street name is fetched and set.
  */
-export const fetchStreetName = async (lat, lng, key, setStreetName, streetName) => {
-  const url = "https://maps.googleapis.com/maps/api/geocode/json?latlng="+lat+","+lng+"&key="+key;
+export const fetchStreetName = async (
+  lat,
+  lng,
+  key,
+  setStreetName,
+  streetName
+) => {
+  const url =
+    "https://maps.googleapis.com/maps/api/geocode/json?latlng=" +
+    lat +
+    "," +
+    lng +
+    "&key=" +
+    key;
 
   try {
     const response = await fetch(url);

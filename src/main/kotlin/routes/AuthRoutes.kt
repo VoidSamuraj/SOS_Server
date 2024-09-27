@@ -72,10 +72,6 @@ suspend fun PipelineContext<Unit,ApplicationCall>.onAuthenticate(employee: Emplo
     call.respond(HttpStatusCode.OK, employee.toEmployeeInfo())
 }
 
-suspend fun PipelineContext<Unit,ApplicationCall>.onAuthError(){
-    call.respondRedirect("/")
-}
-
 fun Route.authRoutes(){
 
 
@@ -87,9 +83,8 @@ fun Route.authRoutes(){
             val employee= DaoMethods.getEmployee(login, password)
             if(employee.second!=null) {
                 onAuthenticate(employee.second!!)
-
             }else {
-                onAuthError()
+                call.respond(HttpStatusCode.Unauthorized, "Wrong credentials")
             }
         }
         post("/refresh-token-expiration"){

@@ -27,7 +27,7 @@ fun Route.mainRoutes(){
 
     }
     get("/reset-password"){
-        call.respondFile(File("src/main/resources/react/build/remindPassword.html"))
+        call.respondFile(File("src/main/resources/react/build/resetPassword.html"))
     }
 
     get("{...}") {

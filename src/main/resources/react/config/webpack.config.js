@@ -206,7 +206,7 @@ module.exports = function (webpackEnv) {
       index: paths.indexJs,
       login: paths.loginJs,
       administration: paths.administrationJs,
-      remindPassword: paths.remindPasswordJs,
+      resetPassword: paths.resetPasswordJs,
     },
     output: {
       // The build folder.
@@ -672,9 +672,9 @@ module.exports = function (webpackEnv) {
         Object.assign(
           {},
           {
-            filename: "remindPassword.html",
-            template: paths.remindPasswordHtml,
-            chunks: ["remindPassword"],
+            filename: "resetPassword.html",
+            template: paths.resetPasswordHtml,
+            chunks: ["resetPassword"],
             inject: true, // automatycznie wstrzykuje skrypty do HTML
           },
           isEnvProduction

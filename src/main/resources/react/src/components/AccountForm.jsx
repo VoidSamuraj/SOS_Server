@@ -1,10 +1,8 @@
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   RoleCodes,
   editEmployeeById,
   register,
-  editGuard,
-  editClient,
   deleteGuard,
   restoreGuard,
   deleteClient,
@@ -19,7 +17,6 @@ import {
   MenuItem,
   Button,
 } from "@mui/material";
-
 
 /**
  * AccountForm component is a modal form used for editing or creating account records
@@ -49,16 +46,84 @@ const AccountForm = ({
   const [role, setRole] = useState("");
   const [isActive, setIsActive] = useState(true);
 
+  const [nameError, setNameError] = useState("");
+  const [surnameError, setSurnameError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [peselError, setPeselError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [roleError, setRoleError] = useState("");
+
   const roleMapping = {
     Dyspozytor: "dispatcher",
     Administrator: "admin",
     Menedżer: "manager",
   };
 
+  const validateFields = () => {
+    let isValid = true;
+
+    setNameError("");
+    setSurnameError("");
+    setPhoneError("");
+    setPeselError("");
+    setEmailError("");
+    setRoleError("");
+
+    if (!name.trim()) {
+      setNameError("Imię jest wymagane.");
+      isValid = false;
+    }
+
+    if (!surname.trim()) {
+      setSurnameError("Nazwisko jest wymagane.");
+      isValid = false;
+    }
+
+    if (!phone.trim()) {
+      setPhoneError("Telefon jest wymagany.");
+      isValid = false;
+    }
+
+    if (!pesel.trim()) {
+      setPeselError("Pesel jest wymagany.");
+      isValid = false;
+    }
+
+    const emailPattern = /^\S+@\S+\.\S+$/;
+    if (!email.trim()) {
+      setEmailError("Email jest wymagany.");
+      isValid = false;
+    } else if (!emailPattern.test(email)) {
+      setEmailError("Podaj poprawny adres email.");
+      isValid = false;
+    }
+
+    if (!role.trim()) {
+      setRoleError("Rola jest wymagana");
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
+  const handleClose = () => {
+    setNameError("");
+    setSurnameError("");
+    setPhoneError("");
+    setPeselError("");
+    setEmailError("");
+    setRoleError("");
+    onClose();
+  };
+
   const handleSave = () => {
-    const asyncOperations = [];
-    const isAccountActive = isActive == "true";
+    if (!validateFields()) {
+      return;
+    }
+
     if (editMode) {
+      const isAccountActive = isActive == "true";
+      const asyncOperations = [];
       const wasAccountActive = Boolean(selectedParams.account_active ?? false);
       switch (selectedTab) {
         case "employees":
@@ -99,11 +164,24 @@ const AccountForm = ({
         default:
           break;
       }
+      Promise.all(asyncOperations).then(() => {
+        handleClose();
+      });
     } else {
       switch (selectedTab) {
         case "employees":
-          asyncOperations.push(
-            register(name, surname, phone, email, RoleCodes[role])
+          register(
+            name,
+            surname,
+            phone,
+            email,
+            RoleCodes[role],
+            () => {
+              handleClose();
+            },
+            (error) => {
+              console.log(error);
+            }
           );
           break;
         case "guards":
@@ -116,9 +194,6 @@ const AccountForm = ({
           break;
       }
     }
-    Promise.all(asyncOperations).then(() => {
-      onClose();
-    });
   };
 
   useEffect(() => {
@@ -131,7 +206,7 @@ const AccountForm = ({
     setIsActive(selectedParams?.account_active ? "true" : "false" || "true");
   }, [selectedParams]);
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal open={open} onClose={handleClose}>
       <Box
         sx={{
           position: "absolute",
@@ -153,7 +228,7 @@ const AccountForm = ({
             : "klienta"}
         </Typography>
 
-        {(name || !editMode) &&
+        {(selectedParams?.name || !editMode) &&
         (selectedTab == "employees" || selectedTab == "guards") ? (
           <TextField
             fullWidth
@@ -162,13 +237,15 @@ const AccountForm = ({
             value={name}
             onChange={(e) => setName(e.target.value)}
             variant="outlined"
+            error={Boolean(nameError)}
+            helperText={nameError}
             disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
 
-        {(surname || !editMode) &&
+        {(selectedParams?.surname || !editMode) &&
         (selectedTab == "employees" || selectedTab == "guards") ? (
           <TextField
             fullWidth
@@ -177,12 +254,14 @@ const AccountForm = ({
             value={surname}
             onChange={(e) => setSurname(e.target.value)}
             variant="outlined"
+            error={Boolean(surnameError)}
+            helperText={surnameError}
             disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
-        {phone || !editMode ? (
+        {selectedParams?.phone || !editMode ? (
           <TextField
             fullWidth
             margin="normal"
@@ -190,12 +269,14 @@ const AccountForm = ({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             variant="outlined"
+            error={Boolean(phoneError)}
+            helperText={phoneError}
             disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
-        {(pesel || !editMode) && selectedTab == "customers" ? (
+        {(selectedParams?.pesel || !editMode) && selectedTab == "customers" ? (
           <TextField
             fullWidth
             margin="normal"
@@ -203,13 +284,15 @@ const AccountForm = ({
             value={pesel}
             onChange={(e) => setPesel(e.target.value)}
             variant="outlined"
+            error={Boolean(peselError)}
+            helperText={peselError}
             disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
 
-        {(email || !editMode) &&
+        {(selectedParams?.email || !editMode) &&
         (selectedTab == "employees" || selectedTab == "customers") ? (
           <TextField
             fullWidth
@@ -218,12 +301,14 @@ const AccountForm = ({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             variant="outlined"
+            error={Boolean(emailError)}
+            helperText={emailError}
             disabled={selectedTab !== "employees"}
           />
         ) : (
           ""
         )}
-        {(role || !editMode) && selectedTab == "employees" ? (
+        {(selectedParams?.role || !editMode) && selectedTab == "employees" ? (
           <TextField
             fullWidth
             margin="normal"
@@ -231,6 +316,8 @@ const AccountForm = ({
             select
             value={role}
             onChange={(e) => setRole(e.target.value)}
+            error={Boolean(roleError)}
+            helperText={roleError}
             variant="outlined"
           >
             <MenuItem value="dispatcher">Dyspozytor</MenuItem>
@@ -240,7 +327,7 @@ const AccountForm = ({
         ) : (
           ""
         )}
-        {editMode ? (
+        {selectedParams?.editMode ? (
           <TextField
             fullWidth
             margin="normal"
@@ -258,7 +345,7 @@ const AccountForm = ({
         )}
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 2 }}>
-          <Button onClick={onClose} variant="outlined" sx={{ mr: 1 }}>
+          <Button onClick={handleClose} variant="outlined" sx={{ mr: 1 }}>
             Anuluj
           </Button>
           <Button onClick={handleSave} variant="contained">

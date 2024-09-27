@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import {login, remindPassword} from "../script/ApiService.js"
-
+import { login, remindPassword } from "../script/ApiService.js";
 
 /**
  * Login component allows users to log in or recover their password.
@@ -18,19 +17,69 @@ function Login() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
+  const [loginError, setLoginError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [emailError, setEmailError] = useState("");
+
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
   const handleLogin = (event) => {
     event.preventDefault();
-    login(loginValue, password, ()=>{
-         window.location.href = "/map";
-    });
+
+    let isValid = true;
+
+    if (loginValue.trim() === "") {
+      setLoginError("Login jest wymagany.");
+      isValid = false;
+    } else {
+      setLoginError("");
+    }
+
+    if (password.trim() === "") {
+      setPasswordError("Hasło jest wymagane.");
+      isValid = false;
+    } else {
+      setPasswordError("");
+    }
+
+    if (isValid) {
+      login(
+        loginValue,
+        password,
+        () => {
+          window.location.href = "/map";
+        },
+        (response) => {
+          if (response.status == 401)
+            setLoginError("Podano złe dane logowania.");
+          else alert("Wystąpił nieznany błąd. Spróbuj ponownie później.");
+        }
+      );
+    }
   };
   const handleRecoverPassword = (event) => {
     event.preventDefault();
-    remindPassword(email);
+
+    if (email.trim() === "") {
+      setEmailError("Email jest wymagany.");
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError("Proszę podaj poprawny email.");
+    } else {
+      setEmailError("");
+      remindPassword(
+        email,
+        () => {
+          alert(
+            "Wiadomość z linkiem do przywrócenia hasła została wysłana na podany adres e-mail."
+          );
+        },
+        () => {
+          setEmailError("Nie znaleziono konta z takim adresem email.");
+        }
+      );
+    }
   };
 
   return (
@@ -45,7 +94,13 @@ function Login() {
               placeholder="Login"
               value={loginValue}
               onChange={(event) => setLoginValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleLogin(event);
+                }
+              }}
             />
+            {loginError && <div className="error">{loginError}</div>}
 
             <label htmlFor="password">Hasło</label>
             <input
@@ -54,7 +109,13 @@ function Login() {
               placeholder="Hasło"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleLogin(event);
+                }
+              }}
             />
+            {passwordError && <div className="error">{passwordError}</div>}
 
             <button
               className="link-button"
@@ -88,7 +149,13 @@ function Login() {
               placeholder="Email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleRecoverPassword(event);
+                }
+              }}
             />
+            {emailError && <div className="error">{emailError}</div>}
 
             <input
               type="submit"

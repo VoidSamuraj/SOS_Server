@@ -1,12 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import RemindPasswordForm from "./components/RemindPasswordForm";
+import ResetPassword from "./components/ResetPassword";
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <RemindPasswordForm/>
+    <ResetPassword/>
   </React.StrictMode>
 );
 
