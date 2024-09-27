@@ -11,3 +11,29 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+html,
+body,
+body > div {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  box-sizing: border-box;
+}
+#root {
+  background-image: url("../images/earth.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+input {
+  width: 200px;
+  background-color: transparent;
+  border: 1px solid #fff;
+  border-radius: 0;
+  color: #fff;
+  padding: 10px;
+  outline: none;
+}

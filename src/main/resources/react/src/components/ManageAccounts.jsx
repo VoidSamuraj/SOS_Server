@@ -71,7 +71,6 @@ const ManageAccounts = ({editedRecord }) => {
           break;
         case "guards":
           getGuards(page, pageSize, filterColumn, sortColumn).then((data) => {
-              console.log(data);
             setPatrols(data);
           });
           break;
@@ -179,7 +178,6 @@ const ManageAccounts = ({editedRecord }) => {
             ),
           },
         ];
-        break;
       case "guards":
         return [
           { field: "id", headerName: "ID", width: 100 },
@@ -225,7 +223,6 @@ const ManageAccounts = ({editedRecord }) => {
             ),
           },
         ];
-        break;
       case "customers":
         return [
           { field: "id", headerName: "ID", width: 100 },
@@ -271,7 +268,6 @@ const ManageAccounts = ({editedRecord }) => {
             ),
           },
         ];
-        break;
       default:
         return [];
     }
@@ -306,7 +302,6 @@ const ManageAccounts = ({editedRecord }) => {
               })
             )
           : [];
-        break;
       case "guards":
         return patrols && patrols.length > 0
           ? patrols.map(({id, name, surname, phone, account_deleted }) => ({
@@ -318,7 +313,6 @@ const ManageAccounts = ({editedRecord }) => {
               })
             )
           : [];
-        break;
       case "customers":
         return clients && clients.length > 0
           ? clients.map(({ id, phone, pesel, email, account_deleted }) => ({
@@ -329,7 +323,6 @@ const ManageAccounts = ({editedRecord }) => {
               account_active: !account_deleted,
             }))
           : [];
-        break;
       default:
         return [];
     }

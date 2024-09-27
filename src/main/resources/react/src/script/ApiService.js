@@ -456,14 +456,12 @@ export const editEmployee = async (
 
     if (!response.ok) {
       const errorMessage = await response.text();
-
       console.error("Employee edit error:", errorMessage);
       throw new Error(errorMessage);
     }else{
-        let data = await response.json().employee;
+        let data = await response.json();
         saveUserData(data.id, data.phone, data.email);
         onSuccess();
-
     }
   } catch (error) {
     console.error("Employee edit error:", error);

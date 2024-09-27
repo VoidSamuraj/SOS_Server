@@ -170,6 +170,28 @@ object DaoMethods:DaoMethodsInterface {
             if(!comparePasswords(password,resultRowToClient(customerExists).password))
                 return@transaction  false to "Incorrect password."
 
+            if(login != null){
+                val list = Customers.selectAll().where{ Customers.login eq login}.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+                    return@transaction Pair(false, "Login is already taken.")
+                }
+            }
+
+            if(pesel != null){
+                val list = Customers.selectAll().where{ Customers.pesel eq pesel}.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+                    return@transaction Pair(false, "Pesel is already taken.")
+                }
+            }
+
+            if(email != null){
+                val list = Customers.selectAll().where{ Customers.email eq email}.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+                    return@transaction Pair(false, "Email is already taken.")
+                }
+            }
+
+
             val result = Customers.update({ Customers.id eq id }) {
                 login?.let { firstName -> it[Customers.login] = firstName }
                 newPassword?.let { newPassword -> it[Customers.password] = newPassword }
@@ -191,6 +213,21 @@ object DaoMethods:DaoMethodsInterface {
             val customerExists = Customers.selectAll().where{(Customers.id eq id)}.singleOrNull()
             if (customerExists == null) {
                 return@transaction false to "Incorrect id for."
+            }
+
+
+            if(pesel != null){
+                val list = Customers.selectAll().where{ Customers.pesel eq pesel}.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+                    return@transaction Pair(false, "Pesel is already taken.")
+                }
+            }
+
+            if(email != null){
+                val list = Customers.selectAll().where{ Customers.email eq email}.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+                    return@transaction Pair(false, "Email is already taken.")
+                }
             }
 
             val result = Customers.update({ Customers.id eq id }) {
@@ -541,6 +578,18 @@ object DaoMethods:DaoMethodsInterface {
             if(!comparePasswords(password,resultRowToGuard(guardExists).password))
                 return@transaction  false to "Incorrect password for the guard."
 
+            if(login != null){
+                val list = Guards.selectAll().where{ Guards.login eq login}.mapNotNull(::resultRowToGuard)
+                if (list.count() > 0 && list.any {guard -> guard.id != id }) {
+                    return@transaction Pair(false, "Login is already taken.")
+                }
+            }
+            if(phone != null){
+                val list = Guards.selectAll().where{ Guards.phone eq phone}.mapNotNull(::resultRowToGuard)
+                if (list.count() > 0 && list.any {guard -> guard.id != id }) {
+                    return@transaction Pair(false, "Phone is already taken.")
+                }
+            }
 
             val updated = Guards.update({ Guards.id eq id }) {
                 login?.let{ login -> it[Guards.login] = login}
@@ -561,6 +610,13 @@ object DaoMethods:DaoMethodsInterface {
             val guardExists = Guards.selectAll().where {(Guards.id eq id)}.singleOrNull()
             if (guardExists == null) {
                 return@transaction false to "Incorrect Id for the Guard."
+            }
+
+            if(phone != null){
+                val list = Guards.selectAll().where{ Guards.phone eq phone}.mapNotNull(::resultRowToGuard)
+                if (list.count() > 0 && list.any {guard -> guard.id != id }) {
+                    return@transaction Pair(false, "Phone is already taken.")
+                }
             }
 
             val updated = Guards.update({ Guards.id eq id }) {
@@ -729,6 +785,23 @@ object DaoMethods:DaoMethodsInterface {
                 return@transaction Triple(false, "Incorrect Id for the employee.", null)
             }
 
+            if (login != null) {
+                val list=  Employees.selectAll().where{ Employees.login eq login}.mapNotNull(::resultRowToEmployee)
+                if(list.count() > 0 && list.any {employee -> employee.id != id })
+                    return@transaction Triple(false, "Login is already taken.",null)
+            }
+
+            if (phone != null) {
+                val list=  Employees.selectAll().where{ Employees.phone eq phone}.mapNotNull(::resultRowToEmployee)
+                if(list.count() > 0 && list.any {employee -> employee.id != id })
+                    return@transaction Triple(false, "Phone is already taken.",null)
+            }
+            if (email != null && Employees.select(Employees.email).where{ Employees.email eq email}.count() > 0) {
+                val list=  Employees.selectAll().where{ Employees.email eq email}.mapNotNull(::resultRowToEmployee)
+                if(list.count() > 0 && list.any {employee -> employee.id != id })
+                    return@transaction Triple(false, "Email is already taken.",null)
+            }
+
             if(!comparePasswords(password,resultRowToEmployee(employeeExists).password))
                 return@transaction Triple(false, "Incorrect password for the employee.", null)
 
@@ -754,6 +827,18 @@ object DaoMethods:DaoMethodsInterface {
             val employeeExists = Employees.selectAll().where{ (Employees.id eq id)}.singleOrNull()
             if (employeeExists == null) {
                 return@transaction false to "Incorrect Id for the employee."
+            }
+
+
+            if (phone != null) {
+                val list=  Employees.selectAll().where{ Employees.phone eq phone}.mapNotNull(::resultRowToEmployee)
+                if(list.count() > 0 && list.any {employee -> employee.id != id })
+                    return@transaction Pair(false, "Phone is already taken.")
+            }
+            if (email != null && Employees.select(Employees.email).where{ Employees.email eq email}.count() > 0) {
+                val list=  Employees.selectAll().where{ Employees.email eq email}.mapNotNull(::resultRowToEmployee)
+                if(list.count() > 0 && list.any {employee -> employee.id != id })
+                    return@transaction Pair(false, "Email is already taken.")
             }
 
             val updated = Employees.update({ Employees.id eq id }) {

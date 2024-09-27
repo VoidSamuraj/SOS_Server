@@ -695,9 +695,8 @@ fun Route.databaseRoutes() {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
                 val ret = DaoMethods.editEmployee(id!!,login, password.toString(), newPassword, name, surname, phone,email, role)
-                if(ret.first){
-                    val response = mapOf("message" to "The employee has been edited.", "employee" to ret.third)
-                    call.respond(HttpStatusCode.OK,response)
+                if(ret.first && ret.third!=null){
+                    call.respond(HttpStatusCode.OK,ret.third!!)
                 }else{
                     call.respond(HttpStatusCode.InternalServerError, "Failed to edit employee. ${ret.second}")
                 }
@@ -843,6 +842,3 @@ fun Route.databaseRoutes() {
         }
     }
 }
-
-
-
