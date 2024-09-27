@@ -610,7 +610,6 @@ object DaoMethods:DaoMethodsInterface {
                 .singleOrNull()
             if(guard == null)
                 return@transaction  "There is no guard with this Login." to null
-                return@transaction  "There is no guard with this Login." to null
             if(!comparePasswords(password,guard.password))
                 return@transaction  "Incorrect password for the guard." to null
             return@transaction "Success" to guard

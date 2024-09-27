@@ -70,7 +70,11 @@ dependencies {
 tasks.withType<Test> {
     systemProperty("ktor.environment", "test")
 }
-
+tasks.jar {
+    if (project.hasProperty("test")) {
+        isZip64 = true
+    }
+}
 /*
 tasks.register<Exec>("buildReact") {
     workingDir = file("src/main/resources/react")

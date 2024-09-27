@@ -1,15 +1,12 @@
 package dao
 import Interventions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.junit.BeforeClass
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,10 +18,13 @@ class InterventionServiceTest {
 
     companion object{
         private  val  db: Database = DatabaseFactory.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver")
-        @BeforeClass
-        @JvmStatic
-        fun setupOnce(){
-            CoroutineScope(Dispatchers.IO).launch {
+    }
+    @BeforeTest
+    fun setup() {
+        transaction(db) {
+            SchemaUtils.drop(Interventions)
+            SchemaUtils.create(Interventions)
+            runBlocking{
                 DaoMethods.addCustomer("login1", "password1", "123456789", "12345678901", "email@test.com")
                 DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
                 DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789")
@@ -34,13 +34,6 @@ class InterventionServiceTest {
                 DaoMethods.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
                 DaoMethods.addReport(2, "Location2",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.IN_PROGRESS)
             }
-        }
-    }
-    @BeforeTest
-    fun setup() {
-        transaction(db) {
-            SchemaUtils.drop(Interventions)
-            SchemaUtils.create(Interventions)
         }
     }
 

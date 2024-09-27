@@ -56,7 +56,7 @@ class CustomersServiceTest {
     fun `should edit customer`() = runTest {
         DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
 
-        val result = DaoMethods.editCustomer(1, "newLogin", "password2", null, null, null)
+        val result = DaoMethods.editCustomer(id = 1, login = "newLogin", password = "password2", null, null, null)
         assertTrue(result.first)
 
         val customer = transaction { Customers.selectAll().singleOrNull() }
@@ -67,7 +67,7 @@ class CustomersServiceTest {
     fun `should not edit customer`() = runTest {
         DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
 
-        val result = DaoMethods.editCustomer(1, "newLogin", "password1", null, null, null)
+        val result = DaoMethods.editCustomer(id = 1, login = "newLogin", password = "password1", null, null, null)
         assertFalse(result.first)
 
         val customer = transaction { Customers.selectAll().singleOrNull() }

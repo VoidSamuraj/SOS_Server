@@ -149,9 +149,7 @@ fun Route.databaseRoutes() {
         }
         get("/getById"){
             try{
-                val formParameters = call.receiveParameters()
-                val id = formParameters["id"]?.toIntOrNull()
-
+                val id = call.request.queryParameters["id"]?.toIntOrNull()
                 if(id==null)
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
 
@@ -169,9 +167,8 @@ fun Route.databaseRoutes() {
         }
         get("/getByCredentials"){
             try{
-                val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
+                val login = call.request.queryParameters["login"]
+                val password = call.request.queryParameters["password"]
 
                 if(login.isNullOrEmpty() || password.isNullOrEmpty())
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -274,8 +271,7 @@ fun Route.databaseRoutes() {
 
         get{
             try{
-                val formParameters = call.receiveParameters()
-                val id = formParameters["id"]?.toIntOrNull()
+                val id = call.request.queryParameters["id"]?.toIntOrNull()
                 if(id==null)
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                 val result = DaoMethods.getIntervention(id!!)
@@ -379,8 +375,7 @@ fun Route.databaseRoutes() {
 
         get{
             try{
-                val formParameters = call.receiveParameters()
-                val id = formParameters["id"]?.toIntOrNull()
+                val id = call.request.queryParameters["id"]?.toIntOrNull()
 
                 if(id==null)
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -516,8 +511,7 @@ fun Route.databaseRoutes() {
         }
         get("/getById"){
             try{
-                val formParameters = call.receiveParameters()
-                val id = formParameters["id"]?.toIntOrNull()
+                val id = call.request.queryParameters["id"]?.toIntOrNull()
 
                 if(id==null)
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -536,9 +530,8 @@ fun Route.databaseRoutes() {
         }
         get("/getByCredentials"){
             try{
-                val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
+                val login = call.request.queryParameters["login"]
+                val password = call.request.queryParameters["password"]
 
                 if(login.isNullOrEmpty() || password.isNullOrEmpty())
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -745,8 +738,7 @@ fun Route.databaseRoutes() {
         }
         get("/getById"){
             try{
-                val formParameters = call.receiveParameters()
-                val id = formParameters["id"]?.toIntOrNull()
+                val id = call.request.queryParameters["id"]?.toIntOrNull()
 
                 if(id==null)
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -766,9 +758,8 @@ fun Route.databaseRoutes() {
         //TODO
         get("/getByCredentials"){
             try{
-                val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
+                val login = call.request.queryParameters["login"]
+                val password = call.request.queryParameters["password"]
 
                 if(login.isNullOrEmpty() || password.isNullOrEmpty())
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
