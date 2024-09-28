@@ -280,7 +280,7 @@ const AccountForm = ({
     setPesel(selectedParams?.pesel || "");
     setEmail(selectedParams?.email || "");
     setRole(roleMapping[selectedParams?.role] || "");
-    setIsActive(selectedParams?.account_active ? "true" : "false" || "true");
+    setIsActive((selectedParams?.account_active === null || selectedParams?.account_active === undefined) ? "true" : selectedParams.account_active.toString());
   }, [selectedParams]);
   return (
     <Modal open={open} onClose={handleClose}>
