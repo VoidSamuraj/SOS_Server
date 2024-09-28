@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { login, remindPassword } from "../script/ApiService.js";
+import SystemAlert from "./SystemAlert";
 
 /**
  * Login component allows users to log in or recover their password.
@@ -20,6 +21,9 @@ function Login() {
   const [loginError, setLoginError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [emailError, setEmailError] = useState("");
+
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
 
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
@@ -53,8 +57,13 @@ function Login() {
         },
         (response) => {
           if (response.status == 401)
-            setLoginError("Podano złe dane logowania.");
-          else alert("Wystąpił nieznany błąd. Spróbuj ponownie później.");
+            setLoginError("Podano błędny login lub hasło.");
+          else {
+            setAlertType("error");
+            setAlertMessage(
+              "Wystąpił nieznany błąd. Spróbuj ponownie później."
+            );
+          }
         }
       );
     }
@@ -71,7 +80,8 @@ function Login() {
       remindPassword(
         email,
         () => {
-          alert(
+          setAlertType("success");
+          setAlertMessage(
             "Wiadomość z linkiem do przywrócenia hasła została wysłana na podany adres e-mail."
           );
         },
@@ -173,6 +183,16 @@ function Login() {
           </form>
         )}
       </div>
+      {alertMessage && (
+        <SystemAlert
+          severity={alertType}
+          message={alertMessage}
+          onClose={() => {
+            setAlertMessage("");
+            if (alertType == "success") window.location.href = "/login";
+          }}
+        />
+      )}
       <div class="blur-overlay"></div>
     </>
   );

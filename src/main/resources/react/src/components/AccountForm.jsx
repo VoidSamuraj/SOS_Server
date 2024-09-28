@@ -27,6 +27,8 @@ import {
  * @param {function} props.onClose - Function to close the modal.
  * @param {string} props.selectedTab - Indicates the currently selected tab (employees, guards, customers).
  * @param {Object} props.selectedParams - The parameters of the selected account being edited or created.
+ * @param {function} props.setAlertMessage - Function to set alert message, hide if empty.
+ * @param {function} props.setAlertType - Function to set alert type.
  * @param {boolean} props.editMode - Indicates if the form is in edit mode.
  *
  * @returns {JSX.Element} The rendered account form component.
@@ -36,6 +38,8 @@ const AccountForm = ({
   onClose,
   selectedTab,
   selectedParams,
+  setAlertMessage,
+  setAlertType,
   editMode,
 }) => {
   const [name, setName] = useState("");
@@ -69,36 +73,47 @@ const AccountForm = ({
     setEmailError("");
     setRoleError("");
 
-    if (!name.trim()) {
+    if (
+      (selectedTab == "employees" || selectedTab == "guards") &&
+      !name.trim()
+    ) {
       setNameError("Imię jest wymagane.");
       isValid = false;
     }
 
-    if (!surname.trim()) {
+    if (
+      (selectedTab == "employees" || selectedTab == "guards") &&
+      !surname.trim()
+    ) {
       setSurnameError("Nazwisko jest wymagane.");
       isValid = false;
     }
 
-    if (!phone.trim()) {
+    if (
+      (selectedTab == "employees" || selectedTab == "customers") &&
+      !phone.trim()
+    ) {
       setPhoneError("Telefon jest wymagany.");
       isValid = false;
     }
 
-    if (!pesel.trim()) {
+    if (selectedTab == "customers" && !pesel.trim()) {
       setPeselError("Pesel jest wymagany.");
       isValid = false;
     }
 
-    const emailPattern = /^\S+@\S+\.\S+$/;
-    if (!email.trim()) {
-      setEmailError("Email jest wymagany.");
-      isValid = false;
-    } else if (!emailPattern.test(email)) {
-      setEmailError("Podaj poprawny adres email.");
-      isValid = false;
-    }
+    // TODO integrate with guards
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if(selectedTab == "employees" || selectedTab == "customers")
+        if (!email.trim()) {
+          setEmailError("Email jest wymagany.");
+          isValid = false;
+        } else if (!emailPattern.test(email)) {
+          setEmailError("Podaj poprawny adres email.");
+          isValid = false;
+        }
 
-    if (!role.trim()) {
+    if (selectedTab == "employees" && !role.trim()) {
       setRoleError("Rola jest wymagana");
       isValid = false;
     }
@@ -135,15 +150,49 @@ const AccountForm = ({
               phone,
               email,
               RoleCodes[role],
-              isActive
+              isActive,
+              () => {
+                setAlertType("success");
+                setAlertMessage("Pomyślnie zaktualizowano dane ochroniarza.");
+              },
+              () => {
+                setAlertType("error");
+                setAlertMessage(
+                  "Aktualozowanie danych ochroniarza nie powiodło się."
+                );
+              }
             )
           );
           break;
         case "guards":
           if (isAccountActive && !wasAccountActive) {
-            asyncOperations.push(restoreGuard(selectedParams.id));
+            asyncOperations.push(
+              restoreGuard(
+                selectedParams.id,
+                () => {
+                  setAlertType("success");
+                  setAlertMessage("Pomyślnie przywrócono ochroniarza.");
+                },
+                () => {
+                  setAlertType("error");
+                  setAlertMessage("Przywrócenie ochroniarza nie powiodło się.");
+                }
+              )
+            );
           } else if (!isAccountActive && wasAccountActive) {
-            asyncOperations.push(deleteGuard(selectedParams.id));
+            asyncOperations.push(
+              deleteGuard(
+                selectedParams.id,
+                () => {
+                  setAlertType("success");
+                  setAlertMessage("Pomyślnie usunięto ochroniarza.");
+                },
+                () => {
+                  setAlertType("error");
+                  setAlertMessage("Usunięcie ochroniarza nie powiodło się.");
+                }
+              )
+            );
           }
           /*
           asyncOperations.push(
@@ -152,9 +201,33 @@ const AccountForm = ({
           break;
         case "customers":
           if (isAccountActive && !wasAccountActive) {
-            asyncOperations.push(restoreClient(selectedParams.id));
+            asyncOperations.push(
+              restoreClient(
+                selectedParams.id,
+                () => {
+                  setAlertType("success");
+                  setAlertMessage("Pomyślnie przywrócono klienta.");
+                },
+                () => {
+                  setAlertType("error");
+                  setAlertMessage("Przywrócenie klienta nie powiodło się.");
+                }
+              )
+            );
           } else if (!isAccountActive && wasAccountActive) {
-            asyncOperations.push(deleteClient(selectedParams.id));
+            asyncOperations.push(
+              deleteClient(
+                selectedParams.id,
+                () => {
+                  setAlertType("success");
+                  setAlertMessage("Pomyślnie usunięto klienta.");
+                },
+                () => {
+                  setAlertType("error");
+                  setAlertMessage("Usunięcie klienta nie powiodło się.");
+                }
+              )
+            );
           }
           /*
           asyncOperations.push(
@@ -177,9 +250,13 @@ const AccountForm = ({
             email,
             RoleCodes[role],
             () => {
+              setAlertType("success");
+              setAlertMessage("Pomyślnie dodano pracownika.");
               handleClose();
             },
             (error) => {
+              setAlertType("error");
+              setAlertMessage("Dodanie nowego pracownika nie powiodło się.");
               console.log(error);
             }
           );
@@ -327,7 +404,7 @@ const AccountForm = ({
         ) : (
           ""
         )}
-        {selectedParams?.editMode ? (
+        {isActive ? (
           <TextField
             fullWidth
             margin="normal"

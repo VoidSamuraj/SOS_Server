@@ -10,6 +10,7 @@ import x from "../icons/x.svg";
 import { plLanguage } from "../script/plLanguage.js";
 import { getClients, getEmployees, getGuards } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
+import SystemAlert from "./SystemAlert";
 
 
 /**
@@ -33,6 +34,9 @@ const ManageAccounts = ({editedRecord }) => {
   const [sortColumn, setSortColumn] = useState(null);
   const [filterColumn, setFilterColumn] = useState(null);
   const [filterColumnDebounced, setFilterColumnDebounced] = useState(null);
+
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
 
   useEffect(() => {
     getClients(page, pageSize, null, null).then((data) => {
@@ -380,9 +384,23 @@ const ManageAccounts = ({editedRecord }) => {
           onClose={handleClose}
           selectedTab={selectedTab}
           selectedParams={selectedParams}
+          setAlertType={setAlertType}
+          setAlertMessage={setAlertMessage}
           editMode={editMode}
         />
       </Box>
+            {alertMessage && (
+              <SystemAlert
+                severity={alertType}
+                message={alertMessage}
+                onClose={() => {
+                  setAlertMessage("");
+                  if (alertType == "success") {
+                    handleClose();
+                  }
+                }}
+              />
+            )}
     </ThemeProvider>
   );
 };

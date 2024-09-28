@@ -21,8 +21,10 @@ export const RoleCodes = {
  * @param {string} route - The route to send the PATCH request to.
  * @param {string} id - The ID of the person to be restored.
  * @param {string} name - The name of the entity (used in error logging).
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  */
-const restorePerson = async (route, id, name) => {
+const restorePerson = async (route, id, name, onSuccess, onFailure) => {
   try {
     const response = await fetch(route, {
       method: "PATCH",
@@ -34,7 +36,9 @@ const restorePerson = async (route, id, name) => {
     });
 
     if (response.ok) {
+      onSuccess();
     } else {
+      onFailure();
       response.text().then((errorMessage) => {
         console.error(name + " restore error:", errorMessage);
       });
@@ -51,8 +55,10 @@ const restorePerson = async (route, id, name) => {
  * @param {string} route - The route to send the DELETE request to.
  * @param {string} id - The ID of the person to be deleted.
  * @param {string} name - The name of the entity (used in error logging).
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  */
-const deletePerson = async (route, id, name) => {
+const deletePerson = async (route, id, name, onSuccess, onFailure) => {
   try {
     const response = await fetch(route, {
       method: "DELETE",
@@ -64,7 +70,9 @@ const deletePerson = async (route, id, name) => {
     });
 
     if (response.ok) {
+      onSuccess();
     } else {
+      onFailure();
       response.text().then((errorMessage) => {
         console.error(name + " delete error:", errorMessage);
       });
@@ -283,7 +291,6 @@ export const remindPassword = async (email, onSuccess, onFailure) => {
     })
     .then((data) => {
       onSuccess();
-      window.location.href = "/login";
     })
     .catch((error) => {
       onFailure();
@@ -300,12 +307,14 @@ export const remindPassword = async (email, onSuccess, onFailure) => {
  * @function resetPassword
  * @param {string} token - The reset token used to authenticate the password change.
  * @param {string} password - The new password to be set for the user.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  *
  * @returns {Promise<void>} No return value, but triggers a redirect on success.
  *
  * @throws {Error} Will throw an error if the response is not successful (status code other than 200).
  */
-export const resetPassword = async (token, password) => {
+export const resetPassword = async (token, password, onSuccess, onFailure) => {
   const formData = new URLSearchParams();
   formData.append("token", token);
   formData.append("password", password);
@@ -323,12 +332,10 @@ export const resetPassword = async (token, password) => {
     if (!response.ok) {
       throw new Error("Error: " + response.statusText);
     }
-
-    alert("Hasło zostało zmienione.");
-    window.location.href = "/login";
+    onSuccess();
   } catch (error) {
     console.error("Error:", error);
-    alert("Wystąpił błąd przy zmianie hasła.");
+    onFailure();
   }
 };
 
@@ -427,6 +434,8 @@ export const getEmployees = async (page, size, filterColumn, sortColumn) => {
  * - `RoleCodes.manager (1)`
  * - `RoleCodes.admin (2)`
  * @param {boolean} isActive - The new active status of the employee.
+ * @param {function} onSuccess - Callback function to execute upon successful edit.
+ * @param {function} onFailure - Callback function to execute upon unsuccessful edit.
  * @throws Will throw an error if the edit operation fails.
  */
 export const editEmployeeById = async (
@@ -436,7 +445,9 @@ export const editEmployeeById = async (
   phone,
   email,
   roleCode,
-  isActive
+  isActive,
+  onSuccess,
+  onFailure
 ) => {
   try {
     let formData = new FormData();
@@ -455,11 +466,13 @@ export const editEmployeeById = async (
     });
 
     if (!response.ok) {
+      onFailure();
       return response.text().then((errorData) => {
         const errorMessage = errorData || "Unknown error";
         throw new Error(`Server error: ${errorMessage}`);
       });
     }
+    onSuccess();
   } catch (error) {
     console.error("Employee edit error:", error);
   }
@@ -561,20 +574,30 @@ export const changeEmployeeRole = async (id, roleCode) => {
  * Deletes an employee by their ID by changing flag.
  *
  * @param {string} id - The ID of the employee to be deleted.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  * @returns {Promise<void>} A promise that resolves when the employee is deleted.
  */
-export const deleteEmployee = async (id) => {
-  return await deletePerson("/employee", id, "Employee");
+export const deleteEmployee = async (id, onSuccess, onFailure) => {
+  return await deletePerson("/employee", id, "Employee", onSuccess, onFailure);
 };
 
 /**
  * Restores an employee by their ID, by changing flag.
  *
  * @param {string} id - The ID of the employee to be restored.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  * @returns {Promise<void>} A promise that resolves when the employee is restored.
  */
-export const restoreEmployee = async (id) => {
-  return await restorePerson("/employee/restore", id, "Employee");
+export const restoreEmployee = async (id, onSuccess, onFailure) => {
+  return await restorePerson(
+    "/employee/restore",
+    id,
+    "Employee",
+    onSuccess,
+    onFailure
+  );
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -662,20 +685,30 @@ export const editGuard = async (id, name, surname, phone, isActive) => {
  * Deletes a guard by their ID, by changing flag.
  *
  * @param {string} id - The ID of the guard to be deleted.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  * @returns {Promise<void>} A promise that resolves when the guard is deleted.
  */
-export const deleteGuard = async (id) => {
-  return await deletePerson("/guard", id, "Guard");
+export const deleteGuard = async (id, onSuccess, onFailure) => {
+  return await deletePerson("/guard", id, "Guard", onSuccess, onFailure);
 };
 
 /**
  * Restores a guard by their ID, by changing flag.
  *
  * @param {string} id - The ID of the guard to be restored.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  * @returns {Promise<void>} A promise that resolves when the guard is restored.
  */
-export const restoreGuard = async (id) => {
-  return await restorePerson("/guard/restore", id, "Guard");
+export const restoreGuard = async (id, onSuccess, onFailure) => {
+  return await restorePerson(
+    "/guard/restore",
+    id,
+    "Guard",
+    onSuccess,
+    onFailure
+  );
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -737,20 +770,30 @@ export const editClient = async (id, phone, pesel, email, isActive) => {
  * Deletes a client by their ID, by changing flag.
  *
  * @param {string} id - The ID of the client to be deleted.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  * @returns {Promise<void>} A promise that resolves when the client is deleted.
  */
-export const deleteClient = async (id) => {
-  return await deletePerson("/client", id, "Client");
+export const deleteClient = async (id, onSuccess, onFailure) => {
+  return await deletePerson("/client", id, "Client", onSuccess, onFailure);
 };
 
 /**
  * Restores a client by their ID, by changing flag.
  *
  * @param {string} id - The ID of the client to be restored.
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon failure.
  * @returns {Promise<void>} A promise that resolves when the client is restored.
  */
-export const restoreClient = async (id) => {
-  return await restorePerson("/client/restore", id, "Client");
+export const restoreClient = async (id, onSuccess, onFailure) => {
+  return await restorePerson(
+    "/client/restore",
+    id,
+    "Client",
+    onSuccess,
+    onFailure
+  );
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

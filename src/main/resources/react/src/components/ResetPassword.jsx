@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { resetPassword } from "../script/ApiService.js";
+import SystemAlert from "./SystemAlert";
 
 /**
  * RemindPasswordForm component handles the password reset functionality.
@@ -16,6 +17,9 @@ const ResetPassword = () => {
 
   const [passwordError, setPasswordError] = useState("");
   const [passwordError2, setPasswordError2] = useState("");
+
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertType, setAlertType] = useState("info");
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -62,7 +66,20 @@ const ResetPassword = () => {
     } else {
       setPasswordError("");
     }
-    if (isValid) resetPassword(token, password);
+    if (isValid)
+      resetPassword(
+        token,
+        password,
+        () => {
+          alert("Hasło zostało zmienione.");
+          setAlertType("success");
+          setAlertMessage("Hasło zostało zmienione.");
+        },
+        () => {
+          setAlertType("error");
+          setAlertMessage("Wystąpił błąd przy zmianie hasła.");
+        }
+      );
   };
 
   const handleKeyDown = (event) => {
@@ -101,6 +118,16 @@ const ResetPassword = () => {
         {passwordError2 && <div className="error">{passwordError2}</div>}
         <input id="recoverPasswordButton" type="submit" value="Zapisz hasło" />
       </form>
+      {alertMessage && (
+        <SystemAlert
+          severity={alertType}
+          message={alertMessage}
+          onClose={() => {
+            setAlertMessage("");
+            if (alertType == "success") window.location.href = "/login";
+          }}
+        />
+      )}
     </div>
   );
 };
