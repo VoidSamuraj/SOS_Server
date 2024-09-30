@@ -45,26 +45,22 @@ const ManageAccounts = ({ editedRecord }) => {
     socketRef.current = new WebSocketClient("ws://localhost:8080/updates");
 
     const messageHandler = (data) => {
-      console.log(typeof data);
-      console.log(data);
+      if (Array.isArray(data.data)) {
+        if(data.columnName == selectedTabRef.current)
+            switch (selectedTabRef.current) {
+              case "employees":
+                setEmployees(data.data);
+                break;
+              case "guards":
+                setPatrols(data.data);
+                break;
+              case "customers":
+                setClients(data.data);
+                break;
+              default:
+                break;
+            }
 
-      if (Array.isArray(data)) {
-        console.log("ARRAY");
-        console.log(selectedTabRef.current); // Zawsze aktualna wartość
-
-        switch (selectedTabRef.current) {
-          case "employees":
-            setEmployees(data);
-            break;
-          case "guards":
-            setPatrols(data);
-            break;
-          case "customers":
-            setClients(data);
-            break;
-          default:
-            break;
-        }
       }
     };
 
@@ -309,7 +305,6 @@ const ManageAccounts = ({ editedRecord }) => {
   const getRows = () => {
     switch (selectedTab) {
       case "employees":
-        console.log(employees);
         return employees && employees.length > 0
           ? employees.map(
               ({
@@ -337,7 +332,6 @@ const ManageAccounts = ({ editedRecord }) => {
             )
           : [];
       case "guards":
-        console.log(patrols);
         return patrols && patrols.length > 0
           ? patrols.map(({ id, name, surname, phone, account_deleted }) => ({
               id,
@@ -348,7 +342,6 @@ const ManageAccounts = ({ editedRecord }) => {
             }))
           : [];
       case "customers":
-        console.log(clients);
         return clients && clients.length > 0
           ? clients.map(({ id, phone, pesel, email, account_deleted }) => ({
               id,

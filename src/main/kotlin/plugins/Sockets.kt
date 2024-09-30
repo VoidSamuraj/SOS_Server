@@ -32,6 +32,12 @@ data class QueryParams(
 
     )
 
+@Serializable
+data class ResponseWithColumn<T>(
+    val columnName: String?,
+    val data: List<T>
+)
+
 fun Application.configureSockets() {
     install(WebSockets) {
         maxFrameSize = 1024 * 1024
@@ -68,7 +74,6 @@ fun Application.configureSockets() {
 }
 fun loadDataAccordingToParams(session: DefaultWebSocketSession, queryParams: QueryParams) {
     CoroutineScope(Dispatchers.IO).launch {
-        val result =
             when (queryParams.table) {
                 "employees" -> {
                     val res= DaoMethods.getEmployees(
@@ -81,10 +86,15 @@ fun loadDataAccordingToParams(session: DefaultWebSocketSession, queryParams: Que
                         queryParams.sortOrder
                     )
                     administrationSelectedRowsIds[session] = res.map { it.id }.toTypedArray()
-                    Json.encodeToString(
-                        ListSerializer(EmployeeInfo.serializer()),
+                    val response = ResponseWithColumn(
+                        "employees",
                         res
                     )
+                    session.send(Frame.Text(Json.encodeToString(
+                        ResponseWithColumn.serializer(EmployeeInfo.serializer()),
+                        response
+                    )))
+
                 }
 
                 "customers" -> {
@@ -98,10 +108,14 @@ fun loadDataAccordingToParams(session: DefaultWebSocketSession, queryParams: Que
                         queryParams.sortOrder
                     )
                     administrationSelectedRowsIds[session] = res.map { it.id }.toTypedArray()
-                    Json.encodeToString(
-                        ListSerializer(CustomerInfo.serializer()),
+                    val response = ResponseWithColumn(
+                        "customers",
                         res
                     )
+                    session.send(Frame.Text(Json.encodeToString(
+                        ResponseWithColumn.serializer(CustomerInfo.serializer()),
+                        response
+                    )))
                 }
 
                 "guards" -> {
@@ -119,12 +133,19 @@ fun loadDataAccordingToParams(session: DefaultWebSocketSession, queryParams: Que
                         ListSerializer(GuardInfo.serializer()),
                         res
                     )
+                    val response = ResponseWithColumn(
+                        "guards",
+                        res
+                    )
+                    session.send(Frame.Text(Json.encodeToString(
+                        ResponseWithColumn.serializer(GuardInfo.serializer()),
+                        response
+                    )))
 
                 }
 
                 else -> ""
             }
-        session.send(Frame.Text(result))
     }
 }
 
@@ -133,21 +154,27 @@ fun notifyClientsAboutChanges(tableName:String, changedRecordId: Int) {
     for ((session, loadedIds) in administrationSelectedRowsIds) {
         if (loadedIds.contains(changedRecordId)) {
             CoroutineScope(Dispatchers.IO).launch {
-                val result = when (tableName) {
+               when (tableName) {
                     "guards" -> {
-                        val res = DaoMethods.getGuards(loadedIds.toList())
-                        Json.encodeToString(
-                            ListSerializer(GuardInfo.serializer()),
-                            res
+                        val response = ResponseWithColumn(
+                           "guards",
+                            DaoMethods.getGuards(loadedIds.toList())
                         )
+                        session.send(Frame.Text(Json.encodeToString(
+                            ResponseWithColumn.serializer(GuardInfo.serializer()),
+                            response
+                        )))
                     }
 
                     "employees" -> {
-                        val res = DaoMethods.getEmployees(loadedIds.toList())
-                        Json.encodeToString(
-                            ListSerializer(EmployeeInfo.serializer()),
-                            res
+                        val response = ResponseWithColumn(
+                            "employees",
+                            DaoMethods.getEmployees(loadedIds.toList())
                         )
+                        session.send(Frame.Text(Json.encodeToString(
+                            ResponseWithColumn.serializer(EmployeeInfo.serializer()),
+                            response
+                        )))
                     }
 
                     "customers" -> {
@@ -156,11 +183,18 @@ fun notifyClientsAboutChanges(tableName:String, changedRecordId: Int) {
                             ListSerializer(CustomerInfo.serializer()),
                             res
                         )
+                        val response = ResponseWithColumn(
+                            "customers",
+                            DaoMethods.getCustomers(loadedIds.toList())
+                        )
+                        session.send(Frame.Text(Json.encodeToString(
+                            ResponseWithColumn.serializer(CustomerInfo.serializer()),
+                            response
+                        )))
                     }
 
                     else -> ""
                 }
-                session.send(Frame.Text(result))
             }
         }
     }
