@@ -19,6 +19,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import plugins.notifyClientsAboutChanges
 import security.HashPassword
 import security.HashPassword.comparePasswords
 import kotlin.collections.mapNotNull
@@ -163,30 +164,30 @@ object DaoMethods:DaoMethodsInterface {
     ): Pair<Boolean,String> {
         return transaction {
 
-            val customerExists = Customers.selectAll().where{(Customers.id eq id)}.singleOrNull()
+            val customerExists = Customers.selectAll().where { (Customers.id eq id) }.singleOrNull()
             if (customerExists == null) {
                 return@transaction false to "Incorrect id for."
             }
-            if(!comparePasswords(password,resultRowToClient(customerExists).password))
-                return@transaction  false to "Incorrect password."
+            if (!comparePasswords(password, resultRowToClient(customerExists).password))
+                return@transaction false to "Incorrect password."
 
-            if(login != null){
-                val list = Customers.selectAll().where{ Customers.login eq login}.mapNotNull(::resultRowToClient)
-                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+            if (login != null) {
+                val list = Customers.selectAll().where { Customers.login eq login }.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any { customer -> customer.id != id }) {
                     return@transaction Pair(false, "Login is already taken.")
                 }
             }
 
-            if(pesel != null){
-                val list = Customers.selectAll().where{ Customers.pesel eq pesel}.mapNotNull(::resultRowToClient)
-                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+            if (pesel != null) {
+                val list = Customers.selectAll().where { Customers.pesel eq pesel }.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any { customer -> customer.id != id }) {
                     return@transaction Pair(false, "Pesel is already taken.")
                 }
             }
 
-            if(email != null){
-                val list = Customers.selectAll().where{ Customers.email eq email}.mapNotNull(::resultRowToClient)
-                if (list.count() > 0 && list.any {customer -> customer.id != id }) {
+            if (email != null) {
+                val list = Customers.selectAll().where { Customers.email eq email }.mapNotNull(::resultRowToClient)
+                if (list.count() > 0 && list.any { customer -> customer.id != id }) {
                     return@transaction Pair(false, "Email is already taken.")
                 }
             }
@@ -198,10 +199,14 @@ object DaoMethods:DaoMethodsInterface {
                 phone?.let { phone -> it[Customers.phone] = phone }
                 pesel?.let { pesel -> it[Customers.pesel] = pesel }
                 email?.let { email -> it[Customers.email] = email }
-                protectionExpirationDate?.let{protectionExpirationDate -> it[Customers.protection_expiration_date] = protectionExpirationDate}
+                protectionExpirationDate?.let { protectionExpirationDate ->
+                    it[Customers.protection_expiration_date] = protectionExpirationDate
+                }
             } > 0
-            if(result)
+            if (result){
+                    notifyClientsAboutChanges("customers", id)
                 return@transaction true to "Customer updated successfully."
+        }
             return@transaction false to "Failed to update customer."
         }
     }
@@ -237,24 +242,33 @@ object DaoMethods:DaoMethodsInterface {
                 isActive?.let{isActive-> it[Customers.account_deleted] = !isActive}
                 protectionExpirationDate?.let{protectionExpirationDate -> it[Customers.protection_expiration_date] = protectionExpirationDate}
             } > 0
-            if(result)
+            if(result) {
+                notifyClientsAboutChanges("customers", id)
                 return@transaction true to "Customer updated successfully."
+            }
             return@transaction false to "Failed to update customer."
         }
     }
     override suspend fun deleteCustomer(id: Int): Boolean {
         return transaction {
-            Customers.update({ Customers.id eq id }) {
+            val ret =Customers.update({ Customers.id eq id }) {
                 it[Customers.account_deleted] = true
             } > 0
+            if(ret){
+                notifyClientsAboutChanges("customers", id)
+            }
+            return@transaction ret
         }
     }
 
     override suspend fun restoreCustomer(id: Int): Boolean {
         return transaction {
-            Customers.update({ Customers.id eq id }) {
+            val ret = Customers.update({ Customers.id eq id }) {
                 it[Customers.account_deleted] = false
             } > 0
+            if(ret)
+                notifyClientsAboutChanges("customers", id)
+            return@transaction ret
         }
     }
     override suspend fun getCustomer(id: Int): Customer? {
@@ -326,6 +340,16 @@ object DaoMethods:DaoMethodsInterface {
 
         }
     }
+
+    override suspend fun getCustomers(ids: List<Int>):List<CustomerInfo>{
+        return transaction {
+            return@transaction Customers
+                .selectAll().where { Customers.id inList ids }
+                .mapNotNull(::resultRowToClientInfo)
+
+        }
+    }
+
     override suspend fun getAllCustomers(): List<CustomerInfo>{
         return transaction {
             Customers.selectAll()
@@ -599,8 +623,10 @@ object DaoMethods:DaoMethodsInterface {
                 phone?.let { phone -> it[Guards.phone] = phone }
             } > 0
 
-            if (updated)
+            if (updated) {
+                notifyClientsAboutChanges("guards", id)
                 return@transaction true to "Guard updated successfully."
+            }
             return@transaction false to "Failed to update guard."
         }
     }
@@ -626,25 +652,33 @@ object DaoMethods:DaoMethodsInterface {
                 isActive?.let{isActive-> it[Guards.account_deleted] = !isActive}
             } > 0
 
-            if (updated)
+            if (updated) {
+                notifyClientsAboutChanges("guards", id)
                 return@transaction true to "Guard updated successfully."
+            }
             return@transaction false to "Failed to update guard."
         }
     }
 
     override suspend fun deleteGuard(id: Int): Boolean {
         return transaction {
-            Guards.update({ Guards.id eq id }) {
+            val ret = Guards.update({ Guards.id eq id }) {
                 it[Guards.account_deleted] = true
             } > 0
+            if(ret)
+                notifyClientsAboutChanges("guards", id)
+            return@transaction ret
         }
     }
 
     override suspend fun restoreGuard(id: Int): Boolean {
         return transaction {
-            Guards.update({ Guards.id eq id }) {
+            val ret = Guards.update({ Guards.id eq id }) {
                 it[Guards.account_deleted] = false
             } > 0
+            if (ret)
+                notifyClientsAboutChanges("guards", id)
+            return@transaction ret
         }
     }
 
@@ -714,6 +748,14 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
+    override suspend fun getGuards(ids: List<Int>): List<GuardInfo> {
+        return transaction {
+            return@transaction Guards
+                .selectAll().where { Guards.id inList ids}
+                .mapNotNull(::resultRowToGuardInfo)
+        }
+    }
+
     override suspend fun getAllGuards(): List<GuardInfo> {
         return transaction {
 
@@ -762,21 +804,6 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun deleteEmployee(id: Int): Boolean {
-        return transaction {
-            Employees.update({ Employees.id eq id }) {
-                it[Employees.account_deleted] = true
-            } > 0
-        }
-    }
-
-    override suspend fun restoreEmployee(id: Int): Boolean {
-        return transaction {
-            Employees.update({ Employees.id eq id }) {
-                it[Employees.account_deleted] = false
-            } > 0
-        }
-    }
     override suspend fun editEmployee(id: Int, login: String?, password: String, newPassword: String?, name: String?, surname: String?, phone: String?, email: String?, role:Employee.Role?): Triple<Boolean, String, EmployeeInfo?> {
         return transaction {
 
@@ -815,6 +842,7 @@ object DaoMethods:DaoMethodsInterface {
                 role?.let{role-> it[Employees.role] = role.role.toShort()}
             } > 0
             if (updated) {
+                notifyClientsAboutChanges("employees", id)
                 val employeeInfo =  runBlocking{ getEmployee(id)?.toEmployeeInfo()}
                 return@transaction Triple(true, "Employee updated successfully.", employeeInfo)
             }
@@ -849,8 +877,10 @@ object DaoMethods:DaoMethodsInterface {
                 role?.let{role-> it[Employees.role] = role.role.toShort()}
                 isActive?.let{isActive-> it[Employees.account_deleted] = !isActive}
             } > 0
-            if (updated)
+            if (updated) {
+                notifyClientsAboutChanges("employees", id)
                 return@transaction true to "Employee updated successfully."
+            }
             return@transaction false to "Failed to update employee."
         }
     }
@@ -865,8 +895,10 @@ object DaoMethods:DaoMethodsInterface {
             val updated = Employees.update({ Employees.id eq id }) {
                 it[Employees.role] = role.role.toShort()
             } > 0
-            if (updated)
+            if (updated){
+                notifyClientsAboutChanges("employees", id)
                 return@transaction true to "Employee updated successfully."
+            }
             return@transaction false to "Failed to update employee."
         }
     }
@@ -961,12 +993,43 @@ object DaoMethods:DaoMethodsInterface {
 
         }
     }
+
+    override suspend fun getEmployees(ids: List<Int>): List<EmployeeInfo> {
+            return transaction {
+                return@transaction Employees
+                    .selectAll().where { Employees.id inList ids}
+                    .mapNotNull(::resultRowToEmployeeInfo)
+            }
+    }
+
     override suspend fun getAllEmployees(): List<EmployeeInfo> {
         return transaction {
 
             Employees.selectAll()
                 .map(::resultRowToEmployeeInfo).toList()
 
+        }
+    }
+
+    override suspend fun deleteEmployee(id: Int): Boolean {
+        return transaction {
+            val ret =Employees.update({ Employees.id eq id }) {
+                it[Employees.account_deleted] = true
+            } > 0
+            if(ret)
+                notifyClientsAboutChanges("employees", id)
+            return@transaction ret
+        }
+    }
+
+    override suspend fun restoreEmployee(id: Int): Boolean {
+        return transaction {
+            val ret = Employees.update({ Employees.id eq id }) {
+                it[Employees.account_deleted] = false
+            } > 0
+            if(ret)
+                notifyClientsAboutChanges("employees", id)
+            return@transaction ret
         }
     }
 }

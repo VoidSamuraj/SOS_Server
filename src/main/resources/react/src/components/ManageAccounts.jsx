@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IconButton, Box, Tabs, Tab, Button } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { plPL } from "@mui/material/locale";
@@ -11,7 +11,7 @@ import { plLanguage } from "../script/plLanguage.js";
 import { getClients, getEmployees, getGuards } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
 import SystemAlert from "./SystemAlert";
-
+import WebSocketClient from "../script/WebSockets"; // Importuj WebSocketClient
 
 /**
  * ManageAccounts component manages the display and editing of employee, guard, and customer accounts.
@@ -20,12 +20,13 @@ import SystemAlert from "./SystemAlert";
  *
  * @returns {JSX.Element} The rendered component.
  */
-const ManageAccounts = ({editedRecord }) => {
+const ManageAccounts = ({ editedRecord }) => {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [patrols, setPatrols] = useState([]);
 
   const [selectedTab, setSelectedTab] = useState("employees");
+  const selectedTabRef = useRef(selectedTab);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedParams, setSelectedParams] = useState(null);
   const [editMode, setEditMode] = useState(true);
@@ -38,19 +39,47 @@ const ManageAccounts = ({editedRecord }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("info");
 
+  const socketRef = useRef(null);
+
   useEffect(() => {
-    getClients(page, pageSize, null, null).then((data) => {
-      setClients(data);
-    });
-    getEmployees(page, pageSize, null, null).then((data) => {
-      setEmployees(data);
-    });
-    getGuards(page, pageSize, null, null).then((data) => {
-      setPatrols(data);
-    });
+    socketRef.current = new WebSocketClient("ws://localhost:8080/updates");
+
+    const messageHandler = (data) => {
+      console.log(typeof data);
+      console.log(data);
+
+      if (Array.isArray(data)) {
+        console.log("ARRAY");
+        console.log(selectedTabRef.current); // Zawsze aktualna wartość
+
+        switch (selectedTabRef.current) {
+          case "employees":
+            setEmployees(data);
+            break;
+          case "guards":
+            setPatrols(data);
+            break;
+          case "customers":
+            setClients(data);
+            break;
+          default:
+            break;
+        }
+      }
+    };
+
+    socketRef.current.addMessageHandler(messageHandler);
+
+    updatePaginatedData();
+
+    return () => {
+      socketRef.current.removeMessageHandler(messageHandler);
+      socketRef.current.close();
+    };
   }, []);
 
   useEffect(() => {
+    selectedTabRef.current = selectedTab;
     setPage(0);
   }, [selectedTab]);
 
@@ -65,27 +94,7 @@ const ManageAccounts = ({editedRecord }) => {
 
   useEffect(() => {
     if (!modalOpen) {
-      switch (selectedTab) {
-        case "employees":
-          getEmployees(page, pageSize, filterColumn, sortColumn).then(
-            (data) => {
-              setEmployees(data);
-            }
-          );
-          break;
-        case "guards":
-          getGuards(page, pageSize, filterColumn, sortColumn).then((data) => {
-            setPatrols(data);
-          });
-          break;
-        case "customers":
-          getClients(page, pageSize, filterColumn, sortColumn).then((data) => {
-            setClients(data);
-          });
-          break;
-        default:
-          break;
-      }
+      updatePaginatedData();
     }
   }, [
     modalOpen,
@@ -94,8 +103,28 @@ const ManageAccounts = ({editedRecord }) => {
     pageSize,
     sortColumn,
     filterColumnDebounced,
-    editedRecord
+    editedRecord,
   ]);
+
+  const updatePaginatedData = () => {
+    if (socketRef.current) {
+      let filterColumnName = filterColumn?.field;
+      let filterOperator = filterColumn?.operator;
+      let filterValue = filterColumn?.value;
+      let sortColumnName = sortColumn?.field;
+      let sortOrder = sortColumn?.sort;
+      socketRef.current.send({
+        page,
+        pageSize,
+        filterColumnName,
+        filterOperator,
+        filterValue,
+        sortColumnName,
+        sortOrder,
+        table: selectedTab,
+      });
+    }
+  };
 
   const handlePageChange = (newPage) => {
     setPage(newPage);
@@ -126,10 +155,10 @@ const ManageAccounts = ({editedRecord }) => {
     setModalOpen(false);
   };
   const handleSortModelChange = (sortModel) => {
-    if (sortModel?.[0]) setSortColumn(sortModel?.[0]);
+    setSortColumn(sortModel?.[0] || null);
   };
   const handleFilterModelChange = (filterModel) => {
-    if (filterModel?.items?.[0]) setFilterColumn(filterModel?.items?.[0]);
+    setFilterColumn(filterModel?.items?.[0] || null);
   };
   const theme = createTheme(plPL);
 
@@ -175,7 +204,7 @@ const ManageAccounts = ({editedRecord }) => {
                       width: "30px",
                       height: "30px",
                     }}
-                  title="Edytuj pracownika"
+                    title="Edytuj pracownika"
                   />
                 </IconButton>
               </Box>
@@ -220,7 +249,7 @@ const ManageAccounts = ({editedRecord }) => {
                       width: "30px",
                       height: "30px",
                     }}
-                  title="Edytuj ochroniarza"
+                    title="Edytuj ochroniarza"
                   />
                 </IconButton>
               </Box>
@@ -265,7 +294,7 @@ const ManageAccounts = ({editedRecord }) => {
                       width: "30px",
                       height: "30px",
                     }}
-                  title="Edytuj klienta"
+                    title="Edytuj klienta"
                   />
                 </IconButton>
               </Box>
@@ -280,6 +309,7 @@ const ManageAccounts = ({editedRecord }) => {
   const getRows = () => {
     switch (selectedTab) {
       case "employees":
+        console.log(employees);
         return employees && employees.length > 0
           ? employees.map(
               ({
@@ -307,17 +337,18 @@ const ManageAccounts = ({editedRecord }) => {
             )
           : [];
       case "guards":
+        console.log(patrols);
         return patrols && patrols.length > 0
-          ? patrols.map(({id, name, surname, phone, account_deleted }) => ({
-                id,
-                name,
-                surname,
-                phone,
-                account_active: !account_deleted,
-              })
-            )
+          ? patrols.map(({ id, name, surname, phone, account_deleted }) => ({
+              id,
+              name,
+              surname,
+              phone,
+              account_active: !account_deleted,
+            }))
           : [];
       case "customers":
+        console.log(clients);
         return clients && clients.length > 0
           ? clients.map(({ id, phone, pesel, email, account_deleted }) => ({
               id,
@@ -389,18 +420,18 @@ const ManageAccounts = ({editedRecord }) => {
           editMode={editMode}
         />
       </Box>
-            {alertMessage && (
-              <SystemAlert
-                severity={alertType}
-                message={alertMessage}
-                onClose={() => {
-                  setAlertMessage("");
-                  if (alertType == "success") {
-                    handleClose();
-                  }
-                }}
-              />
-            )}
+      {alertMessage && (
+        <SystemAlert
+          severity={alertType}
+          message={alertMessage}
+          onClose={() => {
+            setAlertMessage("");
+            if (alertType == "success") {
+              handleClose();
+            }
+          }}
+        />
+      )}
     </ThemeProvider>
   );
 };

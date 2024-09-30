@@ -46,7 +46,7 @@ function Administration() {
         onEditedToggle={toggleEdited}
         canSetMapLoc={false}
       />
-      <ManageAccounts guards={guards} editedRecord={editedRecord} />
+      <ManageAccounts editedRecord={editedRecord} />
     </div>
   );
 }

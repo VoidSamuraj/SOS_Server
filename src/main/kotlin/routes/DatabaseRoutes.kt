@@ -13,21 +13,21 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.datetime.LocalDateTime
 
-private val GuardField = mapOf(
+val GuardField = mapOf(
     "id" to Guards.id ,
     "name" to Guards.name,
     "surname" to Guards.surname,
     "phone" to Guards.phone,
     "account_active" to Guards.account_deleted
 )
-private val CustomerField = mapOf(
+val CustomerField = mapOf(
     "id" to Customers.id,
     "phone" to Customers.phone,
     "pesel" to Customers.pesel,
     "email" to Customers.email,
     "account_active" to Customers.account_deleted
 )
-private val EmployeeField = mapOf(
+val EmployeeField = mapOf(
     "id" to Employees.id,
     "name" to Employees.name,
     "surname" to Employees.surname,

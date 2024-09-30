@@ -125,6 +125,15 @@ interface DaoMethodsInterface {
     suspend fun getCustomers(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<CustomerInfo>
 
     /**
+     * Retrieves a list of selected customers.
+     *
+     * @param ids ids of selected customers.
+     *
+     * @return A list of CustomerInfo objects matching the criteria.
+     */
+    suspend fun getCustomers(ids: List<Int>):List<CustomerInfo>
+
+    /**
      * Retrieves a list of all customers.
      *
      * @return A list of all CustomerInfo objects.
@@ -384,6 +393,15 @@ interface DaoMethodsInterface {
     suspend fun getGuards(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<GuardInfo>
 
     /**
+     * Retrieves a list of selected guards.
+     *
+     * @param ids ids of selected guards.
+     *
+     * @return A list of GuardInfo objects matching the criteria.
+     */
+    suspend fun getGuards(ids: List<Int>):List<GuardInfo>
+
+    /**
      * Retrieves a list of all guards.
      *
      * @return A list of all GuardInfo objects.
@@ -542,6 +560,15 @@ interface DaoMethodsInterface {
      * @return A list of EmployeeInfo objects matching the criteria.
      */
     suspend fun getEmployees(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<EmployeeInfo>
+
+    /**
+     * Retrieves a list of selected employees.
+     *
+     * @param ids ids of selected employees.
+     *
+     * @return A list of EmployeeInfo objects matching the criteria.
+     */
+    suspend fun getEmployees(ids: List<Int>):List<EmployeeInfo>
 
     /**
      * Retrieves a list of all employees.

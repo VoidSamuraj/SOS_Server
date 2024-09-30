@@ -1,6 +1,7 @@
 import dao.DaoMethods
 import dao.DatabaseFactory
 import io.ktor.server.application.*
+import io.ktor.websocket.DefaultWebSocketSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -9,7 +10,8 @@ import plugins.*
 
 val jwtExpirationSeconds=3600L
 lateinit var guards: List<GuardInfo>
-
+val administrationQueryParams = mutableMapOf<DefaultWebSocketSession, QueryParams>()
+val administrationSelectedRowsIds = mutableMapOf<DefaultWebSocketSession, Array<Int>>()
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
