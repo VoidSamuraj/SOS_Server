@@ -18,7 +18,7 @@ export const usePatrols = () => {
     );
   };
 
-  const updatePatrol = (id, newStatus = null, newPosition = null) => {
+  const editPatrol = (id, newStatus = null, newPosition = null) => {
     setPatrols((prevPatrols) => {
       const updatedPatrols = new Map(prevPatrols);
 
@@ -38,6 +38,25 @@ export const usePatrols = () => {
       return updatedPatrols;
     });
   };
+
+const syncPatrols = (dataArray) => {
+    setPatrols((prevPatrols) => {
+      const updatedPatrols = new Map(prevPatrols);
+      dataArray.forEach((patrol) => {
+      updatedPatrols.set(patrol.id, {
+        position: patrol.location !== null ? patrol.location : "",
+        status: patrol.statusCode !== null ? patrol.statusCode : 1,
+        name: patrol.name,
+        surname: patrol.surname,
+        phone: patrol.phone,
+        account_deleted: patrol.account_deleted,
+      });
+      });
+
+      return updatedPatrols;
+    });
+  };
+
 
   const removePatrol = (id) => {
     const newPatrols = new Map(patrols);
@@ -66,7 +85,8 @@ export const usePatrols = () => {
     statusToCode,
     setPatrols,
     addPatrol,
-    updatePatrol,
+    editPatrol,
+    syncPatrols,
     removePatrol,
     convertArrayToPatrolMap,
   };
@@ -101,11 +121,28 @@ export const useReports = () => {
     });
   };
 
+const syncReports = (dataArray) => {
+    setReports((prevReports) => {
+      const updatedReports = new Map(prevReports);
+      // Iterate over the new reports and update or add them
+      dataArray.forEach((report) => {
+
+        updatedReports.set(report.id, {
+          position: JSON.parse(report.location.replace(/(\w+):/g, '"$1":')) || "",
+          date: report.date || new Date().toISOString(),
+          status: report.statusCode || 0,
+        });
+      });
+
+      return updatedReports;
+    });
+  };
+
   const removeReport = (id) => {
     const newReports = new Map(reports);
     newReports.delete(id);
     setReports(newReports);
   };
 
-  return { reports, setReports, addReport, editReport, removeReport };
+  return { reports, setReports, addReport, editReport, syncReports, removeReport };
 };

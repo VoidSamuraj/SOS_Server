@@ -1,5 +1,5 @@
 import React, { useEffect, useState, memo } from "react";
-import { editEmployee } from "../script/ApiService.js";
+import { editEmployee, getEmployee } from "../script/ApiService.js";
 import {
   Modal,
   Box,
@@ -13,8 +13,8 @@ import {
  * EditAccountData component allows users to edit their account information.
  *
  * This modal component provides fields for changing passwords, phone numbers,
- * and email addresses. It retrieves existing data from localStorage and saves
- * changes when the user confirms. Changes are saved in database and localStorage updated.
+ * and email addresses. It retrieves existing data and saves changes when the user confirms.
+ * Changes are saved in database and localStorage updated.
  *
  * @param {boolean} props.open - Indicates if the modal is open.
  * @param {function} props.setAlertMessage - Function to set alert message, hide if empty.
@@ -38,16 +38,17 @@ const EditAccountData = memo(
     const [emailError, setEmailError] = useState("");
 
     useEffect(() => {
-      loadData();
-    }, []);
+        if(open)
+            loadData();
+    }, [open]);
 
-    const loadData = () => {
-      const savedData = localStorage.getItem("userData");
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        setId(parsedData.id || null);
-        setPhone(parsedData.phone || "");
-        setEmail(parsedData.email || "");
+    const loadData = async () => {
+      const userId = localStorage.getItem("userData");
+      if (userId) {
+        let employee = await getEmployee(userId);
+        setId(employee.id || null);
+        setPhone(employee.phone || "");
+        setEmail(employee.email || "");
       }
     };
 

@@ -744,7 +744,7 @@ fun Route.databaseRoutes() {
 
                 val employee = DaoMethods.getEmployee(id!!)
                 if(employee!=null){
-                    call.respond(HttpStatusCode.OK,employee)
+                    call.respond(HttpStatusCode.OK,employee.toEmployeeInfo())
                 }else{
                     call.respond(HttpStatusCode.InternalServerError, "Failed to get employee.")
                 }

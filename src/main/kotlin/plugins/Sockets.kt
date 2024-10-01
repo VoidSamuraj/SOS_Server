@@ -3,6 +3,7 @@ package plugins
 import administrationQueryParams
 import administrationSelectedRowsIds
 import dao.DaoMethods
+import guardsFlow
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
@@ -10,10 +11,15 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import reportsFlow
 import routes.CustomerField
 import routes.EmployeeField
 import routes.GuardField
@@ -45,13 +51,11 @@ fun Application.configureSockets() {
     }
     routing {
 
-        webSocket("/updates") {
+        webSocket("/adminPanelSocket") {
             try {
-                // Obsługa komunikatów od klienta
                 for (frame in incoming) {
                     if (frame is Frame.Text) {
                         val newParams = Json.decodeFromString<QueryParams>(frame.readText())
-
                         val previousParams = administrationQueryParams[this]
 
                         if (previousParams == null || previousParams != newParams) {
@@ -64,6 +68,39 @@ fun Application.configureSockets() {
                         administrationQueryParams.remove(this)
                     }
                 }
+            } catch (e: ClosedReceiveChannelException) {
+                println(e)
+                administrationQueryParams.remove(this)
+            }
+        }
+        webSocket("/mapSocket") {
+            try {
+                    combine(
+                        guardsFlow,
+                        reportsFlow
+                    ) { employees, customers ->
+                        Pair(employees, customers)
+                    }.collect { (updatedGuards, updatedReport) ->
+
+                        Json.encodeToString(
+                            ListSerializer(GuardInfo.serializer()),
+                            updatedGuards
+                        )
+                        val responseJson = Json.encodeToString(
+                            MapSerializer(String.serializer(), JsonElement.serializer()),
+                            mapOf(
+                                "updatedGuards" to Json.encodeToJsonElement(
+                                    ListSerializer(GuardInfo.serializer()),
+                                    updatedGuards
+                                ),
+                                "updatedReports" to Json.encodeToJsonElement(
+                                    ListSerializer(Report.serializer()),
+                                    updatedReport
+                                )
+                            )
+                        )
+                        outgoing.send(Frame.Text(responseJson))
+                    }
             } catch (e: ClosedReceiveChannelException) {
                 println(e)
                 administrationQueryParams.remove(this)

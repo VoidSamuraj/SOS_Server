@@ -11,7 +11,7 @@ import { plLanguage } from "../script/plLanguage.js";
 import { getClients, getEmployees, getGuards } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
 import SystemAlert from "./SystemAlert";
-import WebSocketClient from "../script/WebSockets"; // Importuj WebSocketClient
+import SystemWebSocket from "../script/SystemWebSocket";
 
 /**
  * ManageAccounts component manages the display and editing of employee, guard, and customer accounts.
@@ -39,10 +39,10 @@ const ManageAccounts = ({ editedRecord }) => {
   const [alertMessage, setAlertMessage] = useState("");
   const [alertType, setAlertType] = useState("info");
 
-  const socketRef = useRef(null);
+  const administrationSocketRef = useRef(null);
 
   useEffect(() => {
-    socketRef.current = new WebSocketClient("ws://localhost:8080/updates");
+    administrationSocketRef.current = new SystemWebSocket("ws://localhost:8080/adminPanelSocket",updatePaginatedData);
 
     const messageHandler = (data) => {
       if (Array.isArray(data.data)) {
@@ -60,17 +60,14 @@ const ManageAccounts = ({ editedRecord }) => {
               default:
                 break;
             }
-
       }
     };
 
-    socketRef.current.addMessageHandler(messageHandler);
-
-    updatePaginatedData();
+    administrationSocketRef.current.addMessageHandler(messageHandler);
 
     return () => {
-      socketRef.current.removeMessageHandler(messageHandler);
-      socketRef.current.close();
+      administrationSocketRef.current.removeMessageHandler(messageHandler);
+      administrationSocketRef.current.close();
     };
   }, []);
 
@@ -103,13 +100,13 @@ const ManageAccounts = ({ editedRecord }) => {
   ]);
 
   const updatePaginatedData = () => {
-    if (socketRef.current) {
+    if (administrationSocketRef.current) {
       let filterColumnName = filterColumn?.field;
       let filterOperator = filterColumn?.operator;
       let filterValue = filterColumn?.value;
       let sortColumnName = sortColumn?.field;
       let sortOrder = sortColumn?.sort;
-      socketRef.current.send({
+      administrationSocketRef.current.send({
         page,
         pageSize,
         filterColumnName,

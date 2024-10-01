@@ -6,7 +6,7 @@ import {
 } from "@vis.gl/react-google-maps";
 import { usePatrols } from "./MapFunctions";
 import config from "../../config";
-import {fetchStreetName} from "../../script/ApiService.js";
+import { fetchStreetName } from "../../script/ApiService.js";
 
 /**
  * CarMarkers component renders markers for each car in the provided cars data.
@@ -19,24 +19,25 @@ import {fetchStreetName} from "../../script/ApiService.js";
 const CarMarkers = ({ cars }) => {
   const { statusToCode } = usePatrols();
 
-// Memoize markers to avoid unnecessary re-renders
+  // Memoize markers to avoid unnecessary re-renders
   return useMemo(
     () => (
       <>
         {Array.from(cars.entries())
-          .filter(
-            ([id, { position }]) =>
-              position &&
-              position != "unknown" &&
-              position.lat !== undefined &&
-              position.lng !== undefined &&
-              position.lat !== "unknown" &&
-              position.lng !== "unknown"
-          )
+          .filter(([id, { position }]) => {
+            if (!position || position === "unknown") return false;
+            const parsedPosition = JSON.parse(position);
+            return (
+              parsedPosition.lat !== undefined &&
+              parsedPosition.lng !== undefined &&
+              parsedPosition.lat !== "unknown" &&
+              parsedPosition.lng !== "unknown"
+            );
+          })
           .map(([id, { position, status, name, surname, phone }]) => (
             <CarIcon
               id={id}
-              position={position}
+              position={JSON.parse(position)}
               color={statusToCode(status)}
               name={name}
               surname={surname}
@@ -48,7 +49,6 @@ const CarMarkers = ({ cars }) => {
     [cars]
   );
 };
-
 
 /**
  * CarIcon component represents an individual car marker on the map.
@@ -69,7 +69,13 @@ const CarIcon = ({ id, position, color, name, surname, phone }) => {
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [streetName, setStreetName] = useState(null);
   useEffect(() => {
-    fetchStreetName(position.lat, position.lng, config.GOOGLE_API_KEY, setStreetName, streetName);
+    fetchStreetName(
+      position.lat,
+      position.lng,
+      config.GOOGLE_API_KEY,
+      setStreetName,
+      streetName
+    );
   }, [position]);
 
   return (

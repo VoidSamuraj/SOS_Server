@@ -540,12 +540,15 @@ object DaoMethods:DaoMethodsInterface {
         }
     }
 
-    override suspend fun getAllReports(): List<Report> {
+    override suspend fun getAllReports(filterFinished: Boolean): List<Report> {
         return transaction {
-
-            Reports.selectAll()
-                .map(::resultRowToReport).toList()
-
+            Reports.selectAll().let { query ->
+                if (filterFinished) {
+                    query.where { (Reports.status eq 0) or (Reports.status eq 1) }
+                } else {
+                    query
+                }
+            }.map(::resultRowToReport).toList()
         }
     }
 

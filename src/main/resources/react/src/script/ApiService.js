@@ -151,19 +151,12 @@ const getPersons = async (page, size, filterColumn, sortColumn, route) => {
 };
 
 /**
- * Saves user data (id, phone, email) to localStorage.
+ * Saves user data id to localStorage.
  *
  * @param {string} id - The user's ID.
- * @param {string} phone - The user's phone number.
- * @param {string} email - The user's email address.
  */
-const saveUserData = (id, phone, email) => {
-  const data = {
-    id: id,
-    phone: phone,
-    email: email,
-  };
-  localStorage.setItem("userData", JSON.stringify(data));
+const saveUserData = (id) => {
+  localStorage.setItem("userData", id);
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -258,7 +251,7 @@ export const login = async (login, password, onSuccess, onFailure) => {
     })
     .then((data) => {
       if (data) {
-        saveUserData(data.id, data.phone, data.email);
+        saveUserData(data.id);
         onSuccess();
       } else {
         console.error("User data is not available");
@@ -407,6 +400,38 @@ export const addEmployee = async (
 };
 
 /**
+ * Fetches a employee data.
+ *
+ * @param {number} id - The id of employee.
+ * @returns {Promise<object|null>} The fetched data or null in case of an error.
+ */
+export const getEmployee = async (id) => {
+    try {
+      const url = new URL( "/employee/getById", window.location.origin);
+      url.searchParams.append("id", id);
+      const fetchOptions = {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const response = await fetch(url.toString(), fetchOptions);
+
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      } else {
+        console.error("Empty fetch :", response.statusText);
+        return null;
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      return null;
+    }
+};
+
+/**
  * Fetches a list of employees with pagination, filtering, and sorting parameters.
  *
  * @param {number} page - The page number to fetch, starts from 0.
@@ -527,7 +552,7 @@ export const editEmployee = async (
       });
     } else {
       let data = await response.json();
-      saveUserData(data.id, data.phone, data.email);
+      saveUserData(data.id);
       onSuccess();
     }
   } catch (error) {

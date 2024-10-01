@@ -20,7 +20,7 @@ import org.jetbrains.exposed.sql.Table
  * @constructor Creates a GuardInfo instance with the specified details.
  */
 @Serializable
-data class GuardInfo(val id:Int, val name: String, val surname: String,val phone: String, val statusCode:Int, val location:String, val account_deleted:Boolean): Principal
+data class GuardInfo(val id:Int, val name: String, val surname: String,val phone: String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal
 
 /**
  * Data class representing a Guard.
@@ -42,7 +42,7 @@ data class GuardInfo(val id:Int, val name: String, val surname: String,val phone
  * @constructor Creates a Guard instance with the specified details, including sensitive credentials.
  */
 @Serializable
-data class Guard(val id:Int, val login: String,val password:String, val name: String, val surname: String,val phone: String, val statusCode:Int, val location:String, val account_deleted:Boolean): Principal{
+data class Guard(val id:Int, val login: String,val password:String, val name: String, val surname: String,val phone: String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal{
 
     /**
      * Enum representing status of Guard.

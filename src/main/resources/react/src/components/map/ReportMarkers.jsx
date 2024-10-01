@@ -7,7 +7,6 @@ import {
 import reportImage from "../../icons/SOSANIM.svg";
 import reportImageDot from "../../icons/sosdot.svg";
 
-
 /**
  * ReportMarkers component renders a list of report markers on a map.
  * Each marker is represented by an AlertIcon, which displays information
@@ -40,7 +39,6 @@ const ReportMarkers = ({ reports, selectReport }) => {
     [reports]
   );
 };
-
 
 /**
  * AlertIcon component represents a single report marker on the map.
@@ -122,16 +120,16 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
   );
 };
 
-
 /**
  * calculatePassedTime calculates the time that has passed since the given date.
  *
- * @param {number} date - The date to compare against (timestamp).
+ * @param {string} date - The date to compare against (timestamp).
  * @returns {number} The number of seconds that have passed since the date.
  */
 const calculatePassedTime = (date) => {
   const now = new Date().getTime();
-  const timeDifference = now - date;
+  const dateTimestamp = new Date(date).getTime();
+  const timeDifference = now - dateTimestamp;
   return Math.max(Math.floor(timeDifference / 1000), 0);
 };
 export default ReportMarkers;

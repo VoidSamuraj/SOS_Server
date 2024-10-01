@@ -275,9 +275,13 @@ interface DaoMethodsInterface {
     /**
      * Retrieves a list of all reports.
      *
-     * @return A list of all Report objects.
+     * @param filterFinished A boolean flag to indicate whether to filter reports based on their finished status.
+     *                       - `true`: Returns only not finished reports.
+     *                       - `false`: Returns all reports
+     * @return A list of reports (`List<Report>`), filtered according to the `filterFinished` parameter.
+     * @throws Exception If there is an issue retrieving the reports from the data source.
      */
-    suspend fun getAllReports():List<Report>
+    suspend fun getAllReports(filterFinished: Boolean):List<Report>
 
 
 
