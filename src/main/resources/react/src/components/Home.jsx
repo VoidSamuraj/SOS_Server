@@ -117,7 +117,7 @@ function Home() {
         locationJson={locationJson}
         onAssignTask={assignTask}
       />
-      <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} />
+      <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} locationJson={locationJson} />
     </LoadScript>
   );
 }

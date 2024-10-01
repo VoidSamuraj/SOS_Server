@@ -76,6 +76,21 @@ fun Application.module() {
             DaoMethods.addReport(2,"{lat: 54.3520, lng: 18.6466 }",  Clock.System.now().minus(2.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.IN_PROGRESS)
             DaoMethods.addReport(3,"{lat: 51.1079, lng: 17.0385 }",  Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.WAITING)
         }
+        println(DaoMethods.getReports(1, 10))
+        if(DaoMethods.getInterventions(1, 10).isEmpty()) {
+            DaoMethods.addIntervention(3, 3,2,
+                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
+                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
+                Intervention.InterventionStatus.FINISHED)
+            DaoMethods.addIntervention(1, 1,1,
+                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
+                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
+                Intervention.InterventionStatus.FINISHED)
+            DaoMethods.addIntervention(2, 2,2,
+                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
+                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
+                Intervention.InterventionStatus.FINISHED)
+        }
 
         fun randomLocationInPoland(): String {
             val lat = Random.nextDouble(49.0, 54.83)
@@ -95,7 +110,7 @@ fun Application.module() {
             //TEST
             var randomNumber:Int
             var newLocation: String
-            for (i in 1 .. 100){
+            repeat (100){
                 if(guardTest.isNotEmpty()) {
                     randomNumber = Random.nextInt(0, guardTest.size)
                     newLocation = randomLocationInPoland()

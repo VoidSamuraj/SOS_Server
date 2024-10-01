@@ -1,5 +1,6 @@
 import React from "react";
 import x from "../icons/x.svg";
+import StatsMap from "./map/StatsMap.jsx"
 
 
 /**
@@ -10,13 +11,14 @@ import x from "../icons/x.svg";
  *
  * @returns {JSX.Element} The rendered statistics overlay component.
  */
-function StatsOverlay({ isVisible, onStatsToggle }) {
+function StatsOverlay({ isVisible, onStatsToggle, locationJson }) {
   return (
     <div
       id="statsOverlay"
       className={`${isVisible ? "statsOverlayVisible" : "statsOverlayHidden"}`}
     >
       <div>
+        <StatsMap locationJson={locationJson}/>
         <img onClick={onStatsToggle} id="statsClose" src={x} alt="close" />
         <div id="statsLegend">
           Legenda

@@ -823,6 +823,37 @@ export const restoreClient = async (id, onSuccess, onFailure) => {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+//                                    Report Section
+//
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Fetches all Reports.
+ *
+ * @returns {Promise<Array|null>} An array of all report or null in case of an error.
+ */
+export const getAllReports = async () => {
+  try {
+    const response = await fetch("/report/getAll", {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return data;
+    } else {
+      console.error("Empty fetch :", response.statusText);
+      return null;
+    }
+  } catch (error) {
+    console.error("Fetch error:", error);
+    return null;
+  }
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//
 //                                    Other Section
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////

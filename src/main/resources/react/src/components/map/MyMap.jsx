@@ -9,55 +9,7 @@ import CarMarkers from "./CarMarkers.jsx";
 import ReportMarkers from "./ReportMarkers.jsx";
 import homeImg from "../../icons/home.svg";
 import AssignTaskBox from "../AssignTaskBox";
-
-
-/**
- * MapController component manages the map's center location based on
- * provided location data or previously saved home location in local storage.
- * It pans the map to the specified coordinates when locationJson or
- * refreshFlag changes.
- *
- * @param {string} props.locationJson - A JSON string representing the location
- * coordinates (latitude and longitude) to navigate to.
- * @param {boolean} props.refreshFlag - A flag that triggers the map to refresh
- * its position when changed.
- *
- * @returns {null} The component does not render anything.
- */
-function MapController({ locationJson, refreshFlag }) {
-  const map = useMap();
-
-  const navigateHome = () => {
-    if (map) {
-      const savedLocation = localStorage.getItem("HomeLocation");
-      let locationData;
-      try {
-        locationData = locationJson
-          ? JSON.parse(locationJson)
-          : savedLocation
-          ? JSON.parse(savedLocation)
-          : null;
-      } catch (error) {
-        console.error("Error parsing location data from localStorage:", error);
-        locationData = null;
-      }
-
-      const defaultCenter = {
-        lat: locationData?.latitude ?? 51.9189046,
-        lng: locationData?.longitude ?? 19.1343786,
-      };
-
-      map.panTo(defaultCenter);
-    }
-  };
-
-  useEffect(() => {
-    navigateHome();
-  }, [locationJson, map, refreshFlag]);
-
-  return null;
-}
-
+import MapController from "./MapController.jsx"
 
 
 /**

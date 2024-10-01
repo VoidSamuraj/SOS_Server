@@ -17,8 +17,8 @@
 
 #statsOverlay > div {
   position: relative;
-  width: 80%;
-  height: 80%;
+  width: 90%;
+  height: 90%;
   border: 1px solid white;
   background-color: #232b54;
 }

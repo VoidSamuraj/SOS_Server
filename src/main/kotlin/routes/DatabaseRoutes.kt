@@ -411,6 +411,16 @@ fun Route.databaseRoutes() {
             }
         }
 
+        get("/getAll"){
+            try{
+                val customers = DaoMethods.getAllReports(false)
+                call.respond(HttpStatusCode.OK,customers)
+            }catch(e:Error){
+                call.respond(
+                    HttpStatusCode.InternalServerError, "Failed to get intervention. ${e.message}"
+                )
+            }
+        }
         delete{
             try{
                 val formParameters = call.receiveParameters()
