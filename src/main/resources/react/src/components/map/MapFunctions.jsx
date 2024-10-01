@@ -28,7 +28,7 @@ export const usePatrols = () => {
       const currentPatrol = updatedPatrols.get(id);
 
       updatedPatrols.set(id, {
-        position: newPosition !== null ? JSON.parse(newPosition.replace(/(\w+):/g, '"$1":')) || "" : currentPatrol.position,
+        position: newPosition !== null ? newPosition : currentPatrol.position,
         status: newStatus !== null ? newStatus : currentPatrol.status,
         name: currentPatrol.name,
         surname: currentPatrol.surname,
@@ -46,7 +46,7 @@ const syncPatrols = (dataArray) => {
       const updatedPatrols = new Map(prevPatrols);
       dataArray.forEach((patrol) => {
       updatedPatrols.set(patrol.id, {
-        position: patrol.location !== null ? JSON.parse(patrol.location.replace(/(\w+):/g, '"$1":')) || "" : "",
+        position: patrol.location !== null ? patrol.location : "",
         status: patrol.statusCode !== null ? patrol.statusCode : 1,
         name: patrol.name,
         surname: patrol.surname,
@@ -114,7 +114,7 @@ export const useReports = () => {
       const currentReport = updatedReports.get(id);
 
       updatedReports.set(id, {
-        position: position !== null ? JSON.parse(position.replace(/(\w+):/g, '"$1":')) || "" : currentReport.position,
+        position: position !== null ? position : currentReport.position,
         date: date !== null ? date : currentReport.date,
         status: status !== null ? status : currentReport.status,
       });
