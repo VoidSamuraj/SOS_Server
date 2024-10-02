@@ -70,17 +70,17 @@
 #patrolsList > div {
   display: flex;
   flex-direction: column;
-  width:clac(100% - 16px);
+  width: clac(100% - 16px);
   height: 60px;
   margin: 4px 8px;
   color: black;
   font-weight: bold;
-  overflow: hidden;  
+  overflow: hidden;
   border-radius: 5px;
   text-align: center;
   transition: height 0.3s ease;
 }
-.expandedMenu{
+.expandedMenu {
   height: 150px !important;
 }
 
@@ -94,7 +94,11 @@
   color: black;
   font-weight: bold;
 }
-#patrolsList > div>p{
+#patrolsList > div:not(.expandedMenu):hover {
+  filter: brightness(0.8);
+}
+
+#patrolsList > div > p {
   margin: 6px 0;
 }
 #patrolsMenu button {

@@ -9,7 +9,7 @@ import Heatmap from "./Heatmap.jsx";
 import homeImg from "../../icons/home.svg";
 import { getAllReports } from "../../script/ApiService.js";
 
-function StatsMap({ locationJson }) {
+function StatsMap({ locationJson, radius, opacity }) {
   const [buttonState, setButtonState] = useState(true);
   const [interventions, setInterventions] = useState(null);
   const toggleButton = () => {
@@ -36,7 +36,7 @@ function StatsMap({ locationJson }) {
         disableDefaultUI={true}
       >
         {interventions && (
-          <Heatmap interventions={interventions} radius={25} opacity={0.8} />
+          <Heatmap interventions={interventions} radius={radius} opacity={opacity} />
         )}
         <MapController locationJson={locationJson} refreshFlag={buttonState} />
       </GoogleMap>

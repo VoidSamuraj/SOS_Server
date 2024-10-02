@@ -17,8 +17,8 @@
 
 #statsOverlay > div {
   position: relative;
-  width: 90%;
-  height: 90%;
+  width: 95%;
+  height: 95%;
   border: 1px solid white;
   background-color: #232b54;
 }
@@ -46,4 +46,51 @@
   border-left: 1px solid white;
   border-bottom: 1px solid white;
   transition: background-color 0.2s ease-in-out;
+}
+#statsLegend input {
+  width: 150px;
+}
+#statsLegend label {
+  display: block;
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+#statsLegend label:first-of-type {
+  margin-top: 0;
+}
+
+.scale-container {
+  width: 90%;
+  max-width: 600px;
+  margin:auto;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.scale-container .scale {
+  position: relative;
+  height: 40px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0),
+    rgba(58, 124, 47, 0.8),
+    #75ff00,
+    #b8ff00,
+    #f8c700,
+    #ff0b00
+  );
+  border: 1px solid #000;
+  border-radius: 5px;
+}
+
+.scale-container .labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.scale-container .label {
+  font-size: 14px;
 }

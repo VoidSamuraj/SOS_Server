@@ -19,6 +19,8 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
   const [sortByStatus, setSortByStatus] = useState(true);
   const [sortedPatrols, setSortedPatrols] = useState([]);
 
+  const [expandedItem, setExpandedItem] = useState(null);
+
   const { statusToCode } = usePatrols();
 
   useEffect(() => {
@@ -67,9 +69,10 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
           ? sortedPatrols.map(
               ([id, { position, status, name, surname, phone }]) => (
                 <div
+                  className={expandedItem == id ? "expandedMenu" : ""}
                   style={{ backgroundColor: statusToCode(status) }}
                   onClick={(event) =>
-                    event.currentTarget.classList.toggle("expandedMenu")
+                      setExpandedItem(id)
                   }
                 >
                   <div key={id} className="patrol-item">
