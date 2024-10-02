@@ -86,7 +86,7 @@ const CarIcon = ({ id, position, color, name, surname, phone }) => {
         position={position}
         onClick={() => setInfowindowOpen(true)}
       >
-        <div className="mapMarker" style={{ width: "80px", height: "80px" }}>
+        <div className="mapMarker" style={{ width: "40px", height: "40px" }}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="80"

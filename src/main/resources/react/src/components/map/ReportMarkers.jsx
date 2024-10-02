@@ -91,8 +91,8 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
         <div
           className="mapMarker"
           style={{
-            width: status === 0 ? "200px" : "50px",
-            height: status === 0 ? "100px" : "50px",
+            width: status === 0 ? "100px" : "25px",
+            height: status === 0 ? "50px" : "25px",
           }}
         >
           <img src={status == 0 ? reportImage : reportImageDot} alt="Report" />
