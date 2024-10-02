@@ -135,7 +135,7 @@ function AssignTaskBox({
         title="Przydziel zgłoszenie"
       >
         <img src={bell} alt="bell" />
-        {reports.size > 1 ? <div id="bellCounter">{reports.size}</div> : ""}
+        {reports.size > 1 ? <div id="bellCounter">{sortedReports.length}</div> : ""}
       </div>
       <div id="assignTaskMenu" className={`${hideBell ? "visible" : ""}`}>
         <div className="navButtons">

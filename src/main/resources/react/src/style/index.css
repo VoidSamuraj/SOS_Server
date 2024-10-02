@@ -20,6 +20,7 @@ body > div {
   padding: 0;
   display: flex;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 #root {
   background-image: url("../images/earth.jpg");
