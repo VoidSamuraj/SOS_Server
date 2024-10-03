@@ -104,15 +104,26 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
           maxWidth={200}
           onCloseClick={() => setInfowindowOpen(false)}
         >
+
           <div style={{ fontWeight: "bold", padding: "8px 0" }}>
-            Zgłoszenie oczekuje od:
+            {status == 0 ? ("Zgłoszenie oczekuje od:"):("Podjęto zgłoszenie")}
           </div>
+                  {status == 0 ? (
+                      <>
           {formatTime(passedTime)}
+          </>
+          ):("")
+      }
           <input
             type="button"
-            value="Wyślij patrol"
+            value={status == 0 ? "Wyślij patrol": "Anuluj interwencję"}
             className="assignReportButton"
-            onClick={() => selectReport(id)}
+            onClick={() => {
+                if(status == 0)
+                selectReport(id)
+                //TODO
+                //else
+                }}
           />
         </InfoWindow>
       )}

@@ -1,29 +1,29 @@
-#patrolsButton {
+#interventionsButton {
   position: absolute;
   z-index: 3;
   color: white;
-  top: 100px;
+  top: 200px;
   background-color: #232b54;
   border-radius: 0 58px 58px 0;
 }
-#patrolsButton > img {
+#interventionsButton > img {
   width: 48px;
   height: 48px;
   margin: 10px 20px 10px 10px;
   transition: drop-shadow 0.2s ease-in-out;
 }
 
-#patrolsButton > img:hover {
+#interventionsButton > img:hover {
   filter: drop-shadow(0 0 25px white);
 }
 
-#patrolsMenu {
+#interventionsMenu {
   position: absolute;
   z-index: 4;
-  top: 100px;
+  top: 200px;
   width: 300px;
-  min-height: 80%;
-  max-height: calc(100% - 100px);
+  min-height: calc(80% - 100px);
+  max-height: calc(100% - 200px);
   background-color: #232b54;
   display: flex;
   flex-direction: column;
@@ -31,44 +31,44 @@
   border-radius: 0px 8px 8px 0;
   transition: left 0.2s ease-in-out;
 }
-.patrolsMenuVisible {
+.interventionsMenuVisible {
   left: 0;
 }
-.patrolsMenuHidden {
+.interventionsMenuHidden {
   left: -100%;
 }
 
-#patrolsClose {
+#interventionsClose {
   width: 100%;
   height: 48px;
   padding: 5px 0;
   transition: background-color 0.2s ease-in-out;
 }
 
-#patrolsMenu > div:first-of-type {
+#interventionsMenu > div:first-of-type {
   display: inline-flex;
   flex-direction: row;
   padding: 0 5px;
   align-items: center;
   justify-content: flex-end;
 }
-#patrolsMenu > div:first-of-type > span {
+#interventionsMenu > div:first-of-type > span {
   position: absolute;
   padding: 0 5px;
   left: 0;
 }
-#patrolsMenu > div:first-of-type > button {
+#interventionsMenu > div:first-of-type > button {
   padding: 8px;
   margin: 5px 5px;
 }
-#patrolsMenu > div:first-of-type > button:first-of-type {
+#interventionsMenu > div:first-of-type > button:first-of-type {
   margin-right: 0;
 }
-#patrolsList {
+#interventionsList {
   display: flex;
   flex-direction: column;
 }
-#patrolsList > div {
+#interventionsList > div {
   display: flex;
   flex-direction: column;
   width: clac(100% - 16px);
@@ -82,16 +82,10 @@
   transition: height 0.3s ease;
 }
 .expandedMenu {
-  height: 180px !important;
+  height: 150px !important;
 }
-#patrolsList input {
-  align-self: center;
-  border-radius: 5px;
-}
-#patrolsList input:hover {
-  filter: brightness(0.8);
-}
-.patrol-item {
+
+.intervention-item {
   display: flex;
   height: 60px;
   min-height: 60px;
@@ -101,17 +95,17 @@
   color: black;
   font-weight: bold;
 }
-#patrolsList > div:not(.expandedMenu):hover {
+#interventionsList > div:not(.expandedMenu):hover {
   filter: brightness(0.8);
 }
 
-#patrolsList > div > p {
+#interventionsList > div > p {
   margin: 6px 0;
 }
-#patrolsMenu button {
+#interventionsMenu button {
   border-radius: 5px;
 }
-#patrolsMenu button.checked {
+#interventionsMenu button.checked {
   background-color: #535770;
   border-color: #535770;
 }

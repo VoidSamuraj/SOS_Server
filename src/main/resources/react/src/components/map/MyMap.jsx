@@ -16,19 +16,22 @@ import MapController from "./MapController.jsx";
  * car markers on the map.
  * @param {Map} props.reports - A Map containing report data used for rendering
  * report markers on the map.
- * @param {string} props.locationJson - A JSON string representing the location
+ * @param {string} props.locationHome - A JSON string representing the location
  * coordinates to navigate the map.
  * @param {function} props.onAssignTask - A callback function to handle task assignment
  * for selected reports.
+ * @param {string} props.navigateTo - A JSON string representing the location
+ * coordinates (latitude and longitude) to navigate to now.
+ * @param {function} props.setNavigateTo - Function to set JSON string representing the location
+ * coordinates (latitude and longitude) to navigate to now.
  *
  * @returns {JSX.Element} The rendered map component.
  */
-function MyMap({ patrols, reports, locationJson, onAssignTask }) {
+function MyMap({ patrols, reports, locationHome, onAssignTask, navigateTo, setNavigateTo}) {
   const [hideBell, setHideBell] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPatrol, setSelectedPatrol] = useState(null);
   const [nrOfMenu, setNrOfMenu] = useState(1);
-  const [selectedIconLocation, setSelectedIconLocation] = useState(null);
 
   const selectReport = (id) => {
     setSelectedReport(id);
@@ -42,15 +45,15 @@ function MyMap({ patrols, reports, locationJson, onAssignTask }) {
   };
   const selectReportInBox = (report, location) => {
     setSelectedReport(report);
-    setSelectedIconLocation(location);
+    setNavigateTo(location);
   };
   const selectPatrolInBox = (patrol, location) => {
     setSelectedPatrol(patrol);
-    setSelectedIconLocation(location);
+    setNavigateTo(location);
   };
   useEffect(() => {
     toggleButton();
-  }, [locationJson]);
+  }, [locationHome]);
 
   return (
     <>
@@ -63,9 +66,9 @@ function MyMap({ patrols, reports, locationJson, onAssignTask }) {
           <CarMarkers cars={patrols} />
           <ReportMarkers reports={reports} selectReport={selectReport} />
           <MapController
-            locationJson={locationJson}
+            locationJson={locationHome}
             refreshFlag={buttonState}
-            panTo={selectedIconLocation}
+            panTo={navigateTo}
           />
         </GoogleMap>
         <img

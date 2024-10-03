@@ -3,9 +3,9 @@ import TopBar from "./TopBar";
 import DropdownMenu from "./DropdownMenu";
 import SettingsMenu from "./SettingsMenu";
 import PatrolsMenu from "./PatrolsMenu";
+import InterventionsMenu from "./InterventionsMenu";
 import MyMap from "./map/MyMap";
 import StatsOverlay from "./StatsOverlay";
-import car from "../icons/car.svg";
 import { useReports, usePatrols } from "./map/MapFunctions";
 import { getAllGuards } from "../script/ApiService.js";
 import SystemWebSocket from "../script/SystemWebSocket.js";
@@ -35,7 +35,7 @@ function Home() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isStatsVisible, setIsStatsVisible] = useState(false);
-  const [isPatrolListVisible, setIsPatrolListVisible] = useState(false);
+  const [navigateTo, setNavigateTo] = useState(false);
 
   const mapSocketRef = useRef(null);
 
@@ -83,9 +83,7 @@ function Home() {
   const toggleStats = () => {
     setIsStatsVisible(!isStatsVisible);
   };
-  const togglePatrolList = () => {
-    setIsPatrolListVisible(!isPatrolListVisible);
-  };
+
 
   return (
     <LoadScript googleMapsApiKey={config.GOOGLE_API_KEY} libraries={libraries}>
@@ -103,19 +101,21 @@ function Home() {
         setLocationJson={setLocationJson}
         canSetMapLoc={true}
       />
-      <div id="patrolsButton" onClick={togglePatrolList} title="Lista patroli">
-        <img src={car} alt="patrols" />
-      </div>
+
       <PatrolsMenu
-        isVisible={isPatrolListVisible}
-        onPatrolsToggle={togglePatrolList}
+        patrols={patrols}
+        setNavigateTo={setNavigateTo}
+      />
+      <InterventionsMenu
         patrols={patrols}
       />
       <MyMap
         patrols={patrols}
         reports={reports}
-        locationJson={locationJson}
+        locationHome={locationJson}
         onAssignTask={assignTask}
+        navigateTo={navigateTo}
+        setNavigateTo={setNavigateTo}
       />
       <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} locationJson={locationJson} />
     </LoadScript>
