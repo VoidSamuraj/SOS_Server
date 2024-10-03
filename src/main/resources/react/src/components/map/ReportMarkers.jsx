@@ -110,7 +110,7 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
           {formatTime(passedTime)}
           <input
             type="button"
-            value="Przydziel zgłoszenie"
+            value="Wyślij patrol"
             className="assignReportButton"
             onClick={() => selectReport(id)}
           />

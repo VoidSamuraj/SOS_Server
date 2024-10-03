@@ -1,7 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  useMap,
-} from "@vis.gl/react-google-maps";
+import { useMap } from "@vis.gl/react-google-maps";
 
 /**
  * MapController component manages the map's center location based on
@@ -10,18 +8,20 @@ import {
  * refreshFlag changes.
  *
  * @param {string} props.locationJson - A JSON string representing the location
- * coordinates (latitude and longitude) to navigate to.
+ * coordinates (latitude and longitude) to navigate to while homing.
  * @param {boolean} props.refreshFlag - A flag that triggers the map to refresh
  * its position when changed.
+ * @param {string} props.panTo - A JSON string representing the location
+ * coordinates (latitude and longitude) to navigate to now.
  *
  * @returns {null} The component does not render anything.
  */
 
-function MapController({ locationJson, refreshFlag }) {
+function MapController({ locationJson, refreshFlag, panTo }) {
   const map = useMap();
 
   const navigateHome = () => {
-    if (map) {
+    if (map && locationJson) {
       const savedLocation = localStorage.getItem("HomeLocation");
       let locationData;
       try {
@@ -41,12 +41,20 @@ function MapController({ locationJson, refreshFlag }) {
       };
 
       map.panTo(defaultCenter);
+      if (locationData) map.setZoom(12);
     }
   };
 
   useEffect(() => {
     navigateHome();
   }, [locationJson, map, refreshFlag]);
+
+  useEffect(() => {
+    if (map && panTo) {
+      map.panTo(panTo);
+      map.setZoom(12);
+    }
+  }, [panTo]);
 
   return null;
 }

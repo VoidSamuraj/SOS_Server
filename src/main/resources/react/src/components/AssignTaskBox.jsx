@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import bell from "../icons/bell.svg";
 import { usePatrols } from "./map/MapFunctions";
 
-
-
 /**
  * AssignTaskBox component allows users to assign tasks to patrols based on reports.
  *
@@ -17,7 +15,11 @@ import { usePatrols } from "./map/MapFunctions";
  * @param {boolean} props.hideBell - Indicates if the notification bell is hidden.
  * @param {function} props.setHideBell - Function to toggle the visibility of the notification bell.
  * @param {string|null} props.selectedReport - Currently selected report for task assignment.
- * @param {function} props.setSelectedReport - Function to set the selected report.
+ * @param {function(number, Object):void} props.setSelectedReport - Function that accepts
+ * an `id` (number) and a `location` object, and sets the selected report.
+ * @param {string|null} props.selectedPatrol - Currently selected patrol for task assignment.
+ * @param {function(number, Object):void} props.setSelectedPatrol - Function that accepts
+ * an `id` (number) and a `location` object, and sets the selected patrol.
  * @param {number} props.nrOfMenu - Current menu step in the assignment process.
  * @param {function} props.setNrOfMenu - Function to set the current menu step.
  *
@@ -31,15 +33,16 @@ function AssignTaskBox({
   setHideBell,
   selectedReport,
   setSelectedReport,
+  selectedPatrol,
+  setSelectedPatrol,
   nrOfMenu,
   setNrOfMenu,
 }) {
-  const [selectedPatrol, setSelectedPatrol] = useState(null);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [sortedPatrols, setSortedPatrols] = useState([]);
   const [sortedReports, setSortedReports] = useState([]);
 
-  const { statusToCode } = usePatrols();
+  const { statusToColor } = usePatrols();
 
   function onBack() {
     if (nrOfMenu >= 2) setNrOfMenu(nrOfMenu - 1);
@@ -54,8 +57,8 @@ function AssignTaskBox({
       setHideBell(false);
       setNrOfMenu(1);
       onAssignTask(selectedPatrol, selectedReport);
-      setSelectedPatrol(null);
-      setSelectedReport(null);
+      setSelectedPatrol(null, null);
+      setSelectedReport(null, null);
     }
   }
   const updateButtonState = () => {
@@ -135,7 +138,11 @@ function AssignTaskBox({
         title="Przydziel zgłoszenie"
       >
         <img src={bell} alt="bell" />
-        {reports.size > 1 ? <div id="bellCounter">{sortedReports.length}</div> : ""}
+        {reports.size > 1 ? (
+          <div id="bellCounter">{sortedReports.length}</div>
+        ) : (
+          ""
+        )}
       </div>
       <div id="assignTaskMenu" className={`${hideBell ? "visible" : ""}`}>
         <div className="navButtons">
@@ -160,7 +167,7 @@ function AssignTaskBox({
             sortedReports.map(([id, { position, date, status }]) => (
               <div
                 key={id}
-                onClick={() => setSelectedReport(id)}
+                onClick={() =>setSelectedReport(id, position)}
                 className={`${id == selectedReport ? "selected" : ""}`}
               >
                 {id}
@@ -170,9 +177,11 @@ function AssignTaskBox({
             sortedPatrols.map(([id, { position, status }]) => (
               <div
                 key={id}
-                onClick={() => setSelectedPatrol(id)}
+                onClick={() => {
+                  setSelectedPatrol(id, position);
+                }}
                 className={`${id == selectedPatrol ? "selected" : ""}`}
-                style={{ backgroundColor: statusToCode(status) }}
+                style={{ backgroundColor: statusToColor(status) }}
               >
                 {id}
               </div>

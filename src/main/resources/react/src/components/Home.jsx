@@ -89,7 +89,7 @@ function Home() {
 
   return (
     <LoadScript googleMapsApiKey={config.GOOGLE_API_KEY} libraries={libraries}>
-      <TopBar onDropdownToggle={toggleDropdown} guards={patrols} />
+      <TopBar onDropdownToggle={toggleDropdown} guards={patrols}/>
       <DropdownMenu
         isVisible={isDropdownVisible}
         onSettingsToggle={toggleSettings}

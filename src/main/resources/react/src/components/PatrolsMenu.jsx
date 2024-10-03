@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import leftarrow from "../icons/left-arrow.svg";
 import { usePatrols } from "./map/MapFunctions";
 
-
 /**
  * PatrolsMenu component displays a list of patrols with sorting options.
  *
@@ -21,7 +20,7 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
 
   const [expandedItem, setExpandedItem] = useState(null);
 
-  const { statusToCode } = usePatrols();
+  const { statusToColor } = usePatrols();
 
   useEffect(() => {
     if (patrols) {
@@ -70,10 +69,8 @@ function PatrolsMenu({ isVisible, onPatrolsToggle, patrols }) {
               ([id, { position, status, name, surname, phone }]) => (
                 <div
                   className={expandedItem == id ? "expandedMenu" : ""}
-                  style={{ backgroundColor: statusToCode(status) }}
-                  onClick={(event) =>
-                      setExpandedItem(id)
-                  }
+                  style={{ backgroundColor: statusToColor(status) }}
+                  onClick={(event) => setExpandedItem(id)}
                 >
                   <div key={id} className="patrol-item">
                     {id}

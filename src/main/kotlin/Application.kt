@@ -95,7 +95,7 @@ fun Application.module() {
         fun randomLocationInPoland(): String {
             val lat = Random.nextDouble(49.0, 54.83)
             val lng = Random.nextDouble(14.12, 24.15)
-            return """{"lat": $lat, "lng": $lng}"""
+            return "{lat: $lat, lng: $lng}"
         }
 
 

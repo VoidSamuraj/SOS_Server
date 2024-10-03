@@ -1,16 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import config from "../../config";
-import {
-  APIProvider,
-  Map as GoogleMap,
-  useMap,
-} from "@vis.gl/react-google-maps";
+import { APIProvider, Map as GoogleMap } from "@vis.gl/react-google-maps";
 import CarMarkers from "./CarMarkers.jsx";
 import ReportMarkers from "./ReportMarkers.jsx";
 import homeImg from "../../icons/home.svg";
 import AssignTaskBox from "../AssignTaskBox";
-import MapController from "./MapController.jsx"
-
+import MapController from "./MapController.jsx";
 
 /**
  * MyMap component renders a Google Map with car markers and report markers.
@@ -31,7 +26,9 @@ import MapController from "./MapController.jsx"
 function MyMap({ patrols, reports, locationJson, onAssignTask }) {
   const [hideBell, setHideBell] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [selectedPatrol, setSelectedPatrol] = useState(null);
   const [nrOfMenu, setNrOfMenu] = useState(1);
+  const [selectedIconLocation, setSelectedIconLocation] = useState(null);
 
   const selectReport = (id) => {
     setSelectedReport(id);
@@ -43,7 +40,14 @@ function MyMap({ patrols, reports, locationJson, onAssignTask }) {
   const toggleButton = () => {
     setButtonState(!buttonState);
   };
-
+  const selectReportInBox = (report, location) => {
+    setSelectedReport(report);
+    setSelectedIconLocation(location);
+  };
+  const selectPatrolInBox = (patrol, location) => {
+    setSelectedPatrol(patrol);
+    setSelectedIconLocation(location);
+  };
   useEffect(() => {
     toggleButton();
   }, [locationJson]);
@@ -61,9 +65,16 @@ function MyMap({ patrols, reports, locationJson, onAssignTask }) {
           <MapController
             locationJson={locationJson}
             refreshFlag={buttonState}
+            panTo={selectedIconLocation}
           />
         </GoogleMap>
-        <img id="homeButton" onClick={toggleButton} src={homeImg} alt="home" title="Pokaż domyślną lokalizację"/>
+        <img
+          id="homeButton"
+          onClick={toggleButton}
+          src={homeImg}
+          alt="home"
+          title="Pokaż domyślną lokalizację"
+        />
       </APIProvider>
       <AssignTaskBox
         patrols={patrols}
@@ -72,7 +83,9 @@ function MyMap({ patrols, reports, locationJson, onAssignTask }) {
         hideBell={hideBell}
         setHideBell={setHideBell}
         selectedReport={selectedReport}
-        setSelectedReport={setSelectedReport}
+        setSelectedReport={selectReportInBox}
+        selectedPatrol={selectedPatrol}
+        setSelectedPatrol={selectPatrolInBox}
         nrOfMenu={nrOfMenu}
         setNrOfMenu={setNrOfMenu}
       />

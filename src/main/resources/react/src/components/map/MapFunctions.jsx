@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 export const usePatrols = () => {
   const [patrols, setPatrols] = useState(new Map());
-  const statusToCode = (status) => {
+  const statusToColor = (status) => {
     switch (status) {
       case 0:
         return "#00ff00";
@@ -12,13 +12,23 @@ export const usePatrols = () => {
         return "#cccccc";
     }
   };
+  const statusToCarColor = (status) => {
+    switch (status) {
+      case 0:
+        return "#0a5c0a";
+      case 2:
+        return "#ff0000";
+      default:
+        return "#36454f";
+    }
+  };
   const addPatrol = (id, position, status, name, surname, phone) => {
     setPatrols((prevPatrols) =>
       new Map(prevPatrols).set(id, { position, status, name, surname, phone })
     );
   };
 
-    // TODO check if work properly with position format, may require process newPosition like in syncReports
+  // TODO check if work properly with position format, may require process newPosition like in syncReports
   const editPatrol = (id, newStatus = null, newPosition = null) => {
     setPatrols((prevPatrols) => {
       const updatedPatrols = new Map(prevPatrols);
@@ -40,25 +50,30 @@ export const usePatrols = () => {
     });
   };
 
-
-const syncPatrols = (dataArray) => {
+  const syncPatrols = (dataArray) => {
     setPatrols((prevPatrols) => {
       const updatedPatrols = new Map(prevPatrols);
       dataArray.forEach((patrol) => {
-      updatedPatrols.set(patrol.id, {
-        position: patrol.location !== null ? patrol.location : "",
-        status: patrol.statusCode !== null ? patrol.statusCode : 1,
-        name: patrol.name,
-        surname: patrol.surname,
-        phone: patrol.phone,
-        account_deleted: patrol.account_deleted,
-      });
+        let location = "";
+        try {
+          location =
+            JSON.parse(patrol.location.replace(/(\w+):/g, '"$1":')) || "";
+        } catch (error) {
+          console.error("Sync Reports, JSON Location parsing error:", error);
+        }
+        updatedPatrols.set(patrol.id, {
+          position: location,
+          status: patrol.statusCode !== null ? patrol.statusCode : 1,
+          name: patrol.name,
+          surname: patrol.surname,
+          phone: patrol.phone,
+          account_deleted: patrol.account_deleted,
+        });
       });
 
       return updatedPatrols;
     });
   };
-
 
   const removePatrol = (id) => {
     const newPatrols = new Map(patrols);
@@ -84,7 +99,8 @@ const syncPatrols = (dataArray) => {
 
   return {
     patrols,
-    statusToCode,
+    statusToColor,
+    statusToCarColor,
     setPatrols,
     addPatrol,
     editPatrol,
@@ -123,14 +139,21 @@ export const useReports = () => {
     });
   };
 
-const syncReports = (dataArray) => {
+  const syncReports = (dataArray) => {
     setReports((prevReports) => {
       const updatedReports = new Map(prevReports);
       // Iterate over the new reports and update or add them
       dataArray.forEach((report) => {
+        let location = "";
+        try {
+          location =
+            JSON.parse(report.location.replace(/(\w+):/g, '"$1":')) || "";
+        } catch (error) {
+          console.error("Sync Reports, JSON Location parsing error:", error);
+        }
 
         updatedReports.set(report.id, {
-          position: JSON.parse(report.location.replace(/(\w+):/g, '"$1":')) || "",
+          position: location,
           date: report.date || new Date().toISOString(),
           status: report.statusCode || 0,
         });
@@ -146,5 +169,12 @@ const syncReports = (dataArray) => {
     setReports(newReports);
   };
 
-  return { reports, setReports, addReport, editReport, syncReports, removeReport };
+  return {
+    reports,
+    setReports,
+    addReport,
+    editReport,
+    syncReports,
+    removeReport,
+  };
 };

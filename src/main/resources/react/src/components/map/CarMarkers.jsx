@@ -17,33 +17,24 @@ import { fetchStreetName } from "../../script/ApiService.js";
  * @returns {JSX.Element} The rendered car markers.
  */
 const CarMarkers = ({ cars }) => {
-  const { statusToCode } = usePatrols();
+  const { statusToCarColor } = usePatrols();
 
   // Memoize markers to avoid unnecessary re-renders
   return useMemo(
     () => (
       <>
-        {Array.from(cars.entries())
-          .filter(([id, { position }]) => {
-            if (!position || position === "unknown") return false;
-            const parsedPosition = JSON.parse(position);
-            return (
-              parsedPosition.lat !== undefined &&
-              parsedPosition.lng !== undefined &&
-              parsedPosition.lat !== "unknown" &&
-              parsedPosition.lng !== "unknown"
-            );
-          })
-          .map(([id, { position, status, name, surname, phone }]) => (
+        {Array.from(cars.entries()).map(
+          ([id, { position, status, name, surname, phone }]) => (
             <CarIcon
               id={id}
-              position={JSON.parse(position)}
-              color={statusToCode(status)}
+              position={position}
+              color={statusToCarColor(status)}
               name={name}
               surname={surname}
               phone={phone}
             />
-          ))}
+          )
+        )}
       </>
     ),
     [cars]
