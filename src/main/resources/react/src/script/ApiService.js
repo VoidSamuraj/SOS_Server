@@ -198,7 +198,7 @@ export const register = async (
     formData.append("surname", surname);
     formData.append("roleCode", roleCode);
 
-    const response = await fetch("/employee/register", {
+    const response = await fetch("/auth/employee/register", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -233,7 +233,7 @@ export const login = async (login, password, onSuccess, onFailure) => {
   formData.append("login", login);
   formData.append("password", password);
 
-  fetch("/employee/login", {
+  fetch("/auth/employee/login", {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -271,7 +271,7 @@ export const remindPassword = async (email, onSuccess, onFailure) => {
   const formData = new URLSearchParams();
   formData.append("email", email);
 
-  fetch("http://localhost:8080/employee/remind-password", {
+  fetch("/auth/employee/remind-password", {
     method: "POST",
     credentials: "include",
     body: formData,
@@ -314,7 +314,7 @@ export const resetPassword = async (token, password, onSuccess, onFailure) => {
 
   try {
     const response = await fetch(
-      "http://localhost:8080/employee/reset-password",
+      "/auth/employee/reset-password",
       {
         method: "POST",
         credentials: "include",
@@ -336,7 +336,7 @@ export const resetPassword = async (token, password, onSuccess, onFailure) => {
  * Logs out the currently logged-in employee and redirects to /login.
  */
 export const logout = () => {
-  fetch("/employee/logout", {
+  fetch("/auth/employee/logout", {
     method: "POST",
     credentials: "include",
   }).then((response) => {

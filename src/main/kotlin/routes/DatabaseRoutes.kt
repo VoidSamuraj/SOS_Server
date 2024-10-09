@@ -2,6 +2,7 @@ package routes
 
 import dao.DaoMethods
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
@@ -56,6 +57,15 @@ fun Route.databaseRoutes() {
 
     //TODO check if authenticated
     route("/client"){
+        intercept(ApplicationCallPipeline.Plugins) {
+            checkUserPermission(onSuccess = {
+                proceed()
+            }, onFailure = {
+                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                finish()
+            })
+        }
+
         post("/add"){
             try {
                 val formParameters = call.receiveParameters()
@@ -97,6 +107,7 @@ fun Route.databaseRoutes() {
                     HttpStatusCode.InternalServerError, "Failed to add entry to the database. ${e.message}"
                 )
             }
+
         }
         patch("/edit"){
             try{
@@ -266,6 +277,15 @@ fun Route.databaseRoutes() {
 
 
     route("/intervention"){
+        intercept(ApplicationCallPipeline.Plugins) {
+            checkUserPermission(onSuccess = {
+                proceed()
+            }, onFailure = {
+                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                finish()
+            })
+        }
+
         post("/add"){
             try{
                 val formParameters = call.receiveParameters()
@@ -336,6 +356,14 @@ fun Route.databaseRoutes() {
 
 
     route("/report"){
+        intercept(ApplicationCallPipeline.Plugins) {
+            checkUserPermission(onSuccess = {
+                proceed()
+            }, onFailure = {
+                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                finish()
+            })
+        }
         post("/add"){
             try{
                 val formParameters = call.receiveParameters()
@@ -485,6 +513,15 @@ fun Route.databaseRoutes() {
 
 
     route("/guard"){
+        intercept(ApplicationCallPipeline.Plugins) {
+            checkUserPermission(onSuccess = {
+                proceed()
+            }, onFailure = {
+                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                finish()
+            })
+        }
+
         post("/add"){
             try{
                 val formParameters = call.receiveParameters()
@@ -686,6 +723,15 @@ fun Route.databaseRoutes() {
 
     }
     route("/employee"){
+        intercept(ApplicationCallPipeline.Plugins) {
+            checkUserPermission(onSuccess = {
+                proceed()
+            }, onFailure = {
+                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                finish()
+            })
+        }
+
         post("/add"){
             try {
                 val formParameters = call.receiveParameters()
