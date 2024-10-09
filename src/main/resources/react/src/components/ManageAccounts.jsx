@@ -12,6 +12,7 @@ import { getClients, getEmployees, getGuards } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
 import SystemAlert from "./SystemAlert";
 import SystemWebSocket from "../script/SystemWebSocket";
+import config from "../config";
 
 /**
  * ManageAccounts component manages the display and editing of employee, guard, and customer accounts.
@@ -42,7 +43,7 @@ const ManageAccounts = ({ editedRecord }) => {
   const administrationSocketRef = useRef(null);
 
   useEffect(() => {
-    administrationSocketRef.current = new SystemWebSocket("ws://localhost:8080/adminPanelSocket",updatePaginatedData);
+    administrationSocketRef.current = new SystemWebSocket("wss://"+config.ADDRESS+":"+config.PORT+"/adminPanelSocket",updatePaginatedData);
 
     const messageHandler = (data) => {
       if (Array.isArray(data.data)) {

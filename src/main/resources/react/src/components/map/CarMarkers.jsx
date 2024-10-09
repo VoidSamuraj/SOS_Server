@@ -5,7 +5,7 @@ import {
   useAdvancedMarkerRef,
 } from "@vis.gl/react-google-maps";
 import { usePatrols } from "./MapFunctions";
-import config from "../../config";
+import keys from "../../keys";
 import { fetchStreetName } from "../../script/ApiService.js";
 
 /**
@@ -63,7 +63,7 @@ const CarIcon = ({ id, position, color, name, surname, phone }) => {
     fetchStreetName(
       position.lat,
       position.lng,
-      config.GOOGLE_API_KEY,
+      keys.GOOGLE_API_KEY,
       setStreetName,
       streetName
     );

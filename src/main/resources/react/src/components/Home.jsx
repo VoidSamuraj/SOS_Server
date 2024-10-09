@@ -10,6 +10,7 @@ import { useReports, usePatrols } from "./map/MapFunctions";
 import { getAllGuards } from "../script/ApiService.js";
 import SystemWebSocket from "../script/SystemWebSocket.js";
 import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import keys from "../keys";
 import config from "../config";
 
 const libraries = ["places"];
@@ -44,7 +45,7 @@ function Home() {
     document.body.classList.add("indexStyle");
 
     mapSocketRef.current = new SystemWebSocket(
-      "ws://localhost:8080/mapSocket",
+      "wss://"+config.ADDRESS+":"+config.PORT+"/mapSocket",
       () => {}
     );
 
@@ -86,7 +87,7 @@ function Home() {
 
 
   return (
-    <LoadScript googleMapsApiKey={config.GOOGLE_API_KEY} libraries={libraries}>
+    <LoadScript googleMapsApiKey={keys.GOOGLE_API_KEY} libraries={libraries}>
       <TopBar onDropdownToggle={toggleDropdown} guards={patrols}/>
       <DropdownMenu
         isVisible={isDropdownVisible}

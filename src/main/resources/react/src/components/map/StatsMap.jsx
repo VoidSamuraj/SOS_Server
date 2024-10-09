@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import config from "../../config";
+import keys from "../../keys";
 import {
   APIProvider,
   Map as GoogleMap,
@@ -27,11 +27,11 @@ function StatsMap({ locationJson, radius, opacity }) {
   }, []);
 
   return (
-    <APIProvider apiKey={config.GOOGLE_API_KEY}>
+    <APIProvider apiKey={keys.GOOGLE_API_KEY}>
       <GoogleMap
         defaultZoom={7.5}
         defaultCenter={{ lat: 51.9189046, lng: 19.1343786 }}
-        mapId={config.STATS_MAP_ID}
+        mapId={keys.STATS_MAP_ID}
         gestureHandling={"greedy"}
         disableDefaultUI={true}
       >

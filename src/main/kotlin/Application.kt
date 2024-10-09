@@ -126,7 +126,7 @@ fun Application.module() {
     configureSerialization()
     configureSession()
     configureSockets()
-    configureHTTP()
+    configureHTTPS()
     configureMonitoring()
     configureRouting()
 
