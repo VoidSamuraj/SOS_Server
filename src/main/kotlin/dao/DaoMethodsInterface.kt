@@ -24,6 +24,8 @@ interface DaoMethodsInterface {
      *
      * @param login The customer's login.
      * @param password The customer's password.
+     * @param name The customer's name.
+     * @param surname The customer's surname.
      * @param phone The customer's phone number.
      * @param pesel The customer's national identification number (PESEL).
      * @param email The customer's email address.
@@ -34,7 +36,7 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Customer?: The newly added Customer object (if successful), or null if unsuccessful.
      */
-    suspend fun addCustomer(login: String, password: String, phone: String, pesel: String, email: String, protectionExpirationDate: LocalDateTime?=null): Triple<Boolean, String, Customer?>
+    suspend fun addCustomer(login: String, password: String, name: String, surname: String, phone: String, pesel: String, email: String, protectionExpirationDate: LocalDateTime?=null): Triple<Boolean, String, Customer?>
 
     /**
      * Updates customer details, including login and password. Verifies if provided password is equal to the password associated with id in database.
@@ -43,6 +45,8 @@ interface DaoMethodsInterface {
      * @param login The customer's new login (optional).
      * @param password The customer's current password (mandatory).
      * @param newPassword The customer's new password (optional).
+     * @param name The customer's new name (optional).
+     * @param surname The customer's new surname (optional).
      * @param phone The customer's new phone number (optional).
      * @param pesel The customer's new PESEL (optional).
      * @param email The customer's new email (optional).
@@ -52,12 +56,14 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the customer was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
+    suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null, surname: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
 
     /**
      * Updates basic customer details without modifying login or password. Verifies if id exists in database.
      *
      * @param id The ID of the customer to update.
+     * @param name The customer's new name (optional).
+     * @param surname The customer's new surname (optional).
      * @param phone The customer's new phone number (optional).
      * @param pesel The customer's new PESEL (optional).
      * @param email The customer's new email (optional).
@@ -68,7 +74,7 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the customer was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editCustomer(id:Int, phone: String?=null, pesel: String?=null, email: String?=null, isActive:Boolean?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
+    suspend fun editCustomer(id:Int, name: String?=null, surname: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, isActive:Boolean?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
 
     /**
      * Deletes (deactivates) a customer by their ID.
@@ -108,6 +114,15 @@ interface DaoMethodsInterface {
      *         - Customer?: The retrieved Customer object, or null if not found.
      */
     suspend fun getCustomer(login:String, password: String):Pair<String,Customer?>
+
+    /**
+     * Fetches an customer by their email address.
+     *
+     * @param email The customer's email address.
+     *
+     * @return The Customer object if found, or null if not found.
+     */
+    suspend fun getCustomer(email:String):Customer?
 
     /**
      * Retrieves a paginated list of customers with optional filtering and sorting.
@@ -302,13 +317,14 @@ interface DaoMethodsInterface {
      * @param name The guard's first name.
      * @param surname The guard's surname.
      * @param phone The guard's phone number.
+     * @param email Email address of the guard.
      *
      * @return A Triple containing:
      *         - Boolean: Success status (true if the guard was successfully added).
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Guard?: The newly added Guard object (if successful), or null if unsuccessful.
      */
-    suspend fun addGuard(login: String, password: String, name:String, surname:String, phone: String): Triple<Boolean, String,Guard?>
+    suspend fun addGuard(login: String, password: String, name:String, surname:String, phone: String, email: String): Triple<Boolean, String,Guard?>
 
     /**
      * Updates guard details, including login and password. Verifies if provided password is equal to the password associated with id in database.
@@ -320,12 +336,13 @@ interface DaoMethodsInterface {
      * @param name The guard's first name (optional).
      * @param surname The guard's surname (optional).
      * @param phone The guard's phone number (optional).
+     * @param email Email address of the guard (optional).
      *
      * @return A Pair containing:
      *         - Boolean: Success status (true if the guard was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editGuard(id:Int, login: String?=null, password: String, newPassword: String?=null, name:String?=null, surname:String?=null, phone: String?=null): Pair<Boolean, String>
+    suspend fun editGuard(id:Int, login: String?=null, password: String, newPassword: String?=null, name:String?=null, surname:String?=null, phone: String?=null, email: String?=null): Pair<Boolean, String>
 
     /**
      * Updates basic guard details without modifying login or password. Verifies if id exists in database.
@@ -334,13 +351,27 @@ interface DaoMethodsInterface {
      * @param name The guard's first name (optional).
      * @param surname The guard's surname (optional).
      * @param phone The guard's phone number (optional).
+     * @param email Email address of the guard (optional).
      * @param isActive The active status of the guard (optional).
      *
      * @return A Pair containing:
      *         - Boolean: Success status (true if the guard was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editGuard(id:Int, name:String?=null, surname:String?=null, phone: String?=null, isActive:Boolean?=null): Pair<Boolean, String>
+    suspend fun editGuard(id:Int, name:String?=null, surname:String?=null, phone: String?=null, email: String?=null, isActive:Boolean?=null): Pair<Boolean, String>
+
+
+    /**
+     * Changes the password of an guard.
+     *
+     * @param id The ID of the guard whose password will be changed.
+     * @param password The new password to assign.
+     *
+     * @return A Pair containing:
+     *         - Boolean: Success status (true if the guard's password was successfully changed).
+     *         - String: A message providing additional context (e.g., error or success message).
+     */
+    suspend fun changeGuardPassword(id:Int, password:String): Pair<Boolean, String>
 
     /**
      * Deletes (deactivates) a guard by their ID.
@@ -368,6 +399,15 @@ interface DaoMethodsInterface {
      * @return The Guard object if found, or null if not found.
      */
     suspend fun getGuard(id:Int):Guard?
+
+    /**
+     * Fetches an guard by their email address.
+     *
+     * @param email The guard's email address.
+     *
+     * @return The Guard object if found, or null if not found.
+     */
+    suspend fun getGuard(email:String):Guard?
 
     /**
      * Fetches a guard by their login and password.

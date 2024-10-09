@@ -39,12 +39,36 @@ fun Application.configureWorkerAuthentication() {
             validate { credential ->
                 val login=credential.payload.getClaim("login").asString()
                 val password=credential.payload.getClaim("password").asString()
-                val employee= DaoMethods.getEmployee(login,password)
-                if (login.isNotEmpty() && password.isNotEmpty() && employee.second!=null) {
-                    JWTPrincipal(credential.payload)
-                } else {
-                    null
+                val audience = credential.payload.audience?.firstOrNull()
+                when(audience){
+                    "employee"->{
+                        val employee= DaoMethods.getEmployee(login,password)
+                        if (login.isNotEmpty() && password.isNotEmpty() && employee.second != null) {
+                            JWTPrincipal(credential.payload)
+                        } else {
+                            null
+                        }
+                    }
+                    "customer"->{
+                        val employee= DaoMethods.getCustomer(login,password)
+                        if (login.isNotEmpty() && password.isNotEmpty() && employee.second != null) {
+                            JWTPrincipal(credential.payload)
+                        } else {
+                            null
+                        }
+                    }
+                    "guard"->{
+                        val employee= DaoMethods.getGuard(login,password)
+                        if (login.isNotEmpty() && password.isNotEmpty() && employee.second != null) {
+                            JWTPrincipal(credential.payload)
+                        } else {
+                            null
+                        }
+                    }
+                    else -> null
                 }
+
+
             }
             challenge { defaultScheme, realm ->
                 call.respond(HttpStatusCode.Unauthorized, "Token is not valid or has expired")

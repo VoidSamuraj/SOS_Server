@@ -35,7 +35,7 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     DatabaseFactory.init("jdbc:h2:file:./build/db", "org.h2.Driver", "root", "password")
-
+    //DatabaseFactory.init("jdbc:mariadb://localhost:3306/mydatabase", "org.mariadb.jdbc.Driver", "root", "password")
     CoroutineScope(Dispatchers.IO).launch {
         //TEST
         if(DaoMethods.getEmployees(1, 10).isEmpty()) {
@@ -59,15 +59,15 @@ fun Application.module() {
             )
         }
         if(DaoMethods.getGuards(1, 10).isEmpty()) {
-            DaoMethods.addGuard("JAN", "qwerty", "Jan", "Pawel", "2221")
-            DaoMethods.addGuard("JANn", "12we", "Jana", "Pawela", "222137")
-            DaoMethods.addGuard("Miroslaw", "qwerty", "Miroslaw", "Zelent", "221421")
+            DaoMethods.addGuard("JAN", "qwerty", "Jan", "Pawel", "2221", "jan1@wp.pl")
+            DaoMethods.addGuard("JANn", "12we", "Jana", "Pawela", "222137", "john2@wp.pl")
+            DaoMethods.addGuard("Miroslaw", "qwerty", "Miroslaw", "Zelent", "221421", "miro@wp.pl")
         }
         if(DaoMethods.getCustomers(1, 10).isEmpty()) {
-            DaoMethods.addCustomer("Olorin","qwerty","1234522", "2137", "lll@ll.pl")
-            DaoMethods.addCustomer("Olorin1","qwerty","12345222", "21372", "lll@lll.pl")
-            DaoMethods.addCustomer("Andrzej","qwerty","15342", "21345672", "andr@lll.pl")
-            DaoMethods.addCustomer("Jan","qwerty","13232", "21556372", "jan@lll.pl")
+            DaoMethods.addCustomer("Olorin","qwerty", "Olorin", "MySurname", "1234522", "2137", "lll@ll.pl")
+            DaoMethods.addCustomer("Olorin1","qwerty", "Olorin1", "MySurname1","12345222", "21372", "lll@lll.pl")
+            DaoMethods.addCustomer("Andrzej","qwerty", "Andrzej", "Andrzej's Surname","15342", "21345672", "andr@lll.pl")
+            DaoMethods.addCustomer("Jan","qwerty", "Jan", "Nowak", "13232", "21556372", "jan@lll.pl")
         }
 
         if(DaoMethods.getReports(1, 10).isEmpty()) {

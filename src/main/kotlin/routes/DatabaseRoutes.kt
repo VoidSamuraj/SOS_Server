@@ -13,6 +13,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import kotlinx.datetime.LocalDateTime
 
+// Maps used for sort selection
 val GuardField = mapOf(
     "id" to Guards.id ,
     "name" to Guards.name,
@@ -60,18 +61,24 @@ fun Route.databaseRoutes() {
                 val formParameters = call.receiveParameters()
                 val login = formParameters["login"]
                 val password = formParameters["password"]
+                val name = formParameters["name"]
+                val surname = formParameters["surname"]
                 val phone = formParameters["phone"]
                 val pesel = formParameters["pesel"]
                 val email = formParameters["email"]
                 val protectionExpirationDate = formParameters["protection_expiration_date"]
                 val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
-                if (login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || pesel.isNullOrEmpty() || email.isNullOrEmpty())
+                if (login.isNullOrEmpty() || password.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || phone.isNullOrEmpty() || pesel.isNullOrEmpty() || email.isNullOrEmpty()) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@post
+                }
 
                 val ret = DaoMethods.addCustomer(
                     login.toString(),
                     password.toString(),
+                    name.toString(),
+                    surname.toString(),
                     phone.toString(),
                     pesel.toString(),
                     email.toString(),
@@ -98,16 +105,19 @@ fun Route.databaseRoutes() {
                 val login = formParameters["login"]
                 val password = formParameters["password"]
                 val newPassword = formParameters["newPassword"]
+                val name = formParameters["name"]
+                val surname = formParameters["surname"]
                 val phone = formParameters["phone"]
                 val pesel = formParameters["pesel"]
                 val email = formParameters["email"]
                 val protectionExpirationDate = formParameters["protection_expiration_date"]
                 val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
-                if(id==null || password.isNullOrEmpty())
+                if(id==null || password.isNullOrEmpty()) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-
-                val ret = DaoMethods.editCustomer(id!!,login, password.toString(), newPassword, phone, pesel, email, protectionExpirationDateTime)
+                    return@patch
+                }
+                val ret = DaoMethods.editCustomer(id,login, password.toString(), newPassword, name, surname, phone, pesel, email, protectionExpirationDateTime)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The client has been edited.")
                 }else{
@@ -125,6 +135,8 @@ fun Route.databaseRoutes() {
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
+                val name = formParameters["name"]
+                val surname = formParameters["surname"]
                 val phone = formParameters["phone"]
                 val pesel = formParameters["pesel"]
                 val email = formParameters["email"]
@@ -132,10 +144,12 @@ fun Route.databaseRoutes() {
                 val protectionExpirationDate = formParameters["protection_expiration_date"]
                 val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val ret = DaoMethods.editCustomer(id!!, phone, pesel, email, isActive, protectionExpirationDateTime)
+                val ret = DaoMethods.editCustomer(id, name, surname, phone, pesel, email, isActive, protectionExpirationDateTime)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The client has been edited.")
                 }else{
@@ -150,10 +164,12 @@ fun Route.databaseRoutes() {
         get("/getById"){
             try{
                 val id = call.request.queryParameters["id"]?.toIntOrNull()
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@get
+                }
 
-                val customer = DaoMethods.getCustomer(id!!)
+                val customer = DaoMethods.getCustomer(id)
                 if(customer!=null){
                     call.respond(HttpStatusCode.OK,customer)
                 }else{
@@ -170,8 +186,10 @@ fun Route.databaseRoutes() {
                 val login = call.request.queryParameters["login"]
                 val password = call.request.queryParameters["password"]
 
-                if(login.isNullOrEmpty() || password.isNullOrEmpty())
+                if(login.isNullOrEmpty() || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@get
+                }
 
                 val ret = DaoMethods.getCustomer(login.toString(), password.toString())
                 if(ret.second != null){
@@ -207,10 +225,12 @@ fun Route.databaseRoutes() {
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val restored = DaoMethods.restoreCustomer(id!!)
+                val restored = DaoMethods.restoreCustomer(id)
                 if(restored)
                     call.respond(HttpStatusCode.OK,"The client has been restored.")
                 else
@@ -225,10 +245,12 @@ fun Route.databaseRoutes() {
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@delete
+                }
 
-                val deleted = DaoMethods.deleteCustomer(id!!)
+                val deleted = DaoMethods.deleteCustomer(id)
                 if(deleted)
                     call.respond(HttpStatusCode.OK,"The client has been deleted.")
                 else
@@ -253,10 +275,14 @@ fun Route.databaseRoutes() {
                 val startTime = formParameters["start_time"]
                 val endTime = formParameters["end_time"]
                 val status = formParameters["id"]?.toIntOrNull()
-                if(reportId == null || guardId == null ||employeeId == null)
+                if(reportId == null || guardId == null ||employeeId == null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@post
+                }
 
-                val ret = DaoMethods.addIntervention(reportId!!, guardId!!, employeeId!!, LocalDateTime.parse(startTime.toString()), LocalDateTime.parse(endTime.toString()), Intervention.InterventionStatus.fromInt(status!!))
+                val ret = DaoMethods.addIntervention(reportId,
+                    guardId,
+                    employeeId, LocalDateTime.parse(startTime.toString()), LocalDateTime.parse(endTime.toString()), Intervention.InterventionStatus.fromInt(status!!))
                 if(ret){
                     call.respond(HttpStatusCode.OK,"Intervention added to database.")
                 }else{
@@ -272,9 +298,11 @@ fun Route.databaseRoutes() {
         get{
             try{
                 val id = call.request.queryParameters["id"]?.toIntOrNull()
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                val result = DaoMethods.getIntervention(id!!)
+                    return@get
+                }
+                val result = DaoMethods.getIntervention(id)
                 if(result!=null)
                     call.respond(HttpStatusCode.OK,result)
                 else
@@ -311,14 +339,19 @@ fun Route.databaseRoutes() {
         post("/add"){
             try{
                 val formParameters = call.receiveParameters()
-                val client_id = formParameters["client_id"]?.toIntOrNull()
+                val clientId = formParameters["client_id"]?.toIntOrNull()
                 val location = formParameters["location"]
                 val date = formParameters["date"]
                 val status = formParameters["status"]?.toIntOrNull()
 
-                if(client_id==null || location.isNullOrEmpty() || date.isNullOrEmpty() || status == null)
+                if(clientId==null || location.isNullOrEmpty() || date.isNullOrEmpty() || status == null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                val result = DaoMethods.addReport(client_id!!, location.toString(), LocalDateTime.parse(date.toString()), Report.ReportStatus.fromInt(status!!))
+                    return@post
+                }
+                val result = DaoMethods.addReport(
+                    clientId, location.toString(), LocalDateTime.parse(date.toString()), Report.ReportStatus.fromInt(
+                        status
+                    ))
                 if(result){
                     call.respond(HttpStatusCode.OK,"Report added to database.")
                 }else{
@@ -336,10 +369,12 @@ fun Route.databaseRoutes() {
                 val id = formParameters["id"]?.toIntOrNull()
                 val location = formParameters["location"]
 
-                if(id==null || location.isNullOrEmpty())
+                if(id==null || location.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val ret = DaoMethods.updateReportLocation(id!!,location.toString())
+                val ret = DaoMethods.updateReportLocation(id,location.toString())
                 if(ret){
                     call.respond(HttpStatusCode.OK,"The report's location has been edited.")
                 }else{
@@ -357,10 +392,12 @@ fun Route.databaseRoutes() {
                 val id = formParameters["id"]?.toIntOrNull()
                 val status = formParameters["status"]?.toIntOrNull()
 
-                if(id==null || status==null)
+                if(id==null || status==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val ret = DaoMethods.changeReportStatus(id!!, Report.ReportStatus.fromInt(status!!))
+                val ret = DaoMethods.changeReportStatus(id, Report.ReportStatus.fromInt(status))
                 if(ret){
                     call.respond(HttpStatusCode.OK,"The report's status has been edited.")
                 }else{
@@ -377,10 +414,12 @@ fun Route.databaseRoutes() {
             try{
                 val id = call.request.queryParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@get
+                }
 
-                val report = DaoMethods.getReport(id!!)
+                val report = DaoMethods.getReport(id)
                 if(report!=null){
                     call.respond(HttpStatusCode.OK,report)
                 }else{
@@ -426,9 +465,11 @@ fun Route.databaseRoutes() {
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                val deleted = DaoMethods.deleteReport(id!!)
+                    return@delete
+                }
+                val deleted = DaoMethods.deleteReport(id)
                 if(deleted)
                     call.respond(HttpStatusCode.OK,"The report has been deleted.")
                 else
@@ -450,13 +491,16 @@ fun Route.databaseRoutes() {
                 val login = formParameters["login"]
                 val password = formParameters["password"]
                 val phone = formParameters["phone"]
+                val email =  formParameters["email"]
                 val name = formParameters["name"]
                 val surname = formParameters["surname"]
 
-                if(login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty())
+                if(login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || email.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@post
+                }
 
-                val ret = DaoMethods.addGuard(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString())
+                val ret = DaoMethods.addGuard(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString(), email.toString())
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"Guard added to database.")
                 }else{
@@ -477,13 +521,16 @@ fun Route.databaseRoutes() {
                 val password = formParameters["password"]
                 val newPassword = formParameters["newPassword"]
                 val phone = formParameters["phone"]
+                val email =  formParameters["email"]
                 val name = formParameters["name"]
                 val surname = formParameters["surname"]
 
-                if(id==null || password.isNullOrEmpty())
+                if(id==null || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val ret = DaoMethods.editGuard(id!!,login, password.toString(), newPassword, name, surname, phone)
+                val ret = DaoMethods.editGuard(id,login, password.toString(), newPassword, name, surname, phone, email)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The guard has been edited.")
                 }else{
@@ -503,11 +550,14 @@ fun Route.databaseRoutes() {
                 val name = formParameters["name"]
                 val surname = formParameters["surname"]
                 val phone = formParameters["phone"]
+                val email =  formParameters["email"]
                 val isActive = formParameters["isActive"].toBoolean()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                val ret = DaoMethods.editGuard(id!!, phone, name, surname, isActive)
+                    return@patch
+                }
+                val ret = DaoMethods.editGuard(id, name = name, surname = surname, phone = phone, email = email, isActive = isActive)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The guard has been edited.")
                 }else{
@@ -523,10 +573,12 @@ fun Route.databaseRoutes() {
             try{
                 val id = call.request.queryParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@get
+                }
 
-                val guard = DaoMethods.getGuard(id!!)
+                val guard = DaoMethods.getGuard(id)
                 if(guard!=null){
                     call.respond(HttpStatusCode.OK,guard)
                 }else{
@@ -543,8 +595,10 @@ fun Route.databaseRoutes() {
                 val login = call.request.queryParameters["login"]
                 val password = call.request.queryParameters["password"]
 
-                if(login.isNullOrEmpty() || password.isNullOrEmpty())
+                if(login.isNullOrEmpty() || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@get
+                }
 
                 val ret = DaoMethods.getGuard(login.toString(), password.toString())
                 if(ret.second != null){
@@ -591,10 +645,12 @@ fun Route.databaseRoutes() {
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val restored = DaoMethods.restoreGuard(id!!)
+                val restored = DaoMethods.restoreGuard(id)
                 if(restored)
                     call.respond(HttpStatusCode.OK,"The guard has been restored.")
                 else
@@ -610,10 +666,12 @@ fun Route.databaseRoutes() {
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@delete
+                }
 
-                val deleted = DaoMethods.deleteGuard(id!!)
+                val deleted = DaoMethods.deleteGuard(id)
                 if(deleted)
                     call.respond(HttpStatusCode.OK,"The guard has been deleted.")
                 else
@@ -639,8 +697,10 @@ fun Route.databaseRoutes() {
                 val surname = formParameters["surname"]
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
 
-                if (login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || roleCode == null)
+                if (login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || roleCode == null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@post
+                }
 
                 val ret = DaoMethods.addEmployee(
                     login.toString(),
@@ -649,7 +709,7 @@ fun Route.databaseRoutes() {
                     surname.toString(),
                     phone.toString(),
                     email.toString(),
-                    Employee.Role.fromInt(roleCode!!)
+                    Employee.Role.fromInt(roleCode)
                 )
                 if (ret.first) {
                     call.respond(HttpStatusCode.OK, "Employee added to database.")
@@ -673,9 +733,11 @@ fun Route.databaseRoutes() {
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
                 val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
 
-                if(id==null || role == null)
+                if(id==null || role == null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                val ret = DaoMethods.changeEmployeeRole(id!!, role!!)
+                    return@patch
+                }
+                val ret = DaoMethods.changeEmployeeRole(id, role)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The employee has been edited.")
                 }else{
@@ -701,10 +763,12 @@ fun Route.databaseRoutes() {
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
                 val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
 
-                if(id==null || password.isNullOrEmpty())
+                if(id==null || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val ret = DaoMethods.editEmployee(id!!,login, password.toString(), newPassword, name, surname, phone,email, role)
+                val ret = DaoMethods.editEmployee(id,login, password.toString(), newPassword, name, surname, phone,email, role)
                 if(ret.first && ret.third!=null){
                     call.respond(HttpStatusCode.OK,ret.third!!)
                 }else{
@@ -730,10 +794,12 @@ fun Route.databaseRoutes() {
                 val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
                 val isActive = formParameters["isActive"].toBoolean()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val ret = DaoMethods.editEmployee(id!!, name, surname, phone,email, role, isActive)
+                val ret = DaoMethods.editEmployee(id, name, surname, phone,email, role, isActive)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The employee has been edited.")
                 }else{
@@ -749,10 +815,12 @@ fun Route.databaseRoutes() {
             try{
                 val id = call.request.queryParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@get
+                }
 
-                val employee = DaoMethods.getEmployee(id!!)
+                val employee = DaoMethods.getEmployee(id)
                 if(employee!=null){
                     call.respond(HttpStatusCode.OK,employee.toEmployeeInfo())
                 }else{
@@ -770,8 +838,10 @@ fun Route.databaseRoutes() {
                 val login = call.request.queryParameters["login"]
                 val password = call.request.queryParameters["password"]
 
-                if(login.isNullOrEmpty() || password.isNullOrEmpty())
+                if(login.isNullOrEmpty() || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@get
+                }
                 val ret = DaoMethods.getCustomer(login.toString(), password.toString())
                 if(ret.second != null){
                     call.respond(HttpStatusCode.OK, ret.second!!)
@@ -817,10 +887,12 @@ fun Route.databaseRoutes() {
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
 
-                if(id==null)
+                if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
 
-                val restored = DaoMethods.restoreEmployee(id!!)
+                val restored = DaoMethods.restoreEmployee(id)
                 if(restored)
                     call.respond(HttpStatusCode.OK,"The employee has been restored.")
                 else
@@ -836,10 +908,12 @@ fun Route.databaseRoutes() {
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
 
-                if (id == null)
+                if (id == null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@delete
+                }
 
-                val deleted = DaoMethods.deleteEmployee(id!!)
+                val deleted = DaoMethods.deleteEmployee(id)
                 if (deleted)
                     call.respond(HttpStatusCode.OK, "The employee has been deleted.")
                 else

@@ -19,7 +19,7 @@ export const usePatrols = () => {
       case 2:
         return "#ff0000";
       default:
-        return "#36454f";
+        return "#949494";
     }
   };
   const addPatrol = (id, position, status, name, surname, phone) => {

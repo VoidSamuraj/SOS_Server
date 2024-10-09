@@ -45,12 +45,68 @@ suspend fun checkPermission(token:JWTToken?, onSuccess: suspend ()->Unit,onFailu
         return
     }
 
-    val id = getEmployeeId(decodedToken)
+    val id = getAccountId(decodedToken)
     if (id != null && DaoMethods.getEmployee(id) != null) {
         onSuccess()
     } else {
         onFailure()
     }
+}
+
+/**
+ * Creates a JWT token for a given customer with relevant claims.
+ *
+ * The generated token includes the following claims:
+ * - `id`: The ID of the customer.
+ * - `login`: The login of the customer.
+ * - `name`: The name of the customer.
+ * - `surname`: The surname of the customer.
+ * - `phone`: The phone number of the customer.
+ * - `email`: The email address of the customer.
+ *
+ * @param customer The employee for whom the token is created.
+ * @return A Pair containing JWTToken and expiration date.
+ */
+fun createToken(customer: Customer): Pair<JWTToken, Long>{
+    val token = JWT.create()
+        .withIssuer(ISS)
+        .withAudience("customer")
+        .withClaim("id", customer.id)
+        .withClaim("login", customer.login)
+        .withClaim("name", customer.name)
+        .withClaim("surname", customer.surname)
+        .withClaim("phone", customer.phone)
+        .withClaim("email", customer.email)
+        .sign(Algorithm.HMAC256(Keys.JWTSecret))
+    return Pair(JWTToken(token),Long.MAX_VALUE)
+}
+
+/**
+ * Creates a JWT token for a given guard with relevant claims.
+ *
+ * The generated token includes the following claims:
+ * - `id`: The ID of the guard.
+ * - `login`: The login of the guard.
+ * - `name`: The name of the guard.
+ * - `surname`: The surname of the guard.
+ * - `phone`: The phone number of the guard.
+ * - `email`: The email address of the guard.
+ *
+ * @param guard The employee for whom the token is created.
+ * @return A Pair containing JWTToken and expiration date.
+ */
+fun createToken(guard: Guard): Pair<JWTToken, Long>{
+    val token = JWT.create()
+        .withIssuer(ISS)
+        .withAudience("guard")
+        .withClaim("id", guard.id)
+        .withClaim("login", guard.login)
+        .withClaim("name", guard.name)
+        .withClaim("surname", guard.surname)
+        .withClaim("phone", guard.phone)
+        .withClaim("email", guard.email)
+        .sign(Algorithm.HMAC256(Keys.JWTSecret))
+    return Pair(JWTToken(token),Long.MAX_VALUE)
 }
 
 /**
@@ -73,6 +129,7 @@ fun createToken(employee: Employee): Pair<JWTToken, Long>{
     val tokenExp = Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000)
     val token = JWT.create()
         .withIssuer(ISS)
+        .withAudience("employee")
         .withClaim("id", employee.id)
         .withClaim("login", employee.login)
         .withClaim("name", employee.name)
@@ -102,22 +159,22 @@ fun decodeToken(jwtToken:String?):DecodedJWT?{
 }
 
 /**
- * Retrieves the employee role code from the provided DecodedJWT token.
+ * Retrieves the id from the provided DecodedJWT token.
  *
- * @param token The DecodedJWT token from which to extract the employee role cod.
- * @return The employee role code if valid; null otherwise.
+ * @param token The DecodedJWT token from which to extract the id.
+ * @return The id if valid; null otherwise.
  */
-fun getEmployeeId(token: DecodedJWT):Int?{
+fun getAccountId(token: DecodedJWT):Int?{
     return token.getClaim("id")?.asInt()
 }
 
 /**
- * Retrieves the employee role code from the provided JWT token.
+ * Retrieves the id from the provided JWT token.
  *
- * @param token The JWT token from which to extract the employee role cod.
- * @return The employee role code if valid; null otherwise.
+ * @param token The JWT token from which to extract id.
+ * @return The id if valid; null otherwise.
  */
-fun getEmployeeId(token: JWTToken?):Int?{
+fun getAccountId(token: JWTToken?):Int?{
     val jwtToken = token?.token
     if(jwtToken!=null){
         return try {

@@ -305,8 +305,7 @@ const AccountForm = ({
             : "klienta"}
         </Typography>
 
-        {(selectedParams?.name || !editMode) &&
-        (selectedTab == "employees" || selectedTab == "guards") ? (
+        {(selectedParams?.name || !editMode)? (
           <TextField
             fullWidth
             margin="normal"
@@ -322,8 +321,7 @@ const AccountForm = ({
           ""
         )}
 
-        {(selectedParams?.surname || !editMode) &&
-        (selectedTab == "employees" || selectedTab == "guards") ? (
+        {(selectedParams?.surname || !editMode) ? (
           <TextField
             fullWidth
             margin="normal"
@@ -369,8 +367,7 @@ const AccountForm = ({
           ""
         )}
 
-        {(selectedParams?.email || !editMode) &&
-        (selectedTab == "employees" || selectedTab == "customers") ? (
+        {(selectedParams?.email || !editMode) ? (
           <TextField
             fullWidth
             margin="normal"

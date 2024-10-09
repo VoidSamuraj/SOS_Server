@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.Table
  * @property name First name of the guard.
  * @property surname Last name of the guard.
  * @property phone Contact phone number of the guard.
+ * @property email Email address of the guard.
  * @property statusCode Status code indicating the current status of the guard, which can be one of the following:
  * [Guard.GuardStatus.AVAILABLE], [Guard.GuardStatus.UNAVAILABLE], or [Guard.GuardStatus.INTERVENTION].
  * @property location Physical location or assigned area of the guard.
@@ -20,7 +21,7 @@ import org.jetbrains.exposed.sql.Table
  * @constructor Creates a GuardInfo instance with the specified details.
  */
 @Serializable
-data class GuardInfo(val id:Int, val name: String, val surname: String,val phone: String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal
+data class GuardInfo(val id:Int, val name: String, val surname: String,val phone: String, val email:String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal
 
 /**
  * Data class representing a Guard.
@@ -34,6 +35,7 @@ data class GuardInfo(val id:Int, val name: String, val surname: String,val phone
  * @property name First name of the guard.
  * @property surname Last name of the guard.
  * @property phone Contact phone number of the guard.
+ * @property email Email address of the guard.
  * @property statusCode Status code indicating the current status of the guard, which can be one of the following:
  * [Guard.GuardStatus.AVAILABLE], [Guard.GuardStatus.UNAVAILABLE], or [Guard.GuardStatus.INTERVENTION].
  * @property location Physical location or assigned area of the guard.
@@ -42,7 +44,7 @@ data class GuardInfo(val id:Int, val name: String, val surname: String,val phone
  * @constructor Creates a Guard instance with the specified details, including sensitive credentials.
  */
 @Serializable
-data class Guard(val id:Int, val login: String,val password:String, val name: String, val surname: String,val phone: String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal{
+data class Guard(val id:Int, val login: String,val password:String, val name: String, val surname: String,val phone: String, val email:String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal{
 
     /**
      * Enum representing status of Guard.
@@ -73,6 +75,15 @@ data class Guard(val id:Int, val login: String,val password:String, val name: St
      */
     val status: GuardStatus
         get() = GuardStatus.fromInt(statusCode)
+
+    /**
+     * Converts the Guard instance to an GuardInfo instance.
+     *
+     * @return An GuardInfo instance containing the guard's details.
+     */
+    fun toGuardInfo():GuardInfo{
+        return GuardInfo(id, name, surname, phone, email, statusCode, location, account_deleted)
+    }
 }
 
 /**
@@ -88,6 +99,7 @@ object Guards : Table() {
     val name = varchar("name",40)
     val surname = varchar("surname", 40)
     val phone =  varchar("phone", 20).uniqueIndex()
+    val email = varchar("email", 255).uniqueIndex()
     val account_deleted=bool("account_deleted")
     override val primaryKey = PrimaryKey(id)
 }

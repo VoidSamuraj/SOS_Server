@@ -4,6 +4,7 @@ val logback_version: String by project
 val ktor_version: String by project
 val exposed_version: String by project
 val h2_version: String by project
+val mariaDB_version: String by project
 
 plugins {
     kotlin("jvm") version "2.0.10"
@@ -47,7 +48,7 @@ dependencies {
     testImplementation("org.jetbrains.exposed:exposed-core:0.41.1")
     testImplementation("org.jetbrains.exposed:exposed-dao:0.41.1")
     testImplementation("org.jetbrains.exposed:exposed-jdbc:0.41.1")
-    testImplementation("com.h2database:h2:2.1.214")
+    testImplementation("com.h2database:h2:$h2_version")
     testImplementation("junit:junit:4.13.2")
 
     implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
@@ -56,6 +57,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposed_version")
+
+    //TODO replace h2 with mariadb for release
+    implementation("org.mariadb.jdbc:mariadb-java-client:$mariaDB_version")
     implementation("com.h2database:h2:$h2_version")
 
     implementation("io.ktor:ktor-server-auth:$ktor_version")

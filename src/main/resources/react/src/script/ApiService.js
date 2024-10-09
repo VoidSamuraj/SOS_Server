@@ -676,16 +676,18 @@ export const getGuards = async (page, size, filterColumn, sortColumn) => {
  * @param {string} name - The new name of the guard.
  * @param {string} surname - The new surname of the guard.
  * @param {string} phone - The new phone number of the guard.
+ * @param {string} email - The new email address of the guard.
  * @param {boolean} isActive - The new active status of the guard.
  * @throws Will throw an error if the edit operation fails.
  */
-export const editGuard = async (id, name, surname, phone, isActive) => {
+export const editGuard = async (id, name, surname, phone, email, isActive) => {
   try {
     let formData = new FormData();
     formData.append("id", id);
     formData.append("name", name);
     formData.append("surname", surname);
     formData.append("phone", phone);
+    formData.append("email", email);
     formData.append("isActive", isActive);
 
     const response = await fetch("/guard/editSudo", {
@@ -759,16 +761,20 @@ export const getClients = async (page, size, filterColumn, sortColumn) => {
  * Edits a client's details by their ID.
  *
  * @param {string} id - The ID of the client to be edited.
+ * @param {string} name - The new name of the client.
+ * @param {string} surname - The new surname of the client.
  * @param {string} phone - The new phone number of the client.
  * @param {string} pesel - The new PESEL number of the client.
  * @param {string} email - The new email address of the client.
  * @param {boolean} isActive - The new active status of the client.
  * @throws Will throw an error if the edit operation fails.
  */
-export const editClient = async (id, phone, pesel, email, isActive) => {
+export const editClient = async (id, name, surname, phone, pesel, email, isActive) => {
   try {
     let formData = new FormData();
     formData.append("id", id);
+    formData.append("name", name);
+    formData.append("surname", surname);
     formData.append("phone", phone);
     formData.append("pesel", pesel);
     formData.append("email", email);

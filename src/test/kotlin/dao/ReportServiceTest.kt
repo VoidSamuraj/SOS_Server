@@ -23,15 +23,15 @@ class ReportServiceTest {
             SchemaUtils.drop(Interventions,Reports)
             SchemaUtils.create(Reports)
             runBlocking{
-                    DaoMethods.addCustomer("login1", "password1", "123456789", "12345678901", "email@test.com")
-                    DaoMethods.addCustomer("login2", "password2", "987654321", "12345678902", "email2@test.com")
+                    DaoMethods.addCustomer("login1", "password1","Name1", "Surname1", "123456789", "12345678901", "email@test.com")
+                    DaoMethods.addCustomer("login2", "password2","Name2", "Surname2", "987654321", "12345678902", "email2@test.com")
             }
         }
     }
 
     @Test
     fun `should add report`() = runTest {
-        DaoMethods.addCustomer("login1", "password1", "123456789", "12345678901", "email@test.com")
+        DaoMethods.addCustomer("login1", "password1","Name1", "Surname1", "123456789", "12345678901", "email@test.com")
         val result = DaoMethods.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
         assertTrue(result)
 

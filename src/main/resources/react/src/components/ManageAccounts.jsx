@@ -210,6 +210,7 @@ const ManageAccounts = ({ editedRecord }) => {
           { field: "name", headerName: "Imie", width: 150 },
           { field: "surname", headerName: "Nazwisko", width: 150 },
           { field: "phone", headerName: "Telefon", width: 150 },
+          { field: "email", headerName: "Email", width: 150 },
           {
             field: "account_active",
             headerName: "Konto aktywne",
@@ -252,6 +253,8 @@ const ManageAccounts = ({ editedRecord }) => {
       case "customers":
         return [
           { field: "id", headerName: "ID", width: 100 },
+          { field: "name", headerName: "Imie", width: 150 },
+          { field: "surname", headerName: "Nazwisko", width: 150 },
           { field: "phone", headerName: "Telefon", width: 150 },
           { field: "pesel", headerName: "Pesel", width: 150 },
           { field: "email", headerName: "Email", width: 150 },
@@ -330,18 +333,21 @@ const ManageAccounts = ({ editedRecord }) => {
           : [];
       case "guards":
         return patrols && patrols.length > 0
-          ? patrols.map(({ id, name, surname, phone, account_deleted }) => ({
+          ? patrols.map(({ id, name, surname, phone, email, account_deleted }) => ({
               id,
               name,
               surname,
               phone,
+              email,
               account_active: !account_deleted,
             }))
           : [];
       case "customers":
         return clients && clients.length > 0
-          ? clients.map(({ id, phone, pesel, email, account_deleted }) => ({
+          ? clients.map(({ id, name, surname, phone, pesel, email, account_deleted }) => ({
               id,
+              name,
+              surname,
               phone,
               pesel,
               email,
