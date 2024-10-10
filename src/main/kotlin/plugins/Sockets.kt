@@ -6,6 +6,7 @@ import dao.DaoMethods
 import guardsFlow
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.sessions
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +24,8 @@ import reportsFlow
 import routes.CustomerField
 import routes.EmployeeField
 import routes.GuardField
+import security.JWTToken
+import security.checkPermission
 
 
 @Serializable
@@ -52,59 +55,75 @@ fun Application.configureSockets() {
     routing {
 
         webSocket("/adminPanelSocket") {
-            try {
-                for (frame in incoming) {
-                    if (frame is Frame.Text) {
-                        val newParams = Json.decodeFromString<QueryParams>(frame.readText())
-                        val previousParams = administrationQueryParams[this]
+            val token = call.sessions.get("userToken") as JWTToken?
+            checkPermission(token = token,
+                onSuccess = {
+                    try {
+                        for (frame in incoming) {
+                            if (frame is Frame.Text) {
+                                val newParams = Json.decodeFromString<QueryParams>(frame.readText())
+                                val previousParams = administrationQueryParams[this]
 
-                        if (previousParams == null || previousParams != newParams) {
-                            loadDataAccordingToParams(this, newParams)
-                            administrationQueryParams[this] = newParams
+                                if (previousParams == null || previousParams != newParams) {
+                                    loadDataAccordingToParams(this, newParams)
+                                    administrationQueryParams[this] = newParams
+                                }
+                            }
+
+                            if (frame is Frame.Close) {
+                                administrationQueryParams.remove(this)
+                            }
                         }
-                    }
-
-                    if (frame is Frame.Close) {
+                    } catch (e: ClosedReceiveChannelException) {
+                        println(e)
                         administrationQueryParams.remove(this)
                     }
-                }
-            } catch (e: ClosedReceiveChannelException) {
-                println(e)
-                administrationQueryParams.remove(this)
-            }
+                },
+                onFailure = {
+                    outgoing.send(Frame.Text("Unauthorized access"))
+                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
+                })
         }
         webSocket("/mapSocket") {
-            try {
-                    combine(
-                        guardsFlow,
-                        reportsFlow
-                    ) { employees, customers ->
-                        Pair(employees, customers)
-                    }.collect { (updatedGuards, updatedReport) ->
+            val token = call.sessions.get("userToken") as JWTToken?
+            checkPermission(token = token,
+                onSuccess = {
+                    try {
+                        combine(
+                            guardsFlow,
+                            reportsFlow
+                        ) { employees, customers ->
+                            Pair(employees, customers)
+                        }.collect { (updatedGuards, updatedReport) ->
 
-                        Json.encodeToString(
-                            ListSerializer(GuardInfo.serializer()),
-                            updatedGuards
-                        )
-                        val responseJson = Json.encodeToString(
-                            MapSerializer(String.serializer(), JsonElement.serializer()),
-                            mapOf(
-                                "updatedGuards" to Json.encodeToJsonElement(
-                                    ListSerializer(GuardInfo.serializer()),
-                                    updatedGuards
-                                ),
-                                "updatedReports" to Json.encodeToJsonElement(
-                                    ListSerializer(Report.serializer()),
-                                    updatedReport
+                            Json.encodeToString(
+                                ListSerializer(GuardInfo.serializer()),
+                                updatedGuards
+                            )
+                            val responseJson = Json.encodeToString(
+                                MapSerializer(String.serializer(), JsonElement.serializer()),
+                                mapOf(
+                                    "updatedGuards" to Json.encodeToJsonElement(
+                                        ListSerializer(GuardInfo.serializer()),
+                                        updatedGuards
+                                    ),
+                                    "updatedReports" to Json.encodeToJsonElement(
+                                        ListSerializer(Report.serializer()),
+                                        updatedReport
+                                    )
                                 )
                             )
-                        )
-                        outgoing.send(Frame.Text(responseJson))
+                            outgoing.send(Frame.Text(responseJson))
+                        }
+                    } catch (e: ClosedReceiveChannelException) {
+                        println(e)
+                        administrationQueryParams.remove(this)
                     }
-            } catch (e: ClosedReceiveChannelException) {
-                println(e)
-                administrationQueryParams.remove(this)
-            }
+                },
+                onFailure = {
+                    outgoing.send(Frame.Text("Unauthorized access"))
+                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
+                })
         }
     }
 
