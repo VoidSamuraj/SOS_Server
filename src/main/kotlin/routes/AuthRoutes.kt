@@ -25,6 +25,13 @@ import kotlinx.coroutines.launch
 import plugins.Mailer
 import plugins.generateRandomLogin
 import plugins.generateRandomPassword
+import plugins.isPeselValid
+import plugins.sanitizeHtml
+import plugins.isEmailValid
+import plugins.isLoginValid
+import plugins.isPasswordValid
+import plugins.isPhoneValid
+import plugins.isUsernameValid
 import security.JWTToken
 import security.checkPermission
 import security.createToken
@@ -101,8 +108,8 @@ fun Route.authRoutes(){
         route("/employee") {
             post("/login") {
                 val formParameters = call.receiveParameters()
-                val login = formParameters.getOrFail("login")
-                val password = formParameters.getOrFail("password")
+                val login =  sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
                 val employee = DaoMethods.getEmployee(login, password)
                 if (employee.second != null) {
                     generateAndSetToken(employee.second!!)
@@ -151,16 +158,40 @@ fun Route.authRoutes(){
 
             post("/register") {
                 val formParameters = call.receiveParameters()
-                val phone = formParameters["phone"]
-                val email = formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
+                val phone = sanitizeHtml(formParameters.getOrFail("phone"))
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                val name = sanitizeHtml(formParameters.getOrFail("name"))
+                val surname = sanitizeHtml(formParameters.getOrFail("surname"))
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
 
                 val login = generateRandomLogin()
                 val password = generateRandomPassword()
-                if (phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || roleCode == null) {
+                if (phone.isEmpty() || name.isEmpty() || surname.isEmpty() || roleCode == null) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@post
+                }
+                if(!isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@post
+                }
+                if(!isPasswordValid(password)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@post
+                }
+                if(!isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@post
+                }
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
                     return@post
                 }
                 val ret = DaoMethods.addEmployee(
@@ -193,7 +224,11 @@ fun Route.authRoutes(){
 
             post("/remind-password") {
                 val formParameters = call.receiveParameters()
-                val email = formParameters.getOrFail("email")
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
                 val employee = DaoMethods.getEmployee(email)
                 if (employee != null) {
                     val host = call.request.origin.serverHost
@@ -213,9 +248,13 @@ fun Route.authRoutes(){
             }
             post("/reset-password") {
                 val formParameters = call.receiveParameters()
-                val newPassword = formParameters.getOrFail("password")
-                val tokenString = formParameters.getOrFail("token")
+                val newPassword = sanitizeHtml(formParameters.getOrFail("password"))
+                val tokenString = sanitizeHtml(formParameters.getOrFail("token"))
                 if (newPassword.isNotEmpty() && tokenString.isNotEmpty()) {
+                    if(!isPasswordValid(newPassword)){
+                        call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                        return@post
+                    }
                     val token = JWTToken(tokenString)
                     checkPermission(token, {
 
@@ -252,8 +291,8 @@ fun Route.authRoutes(){
         route("/client") {
             post("/login") {
                 val formParameters = call.receiveParameters()
-                val login = formParameters.getOrFail("login")
-                val password = formParameters.getOrFail("password")
+                val login = sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
                 val customer = DaoMethods.getCustomer(login, password)
                 if (customer.second != null) {
                     generateAndSetToken(customer.second!!)
@@ -270,15 +309,44 @@ fun Route.authRoutes(){
 
             post("/register") {
                 val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val phone = formParameters["phone"]
-                val pesel = formParameters["pesel"]
-                val email = formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
-                if (login.isNullOrEmpty() || password.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || phone.isNullOrEmpty() || pesel.isNullOrEmpty() || email.isNullOrEmpty()) {
+                val login = sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
+                val phone = sanitizeHtml(formParameters.getOrFail("phone"))
+                val pesel = sanitizeHtml(formParameters.getOrFail("pesel"))
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                val name = sanitizeHtml(formParameters.getOrFail("name"))
+                val surname = sanitizeHtml(formParameters.getOrFail("surname"))
+                if (login.isEmpty() || password.isEmpty() || name.isEmpty() || surname.isEmpty() || phone.isEmpty() || pesel.isEmpty() || email.isEmpty()) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@post
+                }
+                if(!isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@post
+                }
+                if(!isPasswordValid(password)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@post
+                }
+                if(!isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@post
+                }
+
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
+                if(!isPeselValid(pesel)){
+                    call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
                     return@post
                 }
                 val ret = DaoMethods.addCustomer(
@@ -311,7 +379,11 @@ fun Route.authRoutes(){
 
             post("/remind-password") {
                 val formParameters = call.receiveParameters()
-                val email = formParameters.getOrFail("email")
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
                 val customer = DaoMethods.getCustomer(email)
                 if (customer != null) {
                     val host = call.request.origin.serverHost
@@ -331,9 +403,13 @@ fun Route.authRoutes(){
             }
             post("/reset-password") {
                 val formParameters = call.receiveParameters()
-                val newPassword = formParameters.getOrFail("password")
-                val tokenString = formParameters.getOrFail("token")
+                val newPassword = sanitizeHtml(formParameters.getOrFail("password"))
+                val tokenString = sanitizeHtml(formParameters.getOrFail("token"))
                 if (newPassword.isNotEmpty() && tokenString.isNotEmpty()) {
+                    if(!isPasswordValid(newPassword)){
+                        call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                        return@post
+                    }
                     val token = JWTToken(tokenString)
                     checkPermission(token, {
                         val id = getAccountId(token)
@@ -366,8 +442,8 @@ fun Route.authRoutes(){
         route("/guard") {
             post("/login") {
                 val formParameters = call.receiveParameters()
-                val login = formParameters.getOrFail("login")
-                val password = formParameters.getOrFail("password")
+                val login = sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
                 val customer = DaoMethods.getGuard(login, password)
                 if (customer.second != null) {
                     generateAndSetToken(customer.second!!)
@@ -384,15 +460,44 @@ fun Route.authRoutes(){
 
             post("/register") {
                 val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val phone = formParameters["phone"]
-                val pesel = formParameters["pesel"]
-                val email = formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
-                if (login.isNullOrEmpty() || password.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || phone.isNullOrEmpty() || pesel.isNullOrEmpty() || email.isNullOrEmpty()) {
+                val login = sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
+                val phone = sanitizeHtml(formParameters.getOrFail("phone"))
+                val pesel = sanitizeHtml(formParameters.getOrFail("pesel"))
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                val name = sanitizeHtml(formParameters.getOrFail("name"))
+                val surname = sanitizeHtml(formParameters.getOrFail("surname"))
+                if (login.isEmpty() || password.isEmpty() || name.isEmpty() || surname.isEmpty() || phone.isEmpty() || pesel.isEmpty() || email.isEmpty()) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@post
+                }
+                if(!isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@post
+                }
+                if(!isPasswordValid(password)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@post
+                }
+                if(!isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@post
+                }
+
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
+                if(!isPeselValid(pesel)){
+                    call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
                     return@post
                 }
                 val ret = DaoMethods.addGuard(
@@ -424,7 +529,11 @@ fun Route.authRoutes(){
 
             post("/remind-password") {
                 val formParameters = call.receiveParameters()
-                val email = formParameters.getOrFail("email")
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
                 val guard = DaoMethods.getGuard(email)
                 if (guard != null) {
                     val host = call.request.origin.serverHost
@@ -444,9 +553,13 @@ fun Route.authRoutes(){
             }
             post("/reset-password") {
                 val formParameters = call.receiveParameters()
-                val newPassword = formParameters.getOrFail("password")
-                val tokenString = formParameters.getOrFail("token")
+                val newPassword = sanitizeHtml(formParameters.getOrFail("password"))
+                val tokenString = sanitizeHtml(formParameters.getOrFail("token"))
                 if (newPassword.isNotEmpty() && tokenString.isNotEmpty()) {
+                    if(!isPasswordValid(newPassword)){
+                        call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                        return@post
+                    }
                     val token = JWTToken(tokenString)
                     checkPermission(token, {
                         val id = getAccountId(token)

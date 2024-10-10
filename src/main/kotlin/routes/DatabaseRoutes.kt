@@ -12,7 +12,15 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import io.ktor.server.util.getOrFail
 import kotlinx.datetime.LocalDateTime
+import plugins.isPeselValid
+import plugins.sanitizeHtml
+import plugins.isEmailValid
+import plugins.isLoginValid
+import plugins.isPasswordValid
+import plugins.isPhoneValid
+import plugins.isUsernameValid
 
 // Maps used for sort selection
 val GuardField = mapOf(
@@ -55,7 +63,6 @@ private val InterventionField = mapOf(
 )
 fun Route.databaseRoutes() {
 
-    //TODO check if authenticated
     route("/client"){
         intercept(ApplicationCallPipeline.Plugins) {
             checkUserPermission(onSuccess = {
@@ -69,21 +76,48 @@ fun Route.databaseRoutes() {
         post("/add"){
             try {
                 val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
-                val phone = formParameters["phone"]
-                val pesel = formParameters["pesel"]
-                val email = formParameters["email"]
-                val protectionExpirationDate = formParameters["protection_expiration_date"]
+                val login = sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
+                val name = sanitizeHtml(formParameters.getOrFail("name"))
+                val surname = sanitizeHtml(formParameters.getOrFail("surname"))
+                val phone = sanitizeHtml(formParameters.getOrFail("phone"))
+                val pesel = sanitizeHtml(formParameters.getOrFail("pesel"))
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                val protectionExpirationDate = formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
                 val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
-                if (login.isNullOrEmpty() || password.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || phone.isNullOrEmpty() || pesel.isNullOrEmpty() || email.isNullOrEmpty()) {
+                if (login.isEmpty() || password.isEmpty() || name.isEmpty() || surname.isEmpty() || phone.isEmpty() || pesel.isEmpty() || email.isEmpty()) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@post
                 }
-
+                if(!isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@post
+                }
+                if(!isPasswordValid(password)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@post
+                }
+                if(!isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@post
+                }
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
+                if(!isPeselValid(pesel)){
+                    call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                    return@post
+                }
                 val ret = DaoMethods.addCustomer(
                     login.toString(),
                     password.toString(),
@@ -113,19 +147,47 @@ fun Route.databaseRoutes() {
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val newPassword = formParameters["newPassword"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
-                val phone = formParameters["phone"]
-                val pesel = formParameters["pesel"]
-                val email = formParameters["email"]
-                val protectionExpirationDate = formParameters["protection_expiration_date"]
+                val login = formParameters["login"]?.let { sanitizeHtml(it) }
+                val password = formParameters["password"]?.let { sanitizeHtml(it) }
+                val newPassword = formParameters["newPassword"]?.let { sanitizeHtml(it) }
+                val name = formParameters["name"]?.let { sanitizeHtml(it) }
+                val surname = formParameters["surname"]?.let { sanitizeHtml(it) }
+                val phone = formParameters["phone"]?.let { sanitizeHtml(it) }
+                val pesel = formParameters["pesel"]?.let { sanitizeHtml(it) }
+                val email = formParameters["email"]?.let { sanitizeHtml(it) }
+                val protectionExpirationDate = formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
                 val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
                 if(id==null || password.isNullOrEmpty()) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
+                if(!login.isNullOrEmpty() && !isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@patch
+                }
+                if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@patch
+                }
+                if(!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@patch
+                }
+                if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@patch
+                }
+                if(!pesel.isNullOrEmpty() && !isPeselValid(pesel)){
+                    call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
+                    return@patch
+                }
+                if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@patch
+                }
+                if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
                     return@patch
                 }
                 val ret = DaoMethods.editCustomer(id,login, password.toString(), newPassword, name, surname, phone, pesel, email, protectionExpirationDateTime)
@@ -141,25 +203,39 @@ fun Route.databaseRoutes() {
             }
         }
 
-        //TODO add verify if employee has permission to edit
         patch("/editSudo"){
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
-                val phone = formParameters["phone"]
-                val pesel = formParameters["pesel"]
-                val email = formParameters["email"]
+                val name = formParameters["name"]?.let { sanitizeHtml(it) }
+                val surname = formParameters["surname"]?.let { sanitizeHtml(it) }
+                val phone = formParameters["phone"]?.let { sanitizeHtml(it) }
+                val pesel = formParameters["pesel"]?.let { sanitizeHtml(it) }
+                val email = formParameters["email"]?.let { sanitizeHtml(it) }
                 val isActive = formParameters["isActive"].toBoolean()
-                val protectionExpirationDate = formParameters["protection_expiration_date"]
+                val protectionExpirationDate = formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
                 val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
                 if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@patch
                 }
-
+                if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@patch
+                }
+                if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@patch
+                }
+                if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@patch
+                }
+                if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                    return@patch
+                }
                 val ret = DaoMethods.editCustomer(id, name, surname, phone, pesel, email, isActive, protectionExpirationDateTime)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The client has been edited.")
@@ -194,8 +270,8 @@ fun Route.databaseRoutes() {
         }
         get("/getByCredentials"){
             try{
-                val login = call.request.queryParameters["login"]
-                val password = call.request.queryParameters["password"]
+                val login = call.request.queryParameters["login"]?.let { sanitizeHtml(it) }
+                val password = call.request.queryParameters["password"]?.let { sanitizeHtml(it) }
 
                 if(login.isNullOrEmpty() || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -218,11 +294,11 @@ fun Route.databaseRoutes() {
             try{
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-                val filterColumn = call.request.queryParameters["filterColumn"]
-                val filterValue = call.request.queryParameters["filterValue"]
-                val filterType = call.request.queryParameters["filterType"]
-                val sortColumn = call.request.queryParameters["sortColumn"]
-                val sortDir = call.request.queryParameters["sortDir"]
+                val filterColumn = call.request.queryParameters["filterColumn"]?.let { sanitizeHtml(it) }
+                val filterValue = call.request.queryParameters["filterValue"]?.let { sanitizeHtml(it) }
+                val filterType = call.request.queryParameters["filterType"]?.let { sanitizeHtml(it) }
+                val sortColumn = call.request.queryParameters["sortColumn"]?.let { sanitizeHtml(it) }
+                val sortDir = call.request.queryParameters["sortDir"]?.let { sanitizeHtml(it) }
                 val customers = DaoMethods.getCustomers(page,size, CustomerField[filterColumn], filterValue,filterType, CustomerField[sortColumn],sortDir)
                 call.respond(HttpStatusCode.OK,customers)
             }catch(e:Error){
@@ -292,8 +368,8 @@ fun Route.databaseRoutes() {
                 val reportId = formParameters["report_id"]?.toIntOrNull()
                 val guardId = formParameters["guard_id"]?.toIntOrNull()
                 val employeeId = formParameters["employee_id"]?.toIntOrNull()
-                val startTime = formParameters["start_time"]
-                val endTime = formParameters["end_time"]
+                val startTime = formParameters["start_time"]?.let { sanitizeHtml(it) }
+                val endTime = formParameters["end_time"]?.let { sanitizeHtml(it) }
                 val status = formParameters["id"]?.toIntOrNull()
                 if(reportId == null || guardId == null ||employeeId == null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -337,11 +413,11 @@ fun Route.databaseRoutes() {
             try{
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-                val filterColumn = call.request.queryParameters["filterColumn"]
-                val filterValue = call.request.queryParameters["filterValue"]
-                val filterType = call.request.queryParameters["filterType"]
-                val sortColumn = call.request.queryParameters["sortColumn"]
-                val sortDir = call.request.queryParameters["sortDir"]
+                val filterColumn = call.request.queryParameters["filterColumn"]?.let { sanitizeHtml(it) }
+                val filterValue = call.request.queryParameters["filterValue"]?.let { sanitizeHtml(it) }
+                val filterType = call.request.queryParameters["filterType"]?.let { sanitizeHtml(it) }
+                val sortColumn = call.request.queryParameters["sortColumn"]?.let { sanitizeHtml(it) }
+                val sortDir = call.request.queryParameters["sortDir"]?.let { sanitizeHtml(it) }
 
                 val customers = DaoMethods.getInterventions(page,size, InterventionField[filterColumn], filterValue,filterType, InterventionField[sortColumn],sortDir)
                 call.respond(HttpStatusCode.OK,customers)
@@ -368,8 +444,8 @@ fun Route.databaseRoutes() {
             try{
                 val formParameters = call.receiveParameters()
                 val clientId = formParameters["client_id"]?.toIntOrNull()
-                val location = formParameters["location"]
-                val date = formParameters["date"]
+                val location = formParameters["location"]?.let { sanitizeHtml(it) }
+                val date = formParameters["date"]?.let { sanitizeHtml(it) }
                 val status = formParameters["status"]?.toIntOrNull()
 
                 if(clientId==null || location.isNullOrEmpty() || date.isNullOrEmpty() || status == null){
@@ -395,7 +471,7 @@ fun Route.databaseRoutes() {
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                val location = formParameters["location"]
+                val location = formParameters["location"]?.let { sanitizeHtml(it) }
 
                 if(id==null || location.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -463,11 +539,11 @@ fun Route.databaseRoutes() {
             try{
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-                val filterColumn = call.request.queryParameters["filterColumn"]
-                val filterValue = call.request.queryParameters["filterValue"]
-                val filterType = call.request.queryParameters["filterType"]
-                val sortColumn = call.request.queryParameters["sortColumn"]
-                val sortDir = call.request.queryParameters["sortDir"]
+                val filterColumn = call.request.queryParameters["filterColumn"]?.let { sanitizeHtml(it) }
+                val filterValue = call.request.queryParameters["filterValue"]?.let { sanitizeHtml(it) }
+                val filterType = call.request.queryParameters["filterType"]?.let { sanitizeHtml(it) }
+                val sortColumn = call.request.queryParameters["sortColumn"]?.let { sanitizeHtml(it) }
+                val sortDir = call.request.queryParameters["sortDir"]?.let { sanitizeHtml(it) }
 
                 val reports = DaoMethods.getReports(page,size, ReportField[filterColumn], filterValue,filterType, ReportField[sortColumn],sortDir)
                 call.respond(HttpStatusCode.OK,reports)
@@ -525,18 +601,41 @@ fun Route.databaseRoutes() {
         post("/add"){
             try{
                 val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val phone = formParameters["phone"]
-                val email =  formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
+                val login = sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
+                val phone = sanitizeHtml(formParameters.getOrFail("phone"))
+                val email =  sanitizeHtml(formParameters.getOrFail("email"))
+                val name = sanitizeHtml(formParameters.getOrFail("name"))
+                val surname = sanitizeHtml(formParameters.getOrFail("surname"))
 
-                if(login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || email.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty()){
+                if(login.isEmpty() || password.isEmpty() || phone.isEmpty() || email.isEmpty() || name.isEmpty() || surname.isEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@post
                 }
-
+                if(!isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@post
+                }
+                if(!isPasswordValid(password)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@post
+                }
+                if(!isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@post
+                }
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                    return@post
+                }
                 val ret = DaoMethods.addGuard(login.toString(), password.toString(), name.toString(), surname.toString(), phone.toString(), email.toString())
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"Guard added to database.")
@@ -554,19 +653,42 @@ fun Route.databaseRoutes() {
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val newPassword = formParameters["newPassword"]
-                val phone = formParameters["phone"]
-                val email =  formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
+                val login = formParameters["login"]?.let { sanitizeHtml(it) }
+                val password = formParameters["password"]?.let { sanitizeHtml(it) }
+                val newPassword = formParameters["newPassword"]?.let { sanitizeHtml(it) }
+                val phone = formParameters["phone"]?.let { sanitizeHtml(it) }
+                val email =  formParameters["email"]?.let { sanitizeHtml(it) }
+                val name = formParameters["name"]?.let { sanitizeHtml(it) }
+                val surname = formParameters["surname"]?.let { sanitizeHtml(it) }
 
                 if(id==null || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@patch
                 }
-
+                if(!login.isNullOrEmpty() && !isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@patch
+                }
+                if(!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@patch
+                }
+                if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@patch
+                }
+                if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@patch
+                }
+                if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@patch
+                }
+                if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                    return@patch
+                }
                 val ret = DaoMethods.editGuard(id,login, password.toString(), newPassword, name, surname, phone, email)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The guard has been edited.")
@@ -579,19 +701,34 @@ fun Route.databaseRoutes() {
                 )
             }
         }
-        //TODO add verify if employee has permission to edit
         patch("/editSudo"){
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
-                val phone = formParameters["phone"]
-                val email =  formParameters["email"]
+                val name = formParameters["name"]?.let { sanitizeHtml(it) }
+                val surname = formParameters["surname"]?.let { sanitizeHtml(it) }
+                val phone = formParameters["phone"]?.let { sanitizeHtml(it) }
+                val email =  formParameters["email"]?.let { sanitizeHtml(it) }
                 val isActive = formParameters["isActive"].toBoolean()
 
                 if(id==null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                    return@patch
+                }
+                if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@patch
+                }
+                if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@patch
+                }
+                if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@patch
+                }
+                if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
                     return@patch
                 }
                 val ret = DaoMethods.editGuard(id, name = name, surname = surname, phone = phone, email = email, isActive = isActive)
@@ -629,8 +766,8 @@ fun Route.databaseRoutes() {
         }
         get("/getByCredentials"){
             try{
-                val login = call.request.queryParameters["login"]
-                val password = call.request.queryParameters["password"]
+                val login = call.request.queryParameters["login"]?.let { sanitizeHtml(it) }
+                val password = call.request.queryParameters["password"]?.let { sanitizeHtml(it) }
 
                 if(login.isNullOrEmpty() || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -653,11 +790,11 @@ fun Route.databaseRoutes() {
             try{
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-                val filterColumn = call.request.queryParameters["filterColumn"]
-                val filterValue = call.request.queryParameters["filterValue"]
-                val filterType = call.request.queryParameters["filterType"]
-                val sortColumn = call.request.queryParameters["sortColumn"]
-                val sortDir = call.request.queryParameters["sortDir"]
+                val filterColumn = call.request.queryParameters["filterColumn"]?.let { sanitizeHtml(it) }
+                val filterValue = call.request.queryParameters["filterValue"]?.let { sanitizeHtml(it) }
+                val filterType = call.request.queryParameters["filterType"]?.let { sanitizeHtml(it) }
+                val sortColumn = call.request.queryParameters["sortColumn"]?.let { sanitizeHtml(it) }
+                val sortDir = call.request.queryParameters["sortDir"]?.let { sanitizeHtml(it) }
                 val guards = DaoMethods.getGuards(page,size, GuardField[filterColumn], filterValue,filterType, GuardField[sortColumn],sortDir)
                 call.respond(HttpStatusCode.OK,guards)
             }catch(e:Error){
@@ -735,19 +872,42 @@ fun Route.databaseRoutes() {
         post("/add"){
             try {
                 val formParameters = call.receiveParameters()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val phone = formParameters["phone"]
-                val email = formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
+                val login = sanitizeHtml(formParameters.getOrFail("login"))
+                val password = sanitizeHtml(formParameters.getOrFail("password"))
+                val phone = sanitizeHtml(formParameters.getOrFail("phone"))
+                val email = sanitizeHtml(formParameters.getOrFail("email"))
+                val name = sanitizeHtml(formParameters.getOrFail("name"))
+                val surname = sanitizeHtml(formParameters.getOrFail("surname"))
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
 
-                if (login.isNullOrEmpty() || password.isNullOrEmpty() || phone.isNullOrEmpty() || name.isNullOrEmpty() || surname.isNullOrEmpty() || roleCode == null){
+                if (login.isEmpty() || password.isEmpty() || phone.isEmpty() || name.isEmpty() || surname.isEmpty() || roleCode == null){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@post
                 }
-
+                if(!isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@post
+                }
+                if(!isPasswordValid(password)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@post
+                }
+                if(!isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@post
+                }
+                if(!isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@post
+                }
+                if(!isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                    return@post
+                }
                 val ret = DaoMethods.addEmployee(
                     login.toString(),
                     password.toString(),
@@ -799,13 +959,13 @@ fun Route.databaseRoutes() {
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                val login = formParameters["login"]
-                val password = formParameters["password"]
-                val newPassword = formParameters["newPassword"]
-                val phone = formParameters["phone"]
-                val email = formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
+                val login = formParameters["login"]?.let { sanitizeHtml(it) }
+                val password = formParameters["password"]?.let { sanitizeHtml(it) }
+                val newPassword = formParameters["newPassword"]?.let { sanitizeHtml(it) }
+                val phone = formParameters["phone"]?.let { sanitizeHtml(it) }
+                val email = formParameters["email"]?.let { sanitizeHtml(it) }
+                val name = formParameters["name"]?.let { sanitizeHtml(it) }
+                val surname = formParameters["surname"]?.let { sanitizeHtml(it) }
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
                 val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
 
@@ -813,7 +973,30 @@ fun Route.databaseRoutes() {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@patch
                 }
-
+                if(!login.isNullOrEmpty() && !isLoginValid(login)){
+                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                    return@patch
+                }
+                if(!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)){
+                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    return@patch
+                }
+                if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@patch
+                }
+                if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@patch
+                }
+                if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@patch
+                }
+                if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                    return@patch
+                }
                 val ret = DaoMethods.editEmployee(id,login, password.toString(), newPassword, name, surname, phone,email, role)
                 if(ret.first && ret.third!=null){
                     call.respond(HttpStatusCode.OK,ret.third!!)
@@ -827,15 +1010,14 @@ fun Route.databaseRoutes() {
             }
         }
 
-        //TODO add verify if employee has permission to edit
         patch("/editSudo"){
             try{
                 val formParameters = call.receiveParameters()
                 val id = formParameters["id"]?.toIntOrNull()
-                val phone = formParameters["phone"]
-                val email = formParameters["email"]
-                val name = formParameters["name"]
-                val surname = formParameters["surname"]
+                val phone = formParameters["phone"]?.let { sanitizeHtml(it) }
+                val email = formParameters["email"]?.let { sanitizeHtml(it) }
+                val name = formParameters["name"]?.let { sanitizeHtml(it) }
+                val surname = formParameters["surname"]?.let { sanitizeHtml(it) }
                 val roleCode = formParameters["roleCode"]?.toIntOrNull()
                 val role = if (roleCode == null) null else Employee.Role.fromInt(roleCode)
                 val isActive = formParameters["isActive"].toBoolean()
@@ -844,7 +1026,22 @@ fun Route.databaseRoutes() {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@patch
                 }
-
+                if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                    return@patch
+                }
+                if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                    return@patch
+                }
+                if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                    return@patch
+                }
+                if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                    return@patch
+                }
                 val ret = DaoMethods.editEmployee(id, name, surname, phone,email, role, isActive)
                 if(ret.first){
                     call.respond(HttpStatusCode.OK,"The employee has been edited.")
@@ -878,11 +1075,10 @@ fun Route.databaseRoutes() {
                 )
             }
         }
-        //TODO
         get("/getByCredentials"){
             try{
-                val login = call.request.queryParameters["login"]
-                val password = call.request.queryParameters["password"]
+                val login = call.request.queryParameters["login"]?.let { sanitizeHtml(it) }
+                val password = call.request.queryParameters["password"]?.let { sanitizeHtml(it) }
 
                 if(login.isNullOrEmpty() || password.isNullOrEmpty()){
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
@@ -904,11 +1100,11 @@ fun Route.databaseRoutes() {
             try{
                 val page = call.request.queryParameters["page"]?.toIntOrNull() ?: 1
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: 10
-                val filterColumn = call.request.queryParameters["filterColumn"]
-                val filterValue = call.request.queryParameters["filterValue"]
-                val filterType = call.request.queryParameters["filterType"]
-                val sortColumn = call.request.queryParameters["sortColumn"]
-                val sortDir = call.request.queryParameters["sortDir"]
+                val filterColumn = call.request.queryParameters["filterColumn"]?.let { sanitizeHtml(it) }
+                val filterValue = call.request.queryParameters["filterValue"]?.let { sanitizeHtml(it) }
+                val filterType = call.request.queryParameters["filterType"]?.let { sanitizeHtml(it) }
+                val sortColumn = call.request.queryParameters["sortColumn"]?.let { sanitizeHtml(it) }
+                val sortDir = call.request.queryParameters["sortDir"]?.let { sanitizeHtml(it) }
                 val employees = DaoMethods.getEmployees(page,size, EmployeeField[filterColumn], filterValue,filterType, EmployeeField[sortColumn],sortDir)
                 call.respond(HttpStatusCode.OK,employees)
             }catch(e:Error){

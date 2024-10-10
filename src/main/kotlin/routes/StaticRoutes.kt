@@ -7,6 +7,5 @@ import io.ktor.server.routing.*
 fun Application.staticRoutes(){
     routing {
         staticResources("/static","react/build/static")
-        staticResources("/helper_websites","helper_websites/static")
     }
 }
