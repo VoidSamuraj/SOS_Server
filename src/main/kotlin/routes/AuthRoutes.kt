@@ -7,6 +7,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.plugins.origin
 import io.ktor.server.request.port
+import io.ktor.server.request.receive
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
@@ -22,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import models.Credentials
 import plugins.Mailer
 import plugins.generateRandomLogin
 import plugins.generateRandomPassword
@@ -290,13 +292,16 @@ fun Route.authRoutes(){
 
         route("/client") {
             post("/login") {
-                val formParameters = call.receiveParameters()
-                val login = sanitizeHtml(formParameters.getOrFail("login"))
-                val password = sanitizeHtml(formParameters.getOrFail("password"))
+                val loginRequest = call.receive<Credentials>()
+                val login = sanitizeHtml(loginRequest.login)
+                val password = sanitizeHtml(loginRequest.password)
+
                 val customer = DaoMethods.getCustomer(login, password)
                 if (customer.second != null) {
-                    generateAndSetToken(customer.second!!)
-                    call.respond(HttpStatusCode.OK, customer.second!!.toCustomerInfo())
+                    val token = generateAndSetToken(customer.second!!)
+                    val client = customer.second!!.toCustomerInfo()
+                    token?.token?.let { client.token = it }
+                    call.respond(HttpStatusCode.OK, client)
                 } else {
                     call.respond(HttpStatusCode.Unauthorized, "Wrong credentials")
                 }
@@ -305,6 +310,17 @@ fun Route.authRoutes(){
             post("/logout") {
                 call.sessions.clear("userToken")
                 call.respond(HttpStatusCode.OK, "Success")
+            }
+            post("/checkToken") {
+                val token = call.receive<String>()
+                checkPermission(JWTToken(token),
+                    onSuccess = {
+                    call.respond(HttpStatusCode.OK, "Success")
+                },
+                    onFailure = {
+                        call.respond(HttpStatusCode.Forbidden, "Forbidden")
+                    }
+                )
             }
 
             post("/register") {

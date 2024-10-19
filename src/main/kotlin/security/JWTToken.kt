@@ -1,5 +1,8 @@
 package security
 
+import CustomerInfo
+import EmployeeInfo
+import GuardInfo
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
@@ -14,43 +17,71 @@ import java.util.Date
 data class JWTToken(val token:String)
 
 
-
 /**
  * Checks the validity of the provided JWT token and determines
- * if the associated employee has valid permissions.
+ * if the associated account (employee, customer, or guard) has valid permissions.
  *
  * @param token The JWT token to validate.
- * @param onSuccess A suspend function to execute if the token is valid and the employee exists.
- * @param onFailure A suspend function to execute if the token is invalid or expired.
+ * @param onSuccess A suspend function to execute if the token is valid and the account exists.
+ * @param onFailure A suspend function to execute if the token is invalid, expired, or not authorized.
  */
-suspend fun checkPermission(token:JWTToken?, onSuccess: suspend ()->Unit,onFailure:suspend ()->Unit){
+suspend fun checkPermission(
+    token: JWTToken?,
+    onSuccess: suspend () -> Unit,
+    onFailure: suspend () -> Unit
+) {
 
     if (token == null) {
         onFailure()
         return
     }
 
-    val decodedToken=decodeToken(token.token)
-    //token verification
+    val decodedToken = decodeToken(token.token)
 
-    if(decodedToken == null) {
+    // Token verification
+    if (decodedToken == null) {
         onFailure()
         return
     }
+    val id= getAccountId(decodedToken)
+    val audience = decodedToken.audience?.firstOrNull()
 
-    //check token expiration
-    val expireTime = getTokenExpirationDate(decodedToken)
-    if (expireTime == null || expireTime.before(Date(System.currentTimeMillis()))) {
-        onFailure()
-        return
-    }
+    if (id!=null)
+        when (audience) {
+            "employee" -> {
+                val expireTime = getTokenExpirationDate(decodedToken)
+                if (expireTime == null || expireTime.before(Date(System.currentTimeMillis()))) {
+                    onFailure()
+                    return
+                }
 
-    val id = getAccountId(decodedToken)
-    if (id != null && DaoMethods.getEmployee(id) != null) {
-        onSuccess()
-    } else {
+                if (DaoMethods.getEmployee(id) != null) {
+                    onSuccess()
+                } else {
+                    onFailure()
+                }
+            }
+            "customer" -> {
+                if (DaoMethods.getCustomer(id) != null) {
+                    onSuccess()
+                } else {
+                    onFailure()
+                }
+            }
+            "guard" -> {
+                if (DaoMethods.getGuard(id) != null) {
+                    onSuccess()
+                } else {
+                    onFailure()
+                }
+            }
+            else -> {
+                // Unrecognized audience type
+                onFailure()
+            }
+        }
+    else
         onFailure()
-    }
 }
 
 /**
@@ -209,6 +240,94 @@ fun getEmployeeRole(token: JWTToken?):Int?{
     if(jwtToken!=null){
         val decodedToken = decodeToken(jwtToken)
         return decodedToken?.getClaim("roleCode")?.asInt()
+    }
+    return null
+}
+
+/**
+ * Retrieves the CustomerInfo from the provided DecodedJWT token.
+ *
+ * @param token The DecodedJWT token from which to extract the CustomerInfo.
+ * @return The CustomerInfo if valid; null otherwise.
+ */
+fun getCustomerInfo(token: DecodedJWT?):CustomerInfo?{
+    if(token!=null){
+        val id=token.getClaim("id")?.asInt()
+        val name=token.getClaim("name").toString()
+        val surname=token.getClaim("surname").toString()
+        val phone=token.getClaim("phone").toString()
+        val email=token.getClaim("email").toString()
+        return if(id!= null)
+            CustomerInfo(id,name,surname,phone,"",email,false)
+        else
+            null
+    }
+    return null
+}
+
+/**
+ * Retrieves the CustomerInfo from the provided JWT token.
+ *
+ * @param token The JWT token from which to extract theCustomerInfo.
+ * @return The CustomerInfo if valid; null otherwise.
+ */
+fun getCustomerInfo(token: JWTToken?):CustomerInfo?{
+    val jwtToken = token?.token
+    if(jwtToken!=null){
+        val decodedToken = decodeToken(jwtToken)
+        val id=decodedToken?.getClaim("id")?.asInt()
+        val name=decodedToken?.getClaim("name").toString()
+        val surname=decodedToken?.getClaim("surname").toString()
+        val phone=decodedToken?.getClaim("phone").toString()
+        val email=decodedToken?.getClaim("email").toString()
+        return if(id!= null)
+            CustomerInfo(id,name,surname,phone,"",email,false)
+        else
+            null
+    }
+    return null
+}
+
+/**
+ * Retrieves the GuardInfo from the provided DecodedJWT token.
+ *
+ * @param token The DecodedJWT token from which to extract the GuardInfo.
+ * @return The GuardInfo if valid; null otherwise.
+ */
+fun getGuardInfo(token: DecodedJWT?):GuardInfo?{
+    if(token!=null){
+        val id=token.getClaim("id")?.asInt()
+        val name=token.getClaim("name").toString()
+        val surname=token.getClaim("surname").toString()
+        val phone=token.getClaim("phone").toString()
+        val email=token.getClaim("email").toString()
+        return if(id!= null)
+            GuardInfo(id,name,surname,phone,email,Guard.GuardStatus.UNAVAILABLE.status,"",false)
+        else
+            null
+    }
+    return null
+}
+
+/**
+ * Retrieves the GuardInfo from the provided JWT token.
+ *
+ * @param token The JWT token from which to extract theGuardInfo.
+ * @return The GuardInfo if valid; null otherwise.
+ */
+fun getGuardInfo(token: JWTToken?):GuardInfo?{
+    val jwtToken = token?.token
+    if(jwtToken!=null){
+        val decodedToken = decodeToken(jwtToken)
+        val id=decodedToken?.getClaim("id")?.asInt()
+        val name=decodedToken?.getClaim("name").toString()
+        val surname=decodedToken?.getClaim("surname").toString()
+        val phone=decodedToken?.getClaim("phone").toString()
+        val email=decodedToken?.getClaim("email").toString()
+        return if(id!= null)
+            GuardInfo(id,name,surname,phone,email,Guard.GuardStatus.UNAVAILABLE.status,"",false)
+        else
+            null
     }
     return null
 }

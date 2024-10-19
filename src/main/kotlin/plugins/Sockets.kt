@@ -26,6 +26,7 @@ import routes.EmployeeField
 import routes.GuardField
 import security.JWTToken
 import security.checkPermission
+import security.getCustomerInfo
 
 
 @Serializable
@@ -125,8 +126,25 @@ fun Application.configureSockets() {
                     close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
                 })
         }
-    }
+        webSocket("/clientSocket") {
+            val token =call.sessions.get("userToken") as JWTToken?
+            checkPermission(token = token, onSuccess = {
+                val userData = getCustomerInfo(token)
+               /*
+                outgoing.send(Frame.Text(Json.encodeToString(userData)))
 
+                val locationFlow = getLocationFlow(token) // Funkcja zwracająca Flow dla lokalizacji
+                locationFlow.collect { location ->
+                    outgoing.send(Frame.Text(Json.encodeToString(location)))
+                }
+                */
+            }, onFailure = {
+                outgoing.send(Frame.Text("Invalid token"))
+                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Invalid token"))
+            })
+        }
+
+    }
 }
 fun loadDataAccordingToParams(session: DefaultWebSocketSession, queryParams: QueryParams) {
     CoroutineScope(Dispatchers.IO).launch {

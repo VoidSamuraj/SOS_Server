@@ -20,7 +20,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
  * @constructor Creates a CustomerInfo instance with the specified details.
  */
 @Serializable
-data class CustomerInfo(val id:Int, val name: String, val surname: String, val phone:String, val pesel:String, val email:String, val account_deleted:Boolean, val protection_expiration_date: LocalDateTime?=null): Principal
+data class CustomerInfo(val id:Int, val name: String, val surname: String, val phone:String, val pesel:String, val email:String, val account_deleted:Boolean, val protection_expiration_date: LocalDateTime?=null, var token:String?=null): Principal
 
 /**
  * Data class representing a Customer.
