@@ -1,13 +1,5 @@
 package plugins
 
-import io.ktor.client.*
-import io.ktor.client.engine.apache.*
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.sessions.*
 import org.jsoup.Jsoup
 import org.jsoup.safety.Safelist
 import java.util.regex.Pattern
@@ -143,19 +135,23 @@ fun isEmailValid(email: String): Boolean {
  * @return True if the PESEL number is valid; otherwise, false.
  */
 fun isPeselValid(pesel: String): Boolean {
+    // Sprawdzenie długości i czy wszystkie znaki są cyframi
     if (pesel.length != 11 || !pesel.all { it.isDigit() }) {
         return false
     }
 
     val digits = pesel.map { it.toString().toInt() }
 
+    // Wagi dla obliczania sumy kontrolnej
     val weights = intArrayOf(1, 3, 7, 9, 1, 3, 7, 9, 1, 3)
 
-    // control sum
-    val sum = digits.zip(weights.asIterable()).sumOf { (digit, weight) -> digit * weight }
+    // Obliczenie sumy kontrolnej
+    val sum = digits.take(10).zip(weights.asIterable()).sumOf { (digit, weight) -> digit * weight }
 
-    // compare control sum with last number
-    return sum % 10 == 0
+    // Porównanie ostatniej cyfry z cyfrą kontrolną
+    val controlDigit = (10 - sum % 10) % 10 // Ostatnia cyfra, która powinna być w PESEL
+
+    return controlDigit == digits[10]
 }
 
 /*

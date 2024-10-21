@@ -3,6 +3,7 @@ ktor:
         modules:
             - ApplicationKt.module
     deployment:
+        host: "localhost"
         sslPort: 8443
     security:
         ssl:

@@ -68,7 +68,7 @@ fun Route.databaseRoutes() {
             checkUserPermission(onSuccess = {
                 proceed()
             }, onFailure = {
-                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
                 finish()
             })
         }
@@ -142,65 +142,6 @@ fun Route.databaseRoutes() {
                 )
             }
 
-        }
-        patch("/edit"){
-            try{
-                val formParameters = call.receiveParameters()
-                val id = formParameters["id"]?.toIntOrNull()
-                val login = formParameters["login"]?.let { sanitizeHtml(it) }
-                val password = formParameters["password"]?.let { sanitizeHtml(it) }
-                val newPassword = formParameters["newPassword"]?.let { sanitizeHtml(it) }
-                val name = formParameters["name"]?.let { sanitizeHtml(it) }
-                val surname = formParameters["surname"]?.let { sanitizeHtml(it) }
-                val phone = formParameters["phone"]?.let { sanitizeHtml(it) }
-                val pesel = formParameters["pesel"]?.let { sanitizeHtml(it) }
-                val email = formParameters["email"]?.let { sanitizeHtml(it) }
-                val protectionExpirationDate = formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
-                val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
-
-                if(id==null || password.isNullOrEmpty()) {
-                    call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                    return@patch
-                }
-                if(!login.isNullOrEmpty() && !isLoginValid(login)){
-                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
-                    return@patch
-                }
-                if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
-                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
-                    return@patch
-                }
-                if(!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)){
-                    call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
-                    return@patch
-                }
-                if(!email.isNullOrEmpty() && !isEmailValid(email)){
-                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
-                    return@patch
-                }
-                if(!pesel.isNullOrEmpty() && !isPeselValid(pesel)){
-                    call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
-                    return@patch
-                }
-                if(!name.isNullOrEmpty() && !isUsernameValid(name)){
-                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
-                    return@patch
-                }
-                if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
-                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
-                    return@patch
-                }
-                val ret = DaoMethods.editCustomer(id,login, password.toString(), newPassword, name, surname, phone, pesel, email, protectionExpirationDateTime)
-                if(ret.first){
-                    call.respond(HttpStatusCode.OK,"The client has been edited.")
-                }else{
-                    call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.second}")
-                }
-            }catch(e:Error){
-                call.respond(
-                    HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
-                )
-            }
         }
 
         patch("/editSudo"){
@@ -357,7 +298,7 @@ fun Route.databaseRoutes() {
             checkUserPermission(onSuccess = {
                 proceed()
             }, onFailure = {
-                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
                 finish()
             })
         }
@@ -436,7 +377,7 @@ fun Route.databaseRoutes() {
             checkUserPermission(onSuccess = {
                 proceed()
             }, onFailure = {
-                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
                 finish()
             })
         }
@@ -593,7 +534,7 @@ fun Route.databaseRoutes() {
             checkUserPermission(onSuccess = {
                 proceed()
             }, onFailure = {
-                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
                 finish()
             })
         }
@@ -864,7 +805,7 @@ fun Route.databaseRoutes() {
             checkUserPermission(onSuccess = {
                 proceed()
             }, onFailure = {
-                call.respond(HttpStatusCode.Forbidden, "You do not have permission to perform this action.")
+                call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
                 finish()
             })
         }

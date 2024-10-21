@@ -19,6 +19,16 @@ interface DaoMethodsInterface {
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+    /**
+     * Checks if there exists customer with provided login
+     *
+     * @param login The customer's login.
+     * @return A Boolean: true if the customer with provided login was found.
+     */
+    suspend fun isCustomerLoginUsed(login: String):Boolean
+
+
     /**
      * Adds a new customer to the database.
      *
@@ -56,7 +66,7 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the customer was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null, surname: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
+    suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null, surname: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, protectionExpirationDate: LocalDateTime?=null): Pair<String,Customer?>
 
     /**
      * Updates basic customer details without modifying login or password. Verifies if id exists in database.
