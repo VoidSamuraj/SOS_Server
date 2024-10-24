@@ -636,6 +636,15 @@ object DaoMethods : DaoMethodsInterface {
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    override suspend fun isGuardLoginUsed(login: String): Boolean {
+        return transaction {
+            Guards
+                .selectAll().where { Guards.login eq login }
+                .mapNotNull(::resultRowToGuard)
+                .singleOrNull() != null
+        }
+    }
+
     override suspend fun addGuard(
         login: String,
         password: String,
@@ -680,27 +689,27 @@ object DaoMethods : DaoMethodsInterface {
         surname: String?,
         phone: String?,
         email: String?
-    ): Pair<Boolean, String> {
+    ): Pair<String, Guard?> {
         return transaction {
 
             val guardExists = Guards.selectAll().where { (Guards.id eq id) }.singleOrNull()
             if (guardExists == null) {
-                return@transaction false to "Incorrect Id for the Guard."
+                return@transaction "Incorrect Id for the Guard." to null
             }
 
             if (!comparePasswords(password, resultRowToGuard(guardExists).password))
-                return@transaction false to "Incorrect password for the guard."
+                return@transaction "Incorrect password for the guard." to null
 
             if (login != null) {
                 val list = Guards.selectAll().where { Guards.login eq login }.mapNotNull(::resultRowToGuard)
                 if (list.count() > 0 && list.any { guard -> guard.id != id }) {
-                    return@transaction Pair(false, "Login is already taken.")
+                    return@transaction  "Login is already taken." to null
                 }
             }
             if (phone != null) {
                 val list = Guards.selectAll().where { Guards.phone eq phone }.mapNotNull(::resultRowToGuard)
                 if (list.count() > 0 && list.any { guard -> guard.id != id }) {
-                    return@transaction Pair(false, "Phone is already taken.")
+                    return@transaction "Phone is already taken." to null
                 }
             }
 
@@ -714,10 +723,12 @@ object DaoMethods : DaoMethodsInterface {
             } > 0
 
             if (updated) {
+                val guard =Guards.selectAll().where({Guards.id eq id}).mapNotNull(::resultRowToGuard)
+                    .singleOrNull()
                 notifyClientsAboutChanges("guards", id)
-                return@transaction true to "Guard updated successfully."
+                return@transaction "Guard updated successfully." to guard
             }
-            return@transaction false to "Failed to update guard."
+            return@transaction  "Failed to update guard." to null
         }
     }
 

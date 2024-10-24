@@ -22,14 +22,20 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
  * @constructor Creates a Report instance with the specified details.
  */
 @Serializable
-data class Report(val id:Int,val client_id: Int,val location:String, val date:LocalDateTime, private val statusCode:Short){
+data class Report(
+    val id: Int,
+    val client_id: Int,
+    val location: String,
+    val date: LocalDateTime,
+    private val statusCode: Short
+) {
 
     /**
      * Enum representing status of Report.
      *
      * Contains 3 states: [ReportStatus.WAITING], [ReportStatus.IN_PROGRESS], [ReportStatus.FINISHED]
      */
-    enum class ReportStatus(val status:Int) {
+    enum class ReportStatus(val status: Int) {
         WAITING(0),
         IN_PROGRESS(1),
         FINISHED(2);
@@ -55,6 +61,7 @@ data class Report(val id:Int,val client_id: Int,val location:String, val date:Lo
     val status: ReportStatus
         get() = ReportStatus.fromInt(statusCode.toInt())
 }
+
 /**
  * Object representing the Reports table in the database.
  *

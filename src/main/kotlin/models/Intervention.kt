@@ -23,13 +23,21 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
  * @constructor Creates an Intervention instance with the specified details.
  */
 @Serializable
-data class Intervention(val id:Int,val report_id: Int,val guard_id:Int, val employee_id:Int, val start_time:LocalDateTime, val end_time:LocalDateTime, val statusCode:Short){
+data class Intervention(
+    val id: Int,
+    val report_id: Int,
+    val guard_id: Int,
+    val employee_id: Int,
+    val start_time: LocalDateTime,
+    val end_time: LocalDateTime,
+    val statusCode: Short
+) {
     /**
      * Enum representing status of Intervention.
      *
      * Contains 3 states: [InterventionStatus.CANCELLED_BY_USER], [InterventionStatus.CANCELLED_BY_GUARD], [InterventionStatus.FINISHED]
      */
-    enum class InterventionStatus(val status:Int) {
+    enum class InterventionStatus(val status: Int) {
         CANCELLED_BY_USER(0),
         CANCELLED_BY_GUARD(1),
         FINISHED(2);
@@ -64,7 +72,7 @@ data class Intervention(val id:Int,val report_id: Int,val guard_id:Int, val empl
  */
 object Interventions : Table() {
     val id = integer("id").autoIncrement()
-    val report_id = reference("report_id", Reports.id, onDelete = ReferenceOption.CASCADE )
+    val report_id = reference("report_id", Reports.id, onDelete = ReferenceOption.CASCADE)
     val guard_id = reference("guard_id", Guards.id, onDelete = ReferenceOption.NO_ACTION)
     val employee_id = reference("dispatcher_id", Employees.id, onDelete = ReferenceOption.NO_ACTION)
     val start_time = datetime("start_time")

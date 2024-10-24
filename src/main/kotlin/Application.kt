@@ -61,7 +61,7 @@ fun Application.module() {
         if(DaoMethods.getGuards(1, 10).isEmpty()) {
             DaoMethods.addGuard("JAN", "qwerty", "Jan", "Pawel", "2221", "jan1@wp.pl")
             DaoMethods.addGuard("JANn", "12we", "Jana", "Pawela", "222137", "john2@wp.pl")
-            DaoMethods.addGuard("Miroslaw", "qwerty", "Miroslaw", "Zelent", "221421", "miro@wp.pl")
+                DaoMethods.addGuard("Miroslaw", "qwerty", "Miroslaw", "Zelent", "221421", "miro@wp.pl")
         }
         if(DaoMethods.getCustomers(1, 10).isEmpty()) {
             DaoMethods.addCustomer("Olorin","qwerty", "Olorin", "MySurname", "1234522", "2137", "lll@ll.pl")

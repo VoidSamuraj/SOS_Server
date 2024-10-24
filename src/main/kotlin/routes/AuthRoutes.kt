@@ -555,14 +555,28 @@ fun Route.authRoutes() {
         }
 
         route("/guard") {
+
+            get("/isLoginUsed") {
+                val login = call.request.queryParameters["login"]?.let { sanitizeHtml(it) }
+                if (login != null) {
+                    val isLoginUsed = DaoMethods.isGuardLoginUsed(login)
+                    call.respond(HttpStatusCode.OK, isLoginUsed)
+                } else {
+                    call.respond(HttpStatusCode.BadRequest, "No login provided")
+                }
+            }
+
             post("/login") {
-                val formParameters = call.receiveParameters()
-                val login = sanitizeHtml(formParameters.getOrFail("login"))
-                val password = sanitizeHtml(formParameters.getOrFail("password"))
-                val customer = DaoMethods.getGuard(login, password)
-                if (customer.second != null) {
-                    generateAndSetToken(customer.second!!)
-                    call.respond(HttpStatusCode.OK, customer.second!!.toGuardInfo())
+                val loginRequest = call.receive<Credentials>()
+                val login = sanitizeHtml(loginRequest.login)
+                val password = sanitizeHtml(loginRequest.password)
+
+                val guard = DaoMethods.getGuard(login, password)
+                if (guard.second != null) {
+                    val token = createToken(guard.second!!).first
+                    val editedGuard = guard.second!!.toGuardInfo()
+                    editedGuard.token = token.token
+                    call.respond(HttpStatusCode.OK, Pair(guard.second!!.login, editedGuard))
                 } else {
                     call.respond(HttpStatusCode.Unauthorized, "Wrong credentials")
                 }
@@ -573,16 +587,36 @@ fun Route.authRoutes() {
                 call.respond(HttpStatusCode.OK, "Success")
             }
 
+            post("/checkToken") {
+                val token = JWTToken(call.receive<String>())
+                checkPermission(token,
+                    onSuccess = {
+                        val guard = getAccountId(token)?.let { id ->
+                            DaoMethods.getGuard(id)
+                        }
+                        val token = guard?.let { guard -> createToken(guard).first }
+                        if (token != null) {
+                            val editedGuard = guard.toGuardInfo()
+                            editedGuard.token = token.token
+                            call.respond(HttpStatusCode.OK, Pair(guard.login, editedGuard))
+                        } else
+                            call.respond(HttpStatusCode.Unauthorized, "Unauthorized")
+                    },
+                    onFailure = {
+                        call.respond(HttpStatusCode.Unauthorized, "Unauthorized")
+                    }
+                )
+            }
+
             post("/register") {
                 val formParameters = call.receiveParameters()
                 val login = sanitizeHtml(formParameters.getOrFail("login"))
                 val password = sanitizeHtml(formParameters.getOrFail("password"))
                 val phone = sanitizeHtml(formParameters.getOrFail("phone"))
-                val pesel = sanitizeHtml(formParameters.getOrFail("pesel"))
                 val email = sanitizeHtml(formParameters.getOrFail("email"))
                 val name = sanitizeHtml(formParameters.getOrFail("name"))
                 val surname = sanitizeHtml(formParameters.getOrFail("surname"))
-                if (login.isEmpty() || password.isEmpty() || name.isEmpty() || surname.isEmpty() || phone.isEmpty() || pesel.isEmpty() || email.isEmpty()) {
+                if (login.isEmpty() || password.isEmpty() || name.isEmpty() || surname.isEmpty() || phone.isEmpty() || email.isEmpty()) {
                     call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                     return@post
                 }
@@ -606,10 +640,7 @@ fun Route.authRoutes() {
                     call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
                     return@post
                 }
-                if (!isPeselValid(pesel)) {
-                    call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
-                    return@post
-                }
+
                 if (!isUsernameValid(name)) {
                     call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
                     return@post
@@ -628,15 +659,10 @@ fun Route.authRoutes() {
                 )
 
                 if (ret.first && ret.third != null) {
-                    Mailer.sendNewAccountEmail(
-                        ret.third!!.name,
-                        ret.third!!.surname,
-                        ret.third!!.email,
-                        login,
-                        password
-                    )
-
-                    call.respond(HttpStatusCode.OK, "Guard added to database.")
+                    val token = createToken(ret.third!!).first
+                    val editedGuard = ret.third!!.toGuardInfo()
+                    editedGuard.token = token.token
+                    call.respond(HttpStatusCode.OK, Pair(ret.third!!.login, editedGuard))
                 } else {
                     call.respond(
                         HttpStatusCode.InternalServerError,
@@ -669,6 +695,66 @@ fun Route.authRoutes() {
                     call.respond(HttpStatusCode.NotFound, "Account with this email does not exist")
 
             }
+
+            patch("/edit"){
+                try{
+                    val formParameters = call.receiveParameters()
+                    val id = formParameters["id"]?.toIntOrNull()
+                    val login = formParameters["login"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val password = formParameters["password"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val newPassword = formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val name = formParameters["name"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val surname = formParameters["surname"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val phone = formParameters["phone"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val email = formParameters["email"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val protectionExpirationDate = formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
+                    val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
+
+                    if(id==null || password.isNullOrEmpty()) {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
+                        return@patch
+                    }
+                    if(!login.isNullOrEmpty() && !isLoginValid(login)){
+                        call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                        return@patch
+                    }
+                    if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                        call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                        return@patch
+                    }
+                    if(!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)){
+                        call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                        return@patch
+                    }
+                    if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                        call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                        return@patch
+                    }
+
+                    if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                        call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                        return@patch
+                    }
+                    if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                        call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                        return@patch
+                    }
+                    val ret = DaoMethods.editGuard(id,login, password.toString(), newPassword, name, surname, phone, email)
+                    if(ret.second!=null){
+                        val token = createToken(ret.second!!).first
+                        val guard = ret.second!!.toGuardInfo()
+                        guard.token = token.token
+                        call.respond(HttpStatusCode.OK, Pair(ret.second!!.login, guard))
+                    }else{
+                        call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.first}")
+                    }
+                }catch(e:Error){
+                    call.respond(
+                        HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
+                    )
+                }
+            }
+
             post("/reset-password") {
                 val formParameters = call.receiveParameters()
                 val newPassword = sanitizeHtml(formParameters.getOrFail("password"))

@@ -18,7 +18,15 @@ import org.jetbrains.exposed.sql.Table
  * @constructor Creates an EmployeeInfo instance with the specified details.
  */
 @Serializable
-data class EmployeeInfo(val id:Int, val name: String, val surname: String, val phone: String, val email:String, val roleCode:Short, val account_deleted:Boolean): Principal
+data class EmployeeInfo(
+    val id: Int,
+    val name: String,
+    val surname: String,
+    val phone: String,
+    val email: String,
+    val roleCode: Short,
+    val account_deleted: Boolean
+) : Principal
 
 /**
  * This class represents an Employee, including their personal information
@@ -38,13 +46,23 @@ data class EmployeeInfo(val id:Int, val name: String, val surname: String, val p
  * @constructor Creates an Employee instance with the specified details.
  */
 @Serializable
-data class Employee(val id:Int, val login: String, val password:String, val name: String, val surname: String, val phone: String, val email:String, val roleCode:Short, val account_deleted:Boolean): Principal{
+data class Employee(
+    val id: Int,
+    val login: String,
+    val password: String,
+    val name: String,
+    val surname: String,
+    val phone: String,
+    val email: String,
+    val roleCode: Short,
+    val account_deleted: Boolean
+) : Principal {
     /**
      * Enum representing role of worker.
      *
      * Contains 3 Roles: [Role.DISPATCHER], [Role.MANAGER], [Role.ADMIN]
      */
-    enum class Role(val role:Int) {
+    enum class Role(val role: Int) {
         DISPATCHER(0),
         MANAGER(1),
         ADMIN(2);
@@ -76,8 +94,8 @@ data class Employee(val id:Int, val login: String, val password:String, val name
      *
      * @return An EmployeeInfo instance containing the employee's details.
      */
-    fun toEmployeeInfo():EmployeeInfo{
-        return EmployeeInfo(id,name,surname,phone,email,roleCode,account_deleted)
+    fun toEmployeeInfo(): EmployeeInfo {
+        return EmployeeInfo(id, name, surname, phone, email, roleCode, account_deleted)
     }
 }
 
@@ -91,11 +109,11 @@ object Employees : Table() {
     val id = integer("id").autoIncrement()
     val login = varchar("login", 20).uniqueIndex()
     val password = varchar("password", 60)
-    val name = varchar("name",40)
+    val name = varchar("name", 40)
     val surname = varchar("surname", 40)
-    val phone =  varchar("phone", 20).uniqueIndex()
+    val phone = varchar("phone", 20).uniqueIndex()
     val email = varchar("email", 255).uniqueIndex()
     val role = short("role")
-    val account_deleted=bool("account_deleted")
+    val account_deleted = bool("account_deleted")
     override val primaryKey = PrimaryKey(id)
 }

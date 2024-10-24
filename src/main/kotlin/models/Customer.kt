@@ -16,11 +16,22 @@ import org.jetbrains.exposed.sql.kotlin.datetime.datetime
  * @property email Email address of the customer.
  * @property account_deleted Indicates whether the customer's account is deleted.
  * @property protection_expiration_date Optional expiration date for protection services.
+ * @property token Optional token string, provided for  CRUD requests.
  *
  * @constructor Creates a CustomerInfo instance with the specified details.
  */
 @Serializable
-data class CustomerInfo(val id:Int, val name: String, val surname: String, val phone:String, val pesel:String, val email:String, val account_deleted:Boolean, val protection_expiration_date: LocalDateTime?=null, var token:String?=null): Principal
+data class CustomerInfo(
+    val id: Int,
+    val name: String,
+    val surname: String,
+    val phone: String,
+    val pesel: String,
+    val email: String,
+    val account_deleted: Boolean,
+    val protection_expiration_date: LocalDateTime? = null,
+    var token: String? = null
+) : Principal
 
 /**
  * Data class representing a Customer.
@@ -40,14 +51,25 @@ data class CustomerInfo(val id:Int, val name: String, val surname: String, val p
  * @constructor Creates a Customer instance with the specified details.
  */
 @Serializable
-data class Customer(val id:Int, val login: String, val password:String, val name: String, val surname: String, val phone:String, val pesel:String, val email:String, val account_deleted:Boolean, val protection_expiration_date: LocalDateTime?=null): Principal{
+data class Customer(
+    val id: Int,
+    val login: String,
+    val password: String,
+    val name: String,
+    val surname: String,
+    val phone: String,
+    val pesel: String,
+    val email: String,
+    val account_deleted: Boolean,
+    val protection_expiration_date: LocalDateTime? = null
+) : Principal {
     /**
      * Converts the Customer instance to an CustomerInfo instance.
      *
      * @return An CustomerInfo instance containing the customer's details.
      */
-    fun toCustomerInfo():CustomerInfo{
-        return CustomerInfo(id,name,surname,phone,pesel,email,account_deleted, protection_expiration_date)
+    fun toCustomerInfo(): CustomerInfo {
+        return CustomerInfo(id, name, surname, phone, pesel, email, account_deleted, protection_expiration_date)
     }
 }
 
@@ -61,12 +83,12 @@ object Customers : Table() {
     val id = integer("id").autoIncrement()
     val login = varchar("login", 20).uniqueIndex()
     val password = varchar("password", 60)
-    val name = varchar("name",40)
+    val name = varchar("name", 40)
     val surname = varchar("surname", 40)
     val phone = varchar("phone", 20).uniqueIndex()
     val pesel = varchar("pesel", 15).uniqueIndex()
     val email = varchar("email", 255).uniqueIndex()
-    val protection_expiration_date =  datetime("protection_expiration_date").nullable()
-    val account_deleted=bool("account_deleted")
+    val protection_expiration_date = datetime("protection_expiration_date").nullable()
+    val account_deleted = bool("account_deleted")
     override val primaryKey = PrimaryKey(id)
 }

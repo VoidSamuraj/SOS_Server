@@ -26,7 +26,7 @@ interface DaoMethodsInterface {
      * @param login The customer's login.
      * @return A Boolean: true if the customer with provided login was found.
      */
-    suspend fun isCustomerLoginUsed(login: String):Boolean
+    suspend fun isCustomerLoginUsed(login: String): Boolean
 
 
     /**
@@ -46,7 +46,16 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Customer?: The newly added Customer object (if successful), or null if unsuccessful.
      */
-    suspend fun addCustomer(login: String, password: String, name: String, surname: String, phone: String, pesel: String, email: String, protectionExpirationDate: LocalDateTime?=null): Triple<Boolean, String, Customer?>
+    suspend fun addCustomer(
+        login: String,
+        password: String,
+        name: String,
+        surname: String,
+        phone: String,
+        pesel: String,
+        email: String,
+        protectionExpirationDate: LocalDateTime? = null
+    ): Triple<Boolean, String, Customer?>
 
     /**
      * Updates customer details, including login and password. Verifies if provided password is equal to the password associated with id in database.
@@ -66,7 +75,18 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the customer was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editCustomer(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null, surname: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, protectionExpirationDate: LocalDateTime?=null): Pair<String,Customer?>
+    suspend fun editCustomer(
+        id: Int,
+        login: String? = null,
+        password: String,
+        newPassword: String? = null,
+        name: String? = null,
+        surname: String? = null,
+        phone: String? = null,
+        pesel: String? = null,
+        email: String? = null,
+        protectionExpirationDate: LocalDateTime? = null
+    ): Pair<String, Customer?>
 
     /**
      * Updates basic customer details without modifying login or password. Verifies if id exists in database.
@@ -84,7 +104,16 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the customer was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editCustomer(id:Int, name: String?=null, surname: String?=null, phone: String?=null, pesel: String?=null, email: String?=null, isActive:Boolean?=null, protectionExpirationDate: LocalDateTime?=null): Pair<Boolean, String>
+    suspend fun editCustomer(
+        id: Int,
+        name: String? = null,
+        surname: String? = null,
+        phone: String? = null,
+        pesel: String? = null,
+        email: String? = null,
+        isActive: Boolean? = null,
+        protectionExpirationDate: LocalDateTime? = null
+    ): Pair<Boolean, String>
 
     /**
      * Deletes (deactivates) a customer by their ID.
@@ -93,7 +122,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the customer was successfully deleted).
      */
-    suspend fun deleteCustomer(id:Int):Boolean
+    suspend fun deleteCustomer(id: Int): Boolean
 
     /**
      * Restores (reactivates) a deleted customer by their ID.
@@ -102,7 +131,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the customer was successfully restored).
      */
-    suspend fun restoreCustomer(id:Int):Boolean
+    suspend fun restoreCustomer(id: Int): Boolean
 
     /**
      * Fetches a customer by their ID.
@@ -111,7 +140,7 @@ interface DaoMethodsInterface {
      *
      * @return The Customer object if found, or null if not found.
      */
-    suspend fun getCustomer(id:Int):Customer?
+    suspend fun getCustomer(id: Int): Customer?
 
     /**
      * Fetches a customer by their login and password.
@@ -123,7 +152,7 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Customer?: The retrieved Customer object, or null if not found.
      */
-    suspend fun getCustomer(login:String, password: String):Pair<String,Customer?>
+    suspend fun getCustomer(login: String, password: String): Pair<String, Customer?>
 
     /**
      * Fetches an customer by their email address.
@@ -132,7 +161,7 @@ interface DaoMethodsInterface {
      *
      * @return The Customer object if found, or null if not found.
      */
-    suspend fun getCustomer(email:String):Customer?
+    suspend fun getCustomer(email: String): Customer?
 
     /**
      * Retrieves a paginated list of customers with optional filtering and sorting.
@@ -147,7 +176,15 @@ interface DaoMethodsInterface {
      *
      * @return A list of CustomerInfo objects matching the criteria.
      */
-    suspend fun getCustomers(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<CustomerInfo>
+    suspend fun getCustomers(
+        page: Int,
+        pageSize: Int,
+        filterColumn: Column<out Any>? = null,
+        filterValue: String? = null,
+        filterType: String? = null,
+        sortBy: Column<out Any>? = null,
+        sortDir: String? = "asc"
+    ): List<CustomerInfo>
 
     /**
      * Retrieves a list of selected customers.
@@ -156,18 +193,14 @@ interface DaoMethodsInterface {
      *
      * @return A list of CustomerInfo objects matching the criteria.
      */
-    suspend fun getCustomers(ids: List<Int>):List<CustomerInfo>
+    suspend fun getCustomers(ids: List<Int>): List<CustomerInfo>
 
     /**
      * Retrieves a list of all customers.
      *
      * @return A list of all CustomerInfo objects.
      */
-    suspend fun getAllCustomers():List<CustomerInfo>
-
-
-
-
+    suspend fun getAllCustomers(): List<CustomerInfo>
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,7 +221,14 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the intervention was successfully added).
      */
-    suspend fun addIntervention(reportId: Int, guardId: Int, employeeId: Int, startTime: LocalDateTime, endTime: LocalDateTime, status:Intervention.InterventionStatus):Boolean
+    suspend fun addIntervention(
+        reportId: Int,
+        guardId: Int,
+        employeeId: Int,
+        startTime: LocalDateTime,
+        endTime: LocalDateTime,
+        status: Intervention.InterventionStatus
+    ): Boolean
 
     /**
      * Retrieves an intervention by its ID.
@@ -197,7 +237,7 @@ interface DaoMethodsInterface {
      *
      * @return The Intervention object if found, or null if not found.
      */
-    suspend fun getIntervention(id:Int):Intervention?
+    suspend fun getIntervention(id: Int): Intervention?
 
     /**
      * Retrieves a paginated list of interventions with optional filtering and sorting.
@@ -212,18 +252,22 @@ interface DaoMethodsInterface {
      *
      * @return A list of Intervention objects matching the criteria.
      */
-    suspend fun getInterventions(page: Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<Intervention>
+    suspend fun getInterventions(
+        page: Int,
+        pageSize: Int,
+        filterColumn: Column<out Any>? = null,
+        filterValue: String? = null,
+        filterType: String? = null,
+        sortBy: Column<out Any>? = null,
+        sortDir: String? = "asc"
+    ): List<Intervention>
 
     /**
      * Retrieves a list of all interventions.
      *
      * @return A list of all Intervention objects.
      */
-    suspend fun getAllInterventions():List<Intervention>
-
-
-
-
+    suspend fun getAllInterventions(): List<Intervention>
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -242,7 +286,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the report was successfully added).
      */
-    suspend fun addReport(clientId:Int, location:String, date: LocalDateTime, status:Report.ReportStatus):Boolean
+    suspend fun addReport(clientId: Int, location: String, date: LocalDateTime, status: Report.ReportStatus): Boolean
 
     /**
      * Deletes a report by their ID
@@ -251,7 +295,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the report was successfully deleted).
      */
-    suspend fun deleteReport(id:Int):Boolean
+    suspend fun deleteReport(id: Int): Boolean
 
     /**
      * Updates the location of a report.
@@ -261,7 +305,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the location was successfully updated).
      */
-    suspend fun updateReportLocation(id:Int, location: String):Boolean
+    suspend fun updateReportLocation(id: Int, location: String): Boolean
 
     /**
      * Changes the status of a report.
@@ -271,7 +315,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the status was successfully changed).
      */
-    suspend fun changeReportStatus(id:Int, status:Report.ReportStatus):Boolean
+    suspend fun changeReportStatus(id: Int, status: Report.ReportStatus): Boolean
 
     /**
      * Fetches a report by its ID.
@@ -280,7 +324,7 @@ interface DaoMethodsInterface {
      *
      * @return The Report object if found, or null if not found.
      */
-    suspend fun getReport(id:Int):Report?
+    suspend fun getReport(id: Int): Report?
 
     /**
      * Retrieves a paginated list of reports with optional filtering and sorting.
@@ -295,7 +339,15 @@ interface DaoMethodsInterface {
      *
      * @return A list of Report objects matching the criteria.
      */
-    suspend fun getReports(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<Report>
+    suspend fun getReports(
+        page: Int,
+        pageSize: Int,
+        filterColumn: Column<out Any>? = null,
+        filterValue: String? = null,
+        filterType: String? = null,
+        sortBy: Column<out Any>? = null,
+        sortDir: String? = "asc"
+    ): List<Report>
 
     /**
      * Retrieves a list of all reports.
@@ -306,11 +358,7 @@ interface DaoMethodsInterface {
      * @return A list of reports (`List<Report>`), filtered according to the `filterFinished` parameter.
      * @throws Exception If there is an issue retrieving the reports from the data source.
      */
-    suspend fun getAllReports(filterFinished: Boolean):List<Report>
-
-
-
-
+    suspend fun getAllReports(filterFinished: Boolean): List<Report>
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -318,6 +366,14 @@ interface DaoMethodsInterface {
     //                                    Guard Section
     //
     ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Checks if there exists guard with provided login
+     *
+     * @param login The guard's login.
+     * @return A Boolean: true if the guard with provided login was found.
+     */
+    suspend fun isGuardLoginUsed(login: String): Boolean
 
     /**
      * Adds a new guard to the database.
@@ -334,7 +390,14 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Guard?: The newly added Guard object (if successful), or null if unsuccessful.
      */
-    suspend fun addGuard(login: String, password: String, name:String, surname:String, phone: String, email: String): Triple<Boolean, String,Guard?>
+    suspend fun addGuard(
+        login: String,
+        password: String,
+        name: String,
+        surname: String,
+        phone: String,
+        email: String
+    ): Triple<Boolean, String, Guard?>
 
     /**
      * Updates guard details, including login and password. Verifies if provided password is equal to the password associated with id in database.
@@ -352,7 +415,16 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the guard was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editGuard(id:Int, login: String?=null, password: String, newPassword: String?=null, name:String?=null, surname:String?=null, phone: String?=null, email: String?=null): Pair<Boolean, String>
+    suspend fun editGuard(
+        id: Int,
+        login: String? = null,
+        password: String,
+        newPassword: String? = null,
+        name: String? = null,
+        surname: String? = null,
+        phone: String? = null,
+        email: String? = null
+    ): Pair<String, Guard?>
 
     /**
      * Updates basic guard details without modifying login or password. Verifies if id exists in database.
@@ -368,7 +440,14 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the guard was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editGuard(id:Int, name:String?=null, surname:String?=null, phone: String?=null, email: String?=null, isActive:Boolean?=null): Pair<Boolean, String>
+    suspend fun editGuard(
+        id: Int,
+        name: String? = null,
+        surname: String? = null,
+        phone: String? = null,
+        email: String? = null,
+        isActive: Boolean? = null
+    ): Pair<Boolean, String>
 
 
     /**
@@ -381,7 +460,7 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the guard's password was successfully changed).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun changeGuardPassword(id:Int, password:String): Pair<Boolean, String>
+    suspend fun changeGuardPassword(id: Int, password: String): Pair<Boolean, String>
 
     /**
      * Deletes (deactivates) a guard by their ID.
@@ -390,7 +469,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the guard was successfully deleted).
      */
-    suspend fun deleteGuard(id:Int):Boolean
+    suspend fun deleteGuard(id: Int): Boolean
 
     /**
      * Restores (reactivates) a deleted guard by their ID.
@@ -399,7 +478,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the guard was successfully restored).
      */
-    suspend fun restoreGuard(id:Int):Boolean
+    suspend fun restoreGuard(id: Int): Boolean
 
     /**
      * Fetches a guard by their ID.
@@ -408,7 +487,7 @@ interface DaoMethodsInterface {
      *
      * @return The Guard object if found, or null if not found.
      */
-    suspend fun getGuard(id:Int):Guard?
+    suspend fun getGuard(id: Int): Guard?
 
     /**
      * Fetches an guard by their email address.
@@ -417,7 +496,7 @@ interface DaoMethodsInterface {
      *
      * @return The Guard object if found, or null if not found.
      */
-    suspend fun getGuard(email:String):Guard?
+    suspend fun getGuard(email: String): Guard?
 
     /**
      * Fetches a guard by their login and password.
@@ -429,7 +508,7 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Guard?: The retrieved Guard object, or null if not found.
      */
-    suspend fun getGuard(login:String, password: String):Pair<String,Guard?>
+    suspend fun getGuard(login: String, password: String): Pair<String, Guard?>
 
     /**
      * Retrieves a paginated list of guards with optional filtering and sorting.
@@ -444,7 +523,15 @@ interface DaoMethodsInterface {
      *
      * @return A list of GuardInfo objects matching the criteria.
      */
-    suspend fun getGuards(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<GuardInfo>
+    suspend fun getGuards(
+        page: Int,
+        pageSize: Int,
+        filterColumn: Column<out Any>? = null,
+        filterValue: String? = null,
+        filterType: String? = null,
+        sortBy: Column<out Any>? = null,
+        sortDir: String? = "asc"
+    ): List<GuardInfo>
 
     /**
      * Retrieves a list of selected guards.
@@ -453,18 +540,14 @@ interface DaoMethodsInterface {
      *
      * @return A list of GuardInfo objects matching the criteria.
      */
-    suspend fun getGuards(ids: List<Int>):List<GuardInfo>
+    suspend fun getGuards(ids: List<Int>): List<GuardInfo>
 
     /**
      * Retrieves a list of all guards.
      *
      * @return A list of all GuardInfo objects.
      */
-    suspend fun getAllGuards():List<GuardInfo>
-
-
-
-
+    suspend fun getAllGuards(): List<GuardInfo>
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -480,7 +563,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the employee was successfully deleted).
      */
-    suspend fun deleteEmployee(id:Int):Boolean
+    suspend fun deleteEmployee(id: Int): Boolean
 
     /**
      * Restores (reactivates) a deleted employee by their ID.
@@ -489,7 +572,7 @@ interface DaoMethodsInterface {
      *
      * @return Boolean indicating success (true if the employee was successfully restored).
      */
-    suspend fun restoreEmployee(id:Int):Boolean
+    suspend fun restoreEmployee(id: Int): Boolean
 
     /**
      * Updates employee details, including login and password. Verifies if provided password is equal to the password associated with id in database.
@@ -509,7 +592,17 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - EmployeeInfo?: An edited object or null.
      */
-    suspend fun editEmployee(id:Int, login: String?=null, password: String, newPassword: String?=null, name: String?=null,surname: String?=null, phone: String?=null, email:String?=null, role:Employee.Role?=null): Triple<Boolean, String, EmployeeInfo?>
+    suspend fun editEmployee(
+        id: Int,
+        login: String? = null,
+        password: String,
+        newPassword: String? = null,
+        name: String? = null,
+        surname: String? = null,
+        phone: String? = null,
+        email: String? = null,
+        role: Employee.Role? = null
+    ): Triple<Boolean, String, EmployeeInfo?>
 
     /**
      * Updates basic employee details without modifying login or password. Verifies if id exists in database.
@@ -526,7 +619,15 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the employee was successfully updated).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun editEmployee(id:Int, name: String?=null,surname: String?=null, phone: String?=null, email:String?=null, role:Employee.Role?=null, isActive:Boolean?=null): Pair<Boolean, String>
+    suspend fun editEmployee(
+        id: Int,
+        name: String? = null,
+        surname: String? = null,
+        phone: String? = null,
+        email: String? = null,
+        role: Employee.Role? = null,
+        isActive: Boolean? = null
+    ): Pair<Boolean, String>
 
     /**
      * Changes the role of an employee.
@@ -538,7 +639,7 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the employee's role was successfully changed).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun changeEmployeeRole(id:Int, role:Employee.Role): Pair<Boolean, String>
+    suspend fun changeEmployeeRole(id: Int, role: Employee.Role): Pair<Boolean, String>
 
     /**
      * Changes the password of an employee.
@@ -550,7 +651,7 @@ interface DaoMethodsInterface {
      *         - Boolean: Success status (true if the employee's password was successfully changed).
      *         - String: A message providing additional context (e.g., error or success message).
      */
-    suspend fun changeEmployeePassword(id:Int, password:String): Pair<Boolean, String>
+    suspend fun changeEmployeePassword(id: Int, password: String): Pair<Boolean, String>
 
     /**
      * Adds a new employee to the database.
@@ -568,7 +669,15 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Employee?: The newly added Employee object (if successful), or null if unsuccessful.
      */
-    suspend fun addEmployee(login: String, password: String, name: String,surname: String, phone: String, email:String, role:Employee.Role): Triple<Boolean,String,Employee?>
+    suspend fun addEmployee(
+        login: String,
+        password: String,
+        name: String,
+        surname: String,
+        phone: String,
+        email: String,
+        role: Employee.Role
+    ): Triple<Boolean, String, Employee?>
 
     /**
      * Fetches an employee by their ID.
@@ -577,7 +686,7 @@ interface DaoMethodsInterface {
      *
      * @return The Employee object if found, or null if not found.
      */
-    suspend fun getEmployee(id:Int):Employee?
+    suspend fun getEmployee(id: Int): Employee?
 
     /**
      * Fetches an employee by their email address.
@@ -586,7 +695,7 @@ interface DaoMethodsInterface {
      *
      * @return The Employee object if found, or null if not found.
      */
-    suspend fun getEmployee(email:String):Employee?
+    suspend fun getEmployee(email: String): Employee?
 
     /**
      * Fetches an employee by their login and password.
@@ -598,7 +707,7 @@ interface DaoMethodsInterface {
      *         - String: A message providing additional context (e.g., error or success message).
      *         - Employee?: The retrieved Employee object, or null if not found.
      */
-    suspend fun getEmployee(login:String, password: String):Pair<String,Employee?>
+    suspend fun getEmployee(login: String, password: String): Pair<String, Employee?>
 
     /**
      * Retrieves a paginated list of employees with optional filtering and sorting.
@@ -613,7 +722,15 @@ interface DaoMethodsInterface {
      *
      * @return A list of EmployeeInfo objects matching the criteria.
      */
-    suspend fun getEmployees(page:Int, pageSize: Int, filterColumn: Column<out Any>? = null, filterValue: String? = null, filterType:String?=null, sortBy: Column<out Any>? = null, sortDir: String?= "asc"):List<EmployeeInfo>
+    suspend fun getEmployees(
+        page: Int,
+        pageSize: Int,
+        filterColumn: Column<out Any>? = null,
+        filterValue: String? = null,
+        filterType: String? = null,
+        sortBy: Column<out Any>? = null,
+        sortDir: String? = "asc"
+    ): List<EmployeeInfo>
 
     /**
      * Retrieves a list of selected employees.
@@ -622,12 +739,12 @@ interface DaoMethodsInterface {
      *
      * @return A list of EmployeeInfo objects matching the criteria.
      */
-    suspend fun getEmployees(ids: List<Int>):List<EmployeeInfo>
+    suspend fun getEmployees(ids: List<Int>): List<EmployeeInfo>
 
     /**
      * Retrieves a list of all employees.
      *
      * @return A list of all EmployeeInfo objects.
      */
-    suspend fun getAllEmployees():List<EmployeeInfo>
+    suspend fun getAllEmployees(): List<EmployeeInfo>
 }

@@ -17,11 +17,22 @@ import org.jetbrains.exposed.sql.Table
  * [Guard.GuardStatus.AVAILABLE], [Guard.GuardStatus.UNAVAILABLE], or [Guard.GuardStatus.INTERVENTION].
  * @property location Physical location or assigned area of the guard.
  * @property account_deleted Indicates whether the guard's account has been marked as deleted.
+ * @property token Optional token string, provided for  CRUD requests.
  *
  * @constructor Creates a GuardInfo instance with the specified details.
  */
 @Serializable
-data class GuardInfo(val id:Int, val name: String, val surname: String,val phone: String, val email:String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal
+data class GuardInfo(
+    val id: Int,
+    val name: String,
+    val surname: String,
+    val phone: String,
+    val email: String,
+    var statusCode: Int,
+    var location: String,
+    val account_deleted: Boolean,
+    var token: String? = null
+) : Principal
 
 /**
  * Data class representing a Guard.
@@ -44,7 +55,18 @@ data class GuardInfo(val id:Int, val name: String, val surname: String,val phone
  * @constructor Creates a Guard instance with the specified details, including sensitive credentials.
  */
 @Serializable
-data class Guard(val id:Int, val login: String,val password:String, val name: String, val surname: String,val phone: String, val email:String, var statusCode:Int, var location:String, val account_deleted:Boolean): Principal{
+data class Guard(
+    val id: Int,
+    val login: String,
+    val password: String,
+    val name: String,
+    val surname: String,
+    val phone: String,
+    val email: String,
+    var statusCode: Int,
+    var location: String,
+    val account_deleted: Boolean
+) : Principal {
 
     /**
      * Enum representing status of Guard.
@@ -81,7 +103,7 @@ data class Guard(val id:Int, val login: String,val password:String, val name: St
      *
      * @return An GuardInfo instance containing the guard's details.
      */
-    fun toGuardInfo():GuardInfo{
+    fun toGuardInfo(): GuardInfo {
         return GuardInfo(id, name, surname, phone, email, statusCode, location, account_deleted)
     }
 }
@@ -96,10 +118,10 @@ object Guards : Table() {
     val id = integer("id").autoIncrement()
     val login = varchar("login", 20).uniqueIndex()
     val password = varchar("password", 60)
-    val name = varchar("name",40)
+    val name = varchar("name", 40)
     val surname = varchar("surname", 40)
-    val phone =  varchar("phone", 20).uniqueIndex()
+    val phone = varchar("phone", 20).uniqueIndex()
     val email = varchar("email", 255).uniqueIndex()
-    val account_deleted=bool("account_deleted")
+    val account_deleted = bool("account_deleted")
     override val primaryKey = PrimaryKey(id)
 }
