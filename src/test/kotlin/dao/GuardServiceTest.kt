@@ -1,4 +1,5 @@
 package dao
+
 import Guards
 import Interventions
 import org.jetbrains.exposed.sql.*
@@ -8,12 +9,12 @@ import kotlin.test.*
 
 class GuardServiceTest {
 
-    private  val  db: Database = DatabaseFactory.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver")
+    private val db: Database = DatabaseFactory.init("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "org.h2.Driver")
 
     @BeforeTest
     fun setup() {
         transaction(db) {
-            SchemaUtils.drop(Interventions,Guards)
+            SchemaUtils.drop(Interventions, Guards)
             SchemaUtils.create(Guards)
         }
     }
@@ -27,24 +28,25 @@ class GuardServiceTest {
         assertNotNull(guard)
         assertEquals("John", guard[Guards.name])
     }
+
     @Test
     fun `should add only three guards`() = runTest {
-        var result = DaoMethods.addGuard("JonnnD", "zaq1@WSX","John", "Doe", "123456789", "johnD1@wp.pl")
+        var result = DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", "johnD1@wp.pl")
         assertTrue(result.first)
 
-        result = DaoMethods.addGuard("JonnnD", "zaq1@WSX2","John2", "Doe2", "1234567892", "johnD2@wp.pl")
+        result = DaoMethods.addGuard("JonnnD", "zaq1@WSX2", "John2", "Doe2", "1234567892", "johnD2@wp.pl")
         assertFalse(result.first)
 
-        result = DaoMethods.addGuard("JonnnD2", "zaq1@WSX","John2", "Doe2", "1234567892", "johnD3@wp.pl")
+        result = DaoMethods.addGuard("JonnnD2", "zaq1@WSX", "John2", "Doe2", "1234567892", "johnD3@wp.pl")
         assertTrue(result.first)
 
-        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX","John", "Doe3", "1234567893", "johnD4@wp.pl")
+        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX", "John", "Doe3", "1234567893", "johnD4@wp.pl")
         assertTrue(result.first)
 
-        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX","John3", "Doe", "1234567893", "johnD5@wp.pl")
+        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX", "John3", "Doe", "1234567893", "johnD5@wp.pl")
         assertFalse(result.first)
 
-        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX3","John3", "Doe3", "123456789", "johnD6@wp.pl")
+        result = DaoMethods.addGuard("JonnnD3", "zaq1@WSX3", "John3", "Doe3", "123456789", "johnD6@wp.pl")
         assertFalse(result.first)
     }
 
@@ -52,7 +54,7 @@ class GuardServiceTest {
     fun `should edit guard`() = runTest {
         DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", "johnD7@wp.pl")
         val result = DaoMethods.editGuard(1, name = "Jane", password = "zaq1@WSX")
-        assertTrue(result.first)
+        assertTrue(result.second != null)
 
         val guard = transaction { Guards.selectAll().singleOrNull() }
         assertNotNull(guard)
@@ -63,7 +65,7 @@ class GuardServiceTest {
     fun `should not edit guard`() = runTest {
         DaoMethods.addGuard("JonnnD", "zaq1@WSX", "John", "Doe", "123456789", "johnD8@wp.pl")
         val result = DaoMethods.editGuard(1, name = "Jane", password = "qwerty")
-        assertFalse(result.first)
+        assertFalse(result.second != null)
 
         val guard = transaction { Guards.selectAll().singleOrNull() }
         assertNotNull(guard)

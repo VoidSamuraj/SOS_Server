@@ -57,7 +57,7 @@ class CustomersServiceTest {
         DaoMethods.addCustomer("login2", "password2","Name2", "Surname2", "987654321", "12345678902", "email2@test.com")
 
         val result = DaoMethods.editCustomer(id = 1, login = "newLogin", password = "password2", null, null, null)
-        assertTrue(result.first)
+        assertTrue(result.second != null)
 
         val customer = transaction { Customers.selectAll().singleOrNull() }
         assertNotNull(customer)
@@ -68,7 +68,7 @@ class CustomersServiceTest {
         DaoMethods.addCustomer("login2", "password2","Name2", "Surname2", "987654321", "12345678902", "email2@test.com")
 
         val result = DaoMethods.editCustomer(id = 1, login = "newLogin", password = "password1", null, null, null)
-        assertFalse(result.first)
+        assertFalse(result.second != null)
 
         val customer = transaction { Customers.selectAll().singleOrNull() }
         assertNotNull(customer)

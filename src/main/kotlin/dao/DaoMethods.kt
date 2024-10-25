@@ -524,7 +524,7 @@ object DaoMethods : DaoMethodsInterface {
         location: String,
         date: LocalDateTime,
         status: Report.ReportStatus
-    ): Boolean {
+    ): Int {
         return transaction {
             val insertStatement = Reports.insert {
                 it[Reports.client_id] = clientId
@@ -532,7 +532,7 @@ object DaoMethods : DaoMethodsInterface {
                 it[Reports.date] = date
                 it[Reports.status] = status.status.toShort()
             }
-            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToReport) != null
+            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToReport)?.id ?:-1
         }
     }
 

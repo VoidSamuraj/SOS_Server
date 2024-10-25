@@ -433,7 +433,7 @@ fun Route.databaseRoutes() {
                         status
                     )
                 )
-                if (result) {
+                if (result!=-1) {
                     call.respond(HttpStatusCode.OK, "Report added to database.")
                 } else {
                     call.respond(HttpStatusCode.InternalServerError, "Failed to add report to the database.")

@@ -4,16 +4,13 @@ import io.ktor.server.application.*
 import io.ktor.websocket.DefaultWebSocketSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import plugins.*
+import viewmodel.SecurityDataViewModel
 import kotlin.random.Random
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
@@ -25,8 +22,6 @@ val administrationSelectedRowsIds = mutableMapOf<DefaultWebSocketSession, Array<
 
 
 lateinit var guardTest:List<GuardInfo>
-lateinit var guardsFlow:Flow<List<GuardInfo>>
-lateinit var reportsFlow:MutableStateFlow<List<Report>>
 
 
 fun main(args: Array<String>) {
@@ -100,26 +95,14 @@ fun Application.module() {
 
 
         guardTest= runBlocking{DaoMethods.getAllGuards()}
-
+        guardTest.forEach() {it->
+            it.location=randomLocationInPoland()
+            it.statusCode =Random.nextInt(0, 2)
+        }
         //END TEST
 
-
-        reportsFlow = MutableStateFlow<List<Report>>(DaoMethods.getAllReports(true))
-        guardsFlow = flow{
-
-            //TEST
-            var randomNumber:Int
-            var newLocation: String
-            repeat (100){
-                if(guardTest.isNotEmpty()) {
-                    randomNumber = Random.nextInt(0, guardTest.size)
-                    newLocation = randomLocationInPoland()
-                    emit(listOf(guardTest[randomNumber].apply {statusCode=Random.nextInt(0, 2); location = newLocation }))
-                }
-                delay(2000)
-            }
-            //END TEST
-        }
+        SecurityDataViewModel.setReports(DaoMethods.getAllReports(true))
+        SecurityDataViewModel.setGuards(guardTest)
     }
 
     configureWorkerAuthentication()

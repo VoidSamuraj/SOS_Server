@@ -284,9 +284,9 @@ interface DaoMethodsInterface {
      * @param date The date and time when the report was created.
      * @param status The current status of the report.
      *
-     * @return Boolean indicating success (true if the report was successfully added).
+     * @return Int representing id (-1 if failure).
      */
-    suspend fun addReport(clientId: Int, location: String, date: LocalDateTime, status: Report.ReportStatus): Boolean
+    suspend fun addReport(clientId: Int, location: String, date: LocalDateTime, status: Report.ReportStatus): Int
 
     /**
      * Deletes a report by their ID

@@ -33,7 +33,7 @@ class ReportServiceTest {
     fun `should add report`() = runTest {
         DaoMethods.addCustomer("login1", "password1","Name1", "Surname1", "123456789", "12345678901", "email@test.com")
         val result = DaoMethods.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
-        assertTrue(result)
+        assertTrue(result!=-1)
 
         val report = transaction { Reports.selectAll().singleOrNull() }
         assertNotNull(report)

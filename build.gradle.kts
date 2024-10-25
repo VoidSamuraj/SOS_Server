@@ -63,6 +63,8 @@ dependencies {
     implementation("org.mariadb.jdbc:mariadb-java-client:$mariaDB_version")
     implementation("com.h2database:h2:$h2_version")
 
+    implementation("com.google.code.gson:gson:2.10.1")
+
     implementation("io.ktor:ktor-server-auth:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
