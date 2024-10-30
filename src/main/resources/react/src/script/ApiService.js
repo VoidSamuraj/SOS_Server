@@ -858,6 +858,42 @@ export const getAllReports = async () => {
   }
 };
 
+/**
+ * Assign report to guard.
+ *
+ * @param {number} reportId - The ID of the report to be assigned.
+ * @param {number} guardId - The ID of the guard to be assigned to report.
+ * @param {number} employeeId - The ID of the employee which assigns report.
+ * @param {callback} onSuccess - The function invoked on success.
+ * @param {callback} onFailure - The function invoked on failure.
+ *
+ */
+export const assignReportToGuard = async(reportId, guardId, employeeId, onSuccess) =>{
+      try {
+        const formData = new URLSearchParams();
+        formData.append("reportId", reportId);
+        formData.append("guardId", guardId);
+        formData.append("employeeId", employeeId);
+
+        const response = await fetch("/action/assignGuardToReport", {
+          method: "POST",
+          credentials: "include",
+           headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+           },
+           body: formData,
+        });
+
+        if (response.ok) {
+            onSuccess();
+        } else {
+          console.error("Fetch error :", response.statusText);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 //                                    Other Section

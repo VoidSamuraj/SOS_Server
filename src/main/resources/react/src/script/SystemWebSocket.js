@@ -43,7 +43,17 @@ class SystemWebSocket {
    * Handles the WebSocket connection close event.
    */
   handleClose() {
-    console.log("WebSocket connection closed");
+  // Tworzenie nowego obiektu Date
+  const now = new Date();
+
+  // Pobranie godzin
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
+  const seconds = now.getSeconds();
+
+    // Wyświetlenie godziny w formacie HH:MM:SS
+    const currentTime = `${hours}:${minutes}:${seconds}`;
+    console.log("WebSocket connection closed"+currentTime);
   }
 
   /**

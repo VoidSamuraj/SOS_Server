@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import bell from "../icons/bell.svg";
 import { usePatrols } from "./map/MapFunctions";
+import {assignReportToGuard} from "../script/ApiService.js";
 
 /**
  * AssignTaskBox component allows users to assign tasks to patrols based on reports.
@@ -10,14 +11,28 @@ import { usePatrols } from "./map/MapFunctions";
  * and includes functionality to handle the assignment of tasks.
  *
  * @param {Array} props.patrols - An array of patrols available for task assignment.
- * @param {Map} props.reports - A map of reports that can be assigned to patrols.
+  * Each entry includes:
+  * - `status`: The current state of the patrol (e.g., 0 for "Pending").
+  * - `name`: First name associated with the patrol.
+  * - `surname`: Last name associated with the patrol.
+  * - `phone`: Contact number for the individual.
+  * - `account_deleted`: Indicates if the account is active (false) or deleted (true).
+  * - `position`: An object representing geographic coordinates with `lat` (latitude) and `lng` (longitude).
+  * @param {Map} props.reports - A map of reports related to patrols.
+  * Each entry in the map contains:
+  * - `position`: An object with geographic coordinates:
+  *   - `lat`: Latitude of the report's location.
+  *   - `lng`: Longitude of the report's location.
+  * - `date`: A timestamp indicating when the report was created or last updated.
+  * - `status`: An integer representing the current status of the report (e.g., 0 for "Pending").
+  * This structure facilitates efficient tracking and management of reports assigned to patrols.
  * @param {function} props.onAssignTask - Callback function to execute when a task is assigned.
  * @param {boolean} props.hideBell - Indicates if the notification bell is hidden.
  * @param {function} props.setHideBell - Function to toggle the visibility of the notification bell.
- * @param {string|null} props.selectedReport - Currently selected report for task assignment.
+ * @param {number|null} props.selectedReport - Currently selected report id for task assignment.
  * @param {function(number, Object):void} props.setSelectedReport - Function that accepts
  * an `id` (number) and a `location` object, and sets the selected report.
- * @param {string|null} props.selectedPatrol - Currently selected patrol for task assignment.
+ * @param {number|null} props.selectedPatrol - Currently selected patrol id for task assignment.
  * @param {function(number, Object):void} props.setSelectedPatrol - Function that accepts
  * an `id` (number) and a `location` object, and sets the selected patrol.
  * @param {number} props.nrOfMenu - Current menu step in the assignment process.
@@ -54,11 +69,15 @@ function AssignTaskBox({
       selectedPatrol != null &&
       nrOfMenu == 3
     ) {
-      setHideBell(false);
-      setNrOfMenu(1);
-      onAssignTask(selectedPatrol, selectedReport);
-      setSelectedPatrol(null, null);
-      setSelectedReport(null, null);
+      let userId = localStorage.getItem("userData");
+      assignReportToGuard(selectedReport, selectedPatrol, userId, ()=>{
+              setHideBell(false);
+                  setNrOfMenu(1);
+                  onAssignTask(selectedPatrol, selectedReport);
+                  setSelectedPatrol(null, null);
+                  setSelectedReport(null, null);
+          });
+
     }
   }
   const updateButtonState = () => {

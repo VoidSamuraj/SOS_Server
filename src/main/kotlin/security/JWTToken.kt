@@ -1,8 +1,5 @@
 package security
 
-import CustomerInfo
-import EmployeeInfo
-import GuardInfo
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
@@ -10,11 +7,16 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import dao.DaoMethods
 import jwtExpirationSeconds
 import kotlinx.serialization.Serializable
+import models.dto.CustomerInfo
+import models.dto.GuardInfo
+import models.entity.Customer
+import models.entity.Employee
+import models.entity.Guard
 import security.Keys.ISS
 import java.util.Date
 
 @Serializable
-data class JWTToken(val token:String)
+data class JWTToken(val token: String)
 
 
 /**
@@ -43,10 +45,10 @@ suspend fun checkPermission(
         onFailure()
         return
     }
-    val id= getAccountId(decodedToken)
+    val id = getAccountId(decodedToken)
     val audience = decodedToken.audience?.firstOrNull()
 
-    if (id!=null)
+    if (id != null)
         when (audience) {
             "employee" -> {
                 val expireTime = getTokenExpirationDate(decodedToken)
@@ -61,6 +63,7 @@ suspend fun checkPermission(
                     onFailure()
                 }
             }
+
             "customer" -> {
                 if (DaoMethods.getCustomer(id) != null) {
                     onSuccess()
@@ -68,6 +71,7 @@ suspend fun checkPermission(
                     onFailure()
                 }
             }
+
             "guard" -> {
                 if (DaoMethods.getGuard(id) != null) {
                     onSuccess()
@@ -75,6 +79,7 @@ suspend fun checkPermission(
                     onFailure()
                 }
             }
+
             else -> {
                 // Unrecognized audience type
                 onFailure()
@@ -98,7 +103,7 @@ suspend fun checkPermission(
  * @param customer The employee for whom the token is created.
  * @return A Pair containing JWTToken and expiration date.
  */
-fun createToken(customer: Customer): Pair<JWTToken, Long>{
+fun createToken(customer: Customer): Pair<JWTToken, Long> {
     val token = JWT.create()
         .withIssuer(ISS)
         .withAudience("customer")
@@ -109,7 +114,7 @@ fun createToken(customer: Customer): Pair<JWTToken, Long>{
         .withClaim("phone", customer.phone)
         .withClaim("email", customer.email)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
-    return Pair(JWTToken(token),Long.MAX_VALUE)
+    return Pair(JWTToken(token), Long.MAX_VALUE)
 }
 
 /**
@@ -126,7 +131,7 @@ fun createToken(customer: Customer): Pair<JWTToken, Long>{
  * @param guard The employee for whom the token is created.
  * @return A Pair containing JWTToken and expiration date.
  */
-fun createToken(guard: Guard): Pair<JWTToken, Long>{
+fun createToken(guard: Guard): Pair<JWTToken, Long> {
     val token = JWT.create()
         .withIssuer(ISS)
         .withAudience("guard")
@@ -137,7 +142,7 @@ fun createToken(guard: Guard): Pair<JWTToken, Long>{
         .withClaim("phone", guard.phone)
         .withClaim("email", guard.email)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
-    return Pair(JWTToken(token),Long.MAX_VALUE)
+    return Pair(JWTToken(token), Long.MAX_VALUE)
 }
 
 /**
@@ -156,7 +161,7 @@ fun createToken(guard: Guard): Pair<JWTToken, Long>{
  * @param employee The employee for whom the token is created.
  * @return A Pair containing JWTToken and expiration date.
  */
-fun createToken(employee: Employee): Pair<JWTToken, Long>{
+fun createToken(employee: Employee): Pair<JWTToken, Long> {
     val tokenExp = Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000)
     val token = JWT.create()
         .withIssuer(ISS)
@@ -170,7 +175,7 @@ fun createToken(employee: Employee): Pair<JWTToken, Long>{
         .withClaim("roleCode", employee.roleCode.toInt())
         .withExpiresAt(tokenExp)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
-    return Pair(JWTToken(token),tokenExp.time)
+    return Pair(JWTToken(token), tokenExp.time)
 }
 
 /**
@@ -179,12 +184,12 @@ fun createToken(employee: Employee): Pair<JWTToken, Long>{
  * @param jwtToken The JWT token to decode.
  * @return A DecodedJWT object containing the claims of the token, null if is not valid.
  */
-fun decodeToken(jwtToken:String?):DecodedJWT?{
+fun decodeToken(jwtToken: String?): DecodedJWT? {
     return try {
         JWT.require(Algorithm.HMAC256(Keys.JWTSecret))
             .build()
             .verify(jwtToken)
-    }catch(_: Exception){
+    } catch (_: Exception) {
         null
     }
 }
@@ -195,7 +200,7 @@ fun decodeToken(jwtToken:String?):DecodedJWT?{
  * @param token The DecodedJWT token from which to extract the id.
  * @return The id if valid; null otherwise.
  */
-fun getAccountId(token: DecodedJWT):Int?{
+fun getAccountId(token: DecodedJWT): Int? {
     return token.getClaim("id")?.asInt()
 }
 
@@ -205,9 +210,9 @@ fun getAccountId(token: DecodedJWT):Int?{
  * @param token The JWT token from which to extract id.
  * @return The id if valid; null otherwise.
  */
-fun getAccountId(token: JWTToken?):Int?{
+fun getAccountId(token: JWTToken?): Int? {
     val jwtToken = token?.token
-    if(jwtToken!=null){
+    if (jwtToken != null) {
         return try {
             val decodedToken = decodeToken(jwtToken)
             decodedToken?.getClaim("id")?.asInt()
@@ -225,7 +230,7 @@ fun getAccountId(token: JWTToken?):Int?{
  * @param token The DecodedJWT token from which to extract the employee ID.
  * @return The employee ID if valid; null otherwise.
  */
-fun getEmployeeRole(token: DecodedJWT?):Int?{
+fun getEmployeeRole(token: DecodedJWT?): Int? {
     return token?.getClaim("roleCode")?.asInt()
 }
 
@@ -235,9 +240,9 @@ fun getEmployeeRole(token: DecodedJWT?):Int?{
  * @param token The JWT token from which to extract the employee ID.
  * @return The employee ID if valid; null otherwise.
  */
-fun getEmployeeRole(token: JWTToken?):Int?{
+fun getEmployeeRole(token: JWTToken?): Int? {
     val jwtToken = token?.token
-    if(jwtToken!=null){
+    if (jwtToken != null) {
         val decodedToken = decodeToken(jwtToken)
         return decodedToken?.getClaim("roleCode")?.asInt()
     }
@@ -250,15 +255,15 @@ fun getEmployeeRole(token: JWTToken?):Int?{
  * @param token The DecodedJWT token from which to extract the CustomerInfo.
  * @return The CustomerInfo if valid; null otherwise.
  */
-fun getCustomerInfo(token: DecodedJWT?):CustomerInfo?{
-    if(token!=null){
-        val id=token.getClaim("id")?.asInt()
-        val name=token.getClaim("name").toString()
-        val surname=token.getClaim("surname").toString()
-        val phone=token.getClaim("phone").toString()
-        val email=token.getClaim("email").toString()
-        return if(id!= null)
-            CustomerInfo(id,name,surname,phone,"",email,false)
+fun getCustomerInfo(token: DecodedJWT?): CustomerInfo? {
+    if (token != null) {
+        val id = token.getClaim("id")?.asInt()
+        val name = token.getClaim("name").toString()
+        val surname = token.getClaim("surname").toString()
+        val phone = token.getClaim("phone").toString()
+        val email = token.getClaim("email").toString()
+        return if (id != null)
+            CustomerInfo(id, name, surname, phone, "", email, false)
         else
             null
     }
@@ -271,17 +276,17 @@ fun getCustomerInfo(token: DecodedJWT?):CustomerInfo?{
  * @param token The JWT token from which to extract theCustomerInfo.
  * @return The CustomerInfo if valid; null otherwise.
  */
-fun getCustomerInfo(token: JWTToken?):CustomerInfo?{
+fun getCustomerInfo(token: JWTToken?): CustomerInfo? {
     val jwtToken = token?.token
-    if(jwtToken!=null){
+    if (jwtToken != null) {
         val decodedToken = decodeToken(jwtToken)
-        val id=decodedToken?.getClaim("id")?.asInt()
-        val name=decodedToken?.getClaim("name").toString()
-        val surname=decodedToken?.getClaim("surname").toString()
-        val phone=decodedToken?.getClaim("phone").toString()
-        val email=decodedToken?.getClaim("email").toString()
-        return if(id!= null)
-            CustomerInfo(id,name,surname,phone,"",email,false)
+        val id = decodedToken?.getClaim("id")?.asInt()
+        val name = decodedToken?.getClaim("name").toString()
+        val surname = decodedToken?.getClaim("surname").toString()
+        val phone = decodedToken?.getClaim("phone").toString()
+        val email = decodedToken?.getClaim("email").toString()
+        return if (id != null)
+            CustomerInfo(id, name, surname, phone, "", email, false)
         else
             null
     }
@@ -294,15 +299,15 @@ fun getCustomerInfo(token: JWTToken?):CustomerInfo?{
  * @param token The DecodedJWT token from which to extract the GuardInfo.
  * @return The GuardInfo if valid; null otherwise.
  */
-fun getGuardInfo(token: DecodedJWT?):GuardInfo?{
-    if(token!=null){
-        val id=token.getClaim("id")?.asInt()
-        val name=token.getClaim("name").toString()
-        val surname=token.getClaim("surname").toString()
-        val phone=token.getClaim("phone").toString()
-        val email=token.getClaim("email").toString()
-        return if(id!= null)
-            GuardInfo(id,name,surname,phone,email,Guard.GuardStatus.UNAVAILABLE.status,"",false)
+fun getGuardInfo(token: DecodedJWT?): GuardInfo? {
+    if (token != null) {
+        val id = token.getClaim("id")?.asInt()
+        val name = token.getClaim("name").toString()
+        val surname = token.getClaim("surname").toString()
+        val phone = token.getClaim("phone").toString()
+        val email = token.getClaim("email").toString()
+        return if (id != null)
+            GuardInfo(id, name, surname, phone, email, Guard.GuardStatus.UNAVAILABLE.status, "", false)
         else
             null
     }
@@ -315,17 +320,17 @@ fun getGuardInfo(token: DecodedJWT?):GuardInfo?{
  * @param token The JWT token from which to extract theGuardInfo.
  * @return The GuardInfo if valid; null otherwise.
  */
-fun getGuardInfo(token: JWTToken?):GuardInfo?{
+fun getGuardInfo(token: JWTToken?): GuardInfo? {
     val jwtToken = token?.token
-    if(jwtToken!=null){
+    if (jwtToken != null) {
         val decodedToken = decodeToken(jwtToken)
-        val id=decodedToken?.getClaim("id")?.asInt()
-        val name=decodedToken?.getClaim("name").toString()
-        val surname=decodedToken?.getClaim("surname").toString()
-        val phone=decodedToken?.getClaim("phone").toString()
-        val email=decodedToken?.getClaim("email").toString()
-        return if(id!= null)
-            GuardInfo(id,name,surname,phone,email,Guard.GuardStatus.UNAVAILABLE.status,"",false)
+        val id = decodedToken?.getClaim("id")?.asInt()
+        val name = decodedToken?.getClaim("name").toString()
+        val surname = decodedToken?.getClaim("surname").toString()
+        val phone = decodedToken?.getClaim("phone").toString()
+        val email = decodedToken?.getClaim("email").toString()
+        return if (id != null)
+            GuardInfo(id, name, surname, phone, email, Guard.GuardStatus.UNAVAILABLE.status, "", false)
         else
             null
     }
@@ -338,7 +343,7 @@ fun getGuardInfo(token: JWTToken?):GuardInfo?{
  * @param token The DecodedJWT token from which to extract the expiration date.
  * @return The expiration date if valid; null otherwise.
  */
-fun getTokenExpirationDate(token: DecodedJWT):Date?{
+fun getTokenExpirationDate(token: DecodedJWT): Date? {
     return token.expiresAt
 }
 
@@ -348,9 +353,9 @@ fun getTokenExpirationDate(token: DecodedJWT):Date?{
  * @param token The JWT token from which to extract the expiration date.
  * @return The expiration date if valid; null otherwise.
  */
-fun getTokenExpirationDate(token: JWTToken?):Date?{
+fun getTokenExpirationDate(token: JWTToken?): Date? {
     val jwtToken = token?.token
-    if(jwtToken!=null){
+    if (jwtToken != null) {
         val decodedToken = decodeToken(jwtToken)
         return decodedToken?.expiresAt
     }

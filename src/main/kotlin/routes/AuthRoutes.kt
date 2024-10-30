@@ -1,6 +1,5 @@
 package routes
 
-import Employee
 import dao.DaoMethods
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -26,7 +25,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
-import models.Credentials
+import models.dto.Credentials
+import models.entity.Customer
+import models.entity.Employee
+import models.entity.Guard
 import plugins.Mailer
 import plugins.generateRandomLogin
 import plugins.generateRandomPassword
@@ -450,63 +452,80 @@ fun Route.authRoutes() {
 
             }
 
-            patch("/edit"){
-                try{
+            patch("/edit") {
+                try {
                     val formParameters = call.receiveParameters()
                     val id = formParameters["id"]?.toIntOrNull()
                     val login = formParameters["login"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val password = formParameters["password"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val newPassword = formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val newPassword =
+                        formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val name = formParameters["name"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val surname = formParameters["surname"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val phone = formParameters["phone"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val pesel = formParameters["pesel"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val email = formParameters["email"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val protectionExpirationDate = formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
-                    val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
+                    val protectionExpirationDate =
+                        formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
+                    val protectionExpirationDateTime =
+                        protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
-                    if(id==null || password.isNullOrEmpty()) {
+                    if (id == null || password.isNullOrEmpty()) {
                         call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                         return@patch
                     }
-                    if(!login.isNullOrEmpty() && !isLoginValid(login)){
+                    if (!login.isNullOrEmpty() && !isLoginValid(login)) {
                         call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
                         return@patch
                     }
-                    if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    if (!phone.isNullOrEmpty() && !isPhoneValid(phone)) {
                         call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
                         return@patch
                     }
-                    if(!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)){
-                        call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    if (!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)) {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8"
+                        )
                         return@patch
                     }
-                    if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    if (!email.isNullOrEmpty() && !isEmailValid(email)) {
                         call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
                         return@patch
                     }
-                    if(!pesel.isNullOrEmpty() && !isPeselValid(pesel)){
+                    if (!pesel.isNullOrEmpty() && !isPeselValid(pesel)) {
                         call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
                         return@patch
                     }
-                    if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    if (!name.isNullOrEmpty() && !isUsernameValid(name)) {
                         call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
                         return@patch
                     }
-                    if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    if (!surname.isNullOrEmpty() && !isUsernameValid(surname)) {
                         call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
                         return@patch
                     }
-                    val ret = DaoMethods.editCustomer(id,login, password.toString(), newPassword, name, surname, phone, pesel, email, protectionExpirationDateTime)
-                    if(ret.second!=null){
+                    val ret = DaoMethods.editCustomer(
+                        id,
+                        login,
+                        password.toString(),
+                        newPassword,
+                        name,
+                        surname,
+                        phone,
+                        pesel,
+                        email,
+                        protectionExpirationDateTime
+                    )
+                    if (ret.second != null) {
                         val token = createToken(ret.second!!).first
                         val client = ret.second!!.toCustomerInfo()
                         client.token = token.token
                         call.respond(HttpStatusCode.OK, Pair(ret.second!!.login, client))
-                    }else{
+                    } else {
                         call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.first}")
                     }
-                }catch(e:Error){
+                } catch (e: Error) {
                     call.respond(
                         HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
                     )
@@ -597,7 +616,7 @@ fun Route.authRoutes() {
                         val token = guard?.let { guard -> createToken(guard).first }
                         if (token != null) {
                             val editedGuard = guard.toGuardInfo()
-                            editedGuard.token = token.token
+                            editedGuard.token  = token.token
                             call.respond(HttpStatusCode.OK, Pair(guard.login, editedGuard))
                         } else
                             call.respond(HttpStatusCode.Unauthorized, "Unauthorized")
@@ -696,59 +715,66 @@ fun Route.authRoutes() {
 
             }
 
-            patch("/edit"){
-                try{
+            patch("/edit") {
+                try {
                     val formParameters = call.receiveParameters()
                     val id = formParameters["id"]?.toIntOrNull()
                     val login = formParameters["login"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val password = formParameters["password"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val newPassword = formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                    val newPassword =
+                        formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val name = formParameters["name"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val surname = formParameters["surname"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val phone = formParameters["phone"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
                     val email = formParameters["email"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val protectionExpirationDate = formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
-                    val protectionExpirationDateTime = protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
+                    val protectionExpirationDate =
+                        formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
+                    val protectionExpirationDateTime =
+                        protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
-                    if(id==null || password.isNullOrEmpty()) {
+                    if (id == null || password.isNullOrEmpty()) {
                         call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
                         return@patch
                     }
-                    if(!login.isNullOrEmpty() && !isLoginValid(login)){
+                    if (!login.isNullOrEmpty() && !isLoginValid(login)) {
                         call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
                         return@patch
                     }
-                    if(!phone.isNullOrEmpty() && !isPhoneValid(phone)){
+                    if (!phone.isNullOrEmpty() && !isPhoneValid(phone)) {
                         call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
                         return@patch
                     }
-                    if(!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)){
-                        call.respond(HttpStatusCode.BadRequest, "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8")
+                    if (!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)) {
+                        call.respond(
+                            HttpStatusCode.BadRequest,
+                            "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8"
+                        )
                         return@patch
                     }
-                    if(!email.isNullOrEmpty() && !isEmailValid(email)){
+                    if (!email.isNullOrEmpty() && !isEmailValid(email)) {
                         call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
                         return@patch
                     }
 
-                    if(!name.isNullOrEmpty() && !isUsernameValid(name)){
+                    if (!name.isNullOrEmpty() && !isUsernameValid(name)) {
                         call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
                         return@patch
                     }
-                    if(!surname.isNullOrEmpty() && !isUsernameValid(surname)){
+                    if (!surname.isNullOrEmpty() && !isUsernameValid(surname)) {
                         call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
                         return@patch
                     }
-                    val ret = DaoMethods.editGuard(id,login, password.toString(), newPassword, name, surname, phone, email)
-                    if(ret.second!=null){
+                    val ret =
+                        DaoMethods.editGuard(id, login, password.toString(), newPassword, name, surname, phone, email)
+                    if (ret.second != null) {
                         val token = createToken(ret.second!!).first
                         val guard = ret.second!!.toGuardInfo()
                         guard.token = token.token
                         call.respond(HttpStatusCode.OK, Pair(ret.second!!.login, guard))
-                    }else{
+                    } else {
                         call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.first}")
                     }
-                }catch(e:Error){
+                } catch (e: Error) {
                     call.respond(
                         HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
                     )

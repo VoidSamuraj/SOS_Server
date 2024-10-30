@@ -1,9 +1,7 @@
+package models.entity
+
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.ReferenceOption
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.kotlin.datetime.datetime
-
 
 /**
  * Data class representing an Intervention.
@@ -35,12 +33,14 @@ data class Intervention(
     /**
      * Enum representing status of Intervention.
      *
-     * Contains 3 states: [InterventionStatus.CANCELLED_BY_USER], [InterventionStatus.CANCELLED_BY_GUARD], [InterventionStatus.FINISHED]
+     * Contains 5 states: [InterventionStatus.CANCELLED_BY_USER], [InterventionStatus.CANCELLED_BY_GUARD], [InterventionStatus.FINISHED], [InterventionStatus.IN_PROGRESS], [InterventionStatus.CONFIRMED]
      */
     enum class InterventionStatus(val status: Int) {
         CANCELLED_BY_USER(0),
         CANCELLED_BY_GUARD(1),
-        FINISHED(2);
+        FINISHED(2),
+        IN_PROGRESS(3),
+        CONFIRMED(4);
 
         companion object {
             /**
@@ -62,21 +62,4 @@ data class Intervention(
      */
     val status: InterventionStatus
         get() = InterventionStatus.fromInt(statusCode.toInt())
-}
-
-/**
- * Object representing the Interventions table in the database.
- *
- * Defines the schema for the Interventions table, including fields for the intervention ID, report ID,
- * guard ID, employee ID, start time, end time, and status code. The primary key is set to the ID field.
- */
-object Interventions : Table() {
-    val id = integer("id").autoIncrement()
-    val report_id = reference("report_id", Reports.id, onDelete = ReferenceOption.CASCADE)
-    val guard_id = reference("guard_id", Guards.id, onDelete = ReferenceOption.NO_ACTION)
-    val employee_id = reference("dispatcher_id", Employees.id, onDelete = ReferenceOption.NO_ACTION)
-    val start_time = datetime("start_time")
-    val end_time = datetime("end_time")
-    val status = short("status")
-    override val primaryKey = PrimaryKey(id)
 }

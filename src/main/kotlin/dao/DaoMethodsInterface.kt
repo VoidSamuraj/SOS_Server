@@ -1,9 +1,14 @@
 package dao
 
-import Employee
-import Intervention
-import Report
 import kotlinx.datetime.LocalDateTime
+import models.dto.CustomerInfo
+import models.dto.EmployeeInfo
+import models.dto.GuardInfo
+import models.entity.Customer
+import models.entity.Employee
+import models.entity.Guard
+import models.entity.Intervention
+import models.entity.Report
 import org.jetbrains.exposed.sql.Column
 
 /**
@@ -231,6 +236,18 @@ interface DaoMethodsInterface {
     ): Boolean
 
     /**
+     * Updates the details of an intervention record with the specified report ID.
+     *
+     * @param reportId The unique identifier of the report associated with the intervention to be updated.
+     * @param startTime Optional parameter for the intervention's start time. If provided, it will update the record.
+     * @param endTime Optional parameter for the intervention's end time. If provided, it will update the record.
+     * @param status Optional status update for the intervention, indicating the current state (e.g., IN_PROGRESS, COMPLETED).
+     *
+     * @return `true` if the update was successful; `false` otherwise (e.g., if the record does not exist or cannot be updated).
+     */
+    suspend fun editIntervention(reportId:Int, startTime: LocalDateTime?, endTime: LocalDateTime?, status: Intervention.InterventionStatus?): Boolean
+
+    /**
      * Retrieves an intervention by its ID.
      *
      * @param id The ID of the intervention to retrieve.
@@ -238,6 +255,15 @@ interface DaoMethodsInterface {
      * @return The Intervention object if found, or null if not found.
      */
     suspend fun getIntervention(id: Int): Intervention?
+
+    /**
+     * Check if guard with provided is assigned to active intervention
+     *
+     * @param guardId The ID of the guard.
+     *
+     * @return String containing reportId and location {"reportId": , "lat": , "lng": } or null if there is no active intervention for the guard.
+     */
+    suspend fun isActiveInterventionAssignedToGuard(guardId:Int): String?
 
     /**
      * Retrieves a paginated list of interventions with optional filtering and sorting.

@@ -82,6 +82,7 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
   };
   return (
     <>
+    {(status === 0 || status === 1) && (
       <AdvancedMarker
         key={id}
         ref={markerRef}
@@ -98,7 +99,9 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
           <img src={status == 0 ? reportImage : reportImageDot} alt="Report" />
         </div>
       </AdvancedMarker>
-      {infowindowOpen && (
+
+  )}
+      {(status === 0 || status === 1) && infowindowOpen && (
         <InfoWindow
           anchor={marker}
           maxWidth={200}

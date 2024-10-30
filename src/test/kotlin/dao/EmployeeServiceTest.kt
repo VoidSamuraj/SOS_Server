@@ -3,6 +3,7 @@ package dao
 import Interventions
 import Employees
 import kotlinx.coroutines.test.runTest
+import models.entity.Employee
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.test.*

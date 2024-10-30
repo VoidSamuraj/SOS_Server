@@ -1,20 +1,21 @@
 package dao
 
-import Customer
-import CustomerInfo
-import Guard
-import Guards
-import Intervention
-import Interventions
-import Report
-import Reports
 import Customers
-import Employee
-import EmployeeInfo
 import Employees
-import GuardInfo
+import Guards
+import Interventions
+import Reports
+import com.google.gson.JsonParser
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDateTime
+import models.dto.CustomerInfo
+import models.dto.EmployeeInfo
+import models.dto.GuardInfo
+import models.entity.Customer
+import models.entity.Employee
+import models.entity.Guard
+import models.entity.Intervention
+import models.entity.Report
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -445,12 +446,48 @@ object DaoMethods : DaoMethodsInterface {
         }
     }
 
+    override suspend fun editIntervention(
+        reportId: Int,
+        startTime: LocalDateTime?,
+        endTime: LocalDateTime?,
+        status: Intervention.InterventionStatus?
+    ): Boolean {
+       return transaction {
+           Interventions.update({ Interventions.report_id eq reportId }) {
+               startTime?.let { startTime -> it[Interventions.start_time] = startTime }
+               endTime?.let { endTime -> it[Interventions.end_time] = endTime }
+               status?.let { status -> it[Interventions.status] = status.status.toShort() }
+           } > 0
+       }
+    }
+
     override suspend fun getIntervention(id: Int): Intervention? {
         return transaction {
             Interventions
                 .selectAll().where { Interventions.id eq id }
                 .mapNotNull(::resultRowToIntervention)
                 .singleOrNull()
+        }
+    }
+
+    override suspend fun isActiveInterventionAssignedToGuard(guardId: Int): String? {
+        return transaction {
+            val response=(Interventions innerJoin Reports)
+                .select(Reports.location, Reports.id, Interventions.guard_id, Interventions.status)
+                .where {
+                    (Interventions.guard_id) eq guardId and
+                            ((Interventions.status eq Intervention.InterventionStatus.IN_PROGRESS.status.toShort()) or
+                                    (Interventions.status eq Intervention.InterventionStatus.CONFIRMED.status.toShort()))
+                }
+                .mapNotNull {
+
+                    val locationString = it[Reports.location].toString()
+                    val id = it[Reports.id]
+                    val parser =JsonParser.parseString(locationString).asJsonObject
+                    parser.addProperty("reportId",id)
+                    parser.toString()
+                }.singleOrNull()
+            return@transaction response
         }
     }
 

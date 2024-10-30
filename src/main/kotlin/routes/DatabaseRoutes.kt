@@ -14,6 +14,9 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.util.getOrFail
 import kotlinx.datetime.LocalDateTime
+import models.entity.Employee
+import models.entity.Intervention
+import models.entity.Report
 import plugins.isPeselValid
 import plugins.sanitizeHtml
 import plugins.isEmailValid
@@ -433,7 +436,7 @@ fun Route.databaseRoutes() {
                         status
                     )
                 )
-                if (result!=-1) {
+                if (result != -1) {
                     call.respond(HttpStatusCode.OK, "Report added to database.")
                 } else {
                     call.respond(HttpStatusCode.InternalServerError, "Failed to add report to the database.")

@@ -9,6 +9,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import models.dto.GuardInfo
+import models.entity.Employee
+import models.entity.Intervention
+import models.entity.Report
 import plugins.*
 import viewmodel.SecurityDataViewModel
 import kotlin.random.Random
@@ -71,7 +75,7 @@ fun Application.module() {
             DaoMethods.addReport(2,"{lat: 54.3520, lng: 18.6466 }",  Clock.System.now().minus(2.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.IN_PROGRESS)
             DaoMethods.addReport(3,"{lat: 51.1079, lng: 17.0385 }",  Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.WAITING)
         }
-        println(DaoMethods.getReports(1, 10))
+
         if(DaoMethods.getInterventions(1, 10).isEmpty()) {
             DaoMethods.addIntervention(3, 3,2,
                 Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
@@ -86,7 +90,6 @@ fun Application.module() {
                 Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
                 Intervention.InterventionStatus.FINISHED)
         }
-
         fun randomLocationInPoland(): String {
             val lat = Random.nextDouble(49.0, 54.83)
             val lng = Random.nextDouble(14.12, 24.15)
@@ -101,7 +104,7 @@ fun Application.module() {
         }
         //END TEST
 
-        SecurityDataViewModel.setReports(DaoMethods.getAllReports(true))
+        SecurityDataViewModel.setReports(DaoMethods.getAllReports(true).associateBy { it.id})
         SecurityDataViewModel.setGuards(guardTest)
     }
 

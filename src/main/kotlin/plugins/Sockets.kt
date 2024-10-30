@@ -1,6 +1,5 @@
 package plugins
 
-import Report
 import administrationQueryParams
 import administrationSelectedRowsIds
 import com.google.gson.JsonParser
@@ -12,6 +11,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -24,13 +24,18 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import models.dto.CustomerInfo
+import models.dto.EmployeeInfo
+import models.dto.GuardInfo
+import models.entity.Guard
+import models.entity.Intervention
+import models.entity.Report
 import routes.CustomerField
 import routes.EmployeeField
 import routes.GuardField
 import security.JWTToken
 import security.checkPermission
 import viewmodel.SecurityDataViewModel
-import viewmodel.SecurityDataViewModel.editReportStatus
 
 
 @Serializable
@@ -51,6 +56,9 @@ data class ResponseWithColumn<T>(
     val columnName: String?,
     val data: List<T>
 )
+
+//channel to get redirected responses from websocket
+val interventionResponseChannel = Channel<String>(Channel.BUFFERED)
 
 fun Application.configureSockets() {
     install(WebSockets) {
@@ -139,8 +147,8 @@ fun Application.configureSockets() {
                             val jsonObject = JsonParser.parseString(receivedText).asJsonObject
                             if (jsonObject.has("latitude") && jsonObject.has("longitude") && jsonObject.has("userId")) {
                                 //on location update
-                                if (jsonObject.has("reportId") && jsonObject.get("reportId").asInt != -1){
-                                    if(jsonObject.has("status") && jsonObject.get("status").asString == "cancel"){
+                                if (jsonObject.has("reportId") && jsonObject.get("reportId").asInt != -1) {
+                                    if (jsonObject.has("status") && jsonObject.get("status").asString == "cancel") {
                                         println("anulowanieeeeas")
                                     }
                                     println(receivedText)
@@ -148,9 +156,9 @@ fun Application.configureSockets() {
                                     //add updating position in system
 
                                     //first message
-                                }else if (jsonObject.has("callReport") && jsonObject.get("callReport").asBoolean == true) {
+                                } else if (jsonObject.has("callReport") && jsonObject.get("callReport").asBoolean == true) {
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        val reportId=SecurityDataViewModel.addReport(
+                                        val reportId = SecurityDataViewModel.addReport(
                                             Report(
                                                 id = 0,
                                                 client_id = jsonObject.get("userId").asInt,
@@ -166,6 +174,7 @@ fun Application.configureSockets() {
                                             )
                                         )
                                         outgoing.send(
+                                            //TODO check in client if id is -1
                                             Frame.Text("""{"reportId": $reportId}""")
                                         )
                                     }
@@ -185,19 +194,118 @@ fun Application.configureSockets() {
                 val closeReason = closeReason.await()
                 val closeCode = closeReason?.code
                 val closeMessage = closeReason?.message
-                if (closeCode == 4000.toShort() && closeMessage != null){
+                //if closing has status 4000 and message contain id of report
+                if (closeCode == 4000.toShort() && closeMessage != null) {
                     val jsonObject = JsonParser.parseString(closeMessage).asJsonObject
-                    if (jsonObject.has("reportId")){
+                    if (jsonObject.has("reportId")) {
                         val reportId = jsonObject.get("reportId").asInt
-                        if(reportId != -1){
+                        if (reportId != -1) {
                             println("WebSocket zamknięty: $closeMessage")
-                            editReportStatus(reportId,Report.ReportStatus.FINISHED)
+                            SecurityDataViewModel.finishReport(reportId)
                         }
                     }
                 }
             }
         }
+        webSocket("/guardSocket") {
+            try {
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+                            val receivedText = frame.readText()
+                            println(receivedText)
+                            val jsonObject = JsonParser.parseString(receivedText).asJsonObject
 
+                            //response after assign
+                            if (jsonObject.has("intervention")) {
+                                val intervention = jsonObject.get("intervention").asString
+                                //redirect response to channel
+                                if (intervention == "cancel" || intervention == "accept")
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        interventionResponseChannel.send(intervention)
+                                    }
+                                print("jsonObject")
+                                print(jsonObject)
+                                if (jsonObject.has("reportId") && jsonObject.get("reportId").asInt != -1) {
+                                    val reportId = jsonObject.get("reportId").asInt
+                                    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                                    println("STATUSREC")
+                                    if (intervention == "confirmArrival") {
+                                        println("confirmArrival")
+                                        SecurityDataViewModel.editIntervention(
+                                            reportId = reportId,
+                                            startTime = now,
+                                            status = Intervention.InterventionStatus.IN_PROGRESS
+                                        )
+                                    } else if (intervention == "finish") {
+                                        println("finish")
+                                        if(SecurityDataViewModel.editIntervention(
+                                            reportId = reportId,
+                                            endTime = now,
+                                            status = Intervention.InterventionStatus.FINISHED
+                                        )){
+                                            println("ZAKONCZONO INTERWENCJE")
+                                        SecurityDataViewModel.finishReport(reportId)
+                                        }else
+                                            println("NIEZAKONCZONO INTERWENCJE")
+                                    } else if (intervention == "cancelStarted") {
+                                        println("cancelStarted")
+                                        SecurityDataViewModel.editIntervention(
+                                            reportId = reportId,
+                                            endTime = now,
+                                            status = Intervention.InterventionStatus.CANCELLED_BY_GUARD
+                                        )
+                                        SecurityDataViewModel.editReportStatus(reportId, Report.ReportStatus.WAITING)
+                                    } else if (intervention == "supportNeeded") {
+                                        println("supportNeeded")
+                                        SecurityDataViewModel.callSupport(reportId)
+                                    }
+                                }
+
+                            } else if (jsonObject.has("guardId") &&
+                                jsonObject.has("status") && jsonObject.get("guardId").asInt != -1
+                            ) {
+                                if (jsonObject.has("latitude") && jsonObject.has("longitude")) {
+                                    //init message
+                                    if (jsonObject.has("initMessage") && jsonObject.get("initMessage").asBoolean == true) {
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            val guard = DaoMethods.getGuard(jsonObject.get("guardId").asInt)
+                                            guard?.location =
+                                                """{lat: ${jsonObject.get("latitude")}, lng: ${jsonObject.get("longitude")}}""".trim()
+                                            guard?.statusCode = jsonObject.get("status").asInt
+                                            if (guard != null) {
+                                                SecurityDataViewModel.addGuard(guard.toGuardInfo(), this@webSocket)
+                                                outgoing.send(Frame.Text("""{"status": connected}"""))
+                                            }
+                                        }
+                                        //location and status
+                                    } else {
+                                        SecurityDataViewModel.editGuard(
+                                            jsonObject.get("guardId").asInt,
+                                            """{lat: ${jsonObject.get("latitude")}, lng: ${jsonObject.get("longitude")}}""".trim(),
+                                            jsonObject.get("status").asInt
+                                        )
+                                    }
+                                    //only status
+                                } else {
+                                    SecurityDataViewModel.editGuardStatus(
+                                        jsonObject.get("guardId").asInt,
+                                        Guard.GuardStatus.fromInt(jsonObject.get("status").asInt)
+                                    )
+                                }
+                            }
+                        }
+
+                        else ->
+                            println("clientSocket Received Different Type: $frame")
+                    }
+                }
+            } catch (e: ClosedReceiveChannelException) {
+                e.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
 

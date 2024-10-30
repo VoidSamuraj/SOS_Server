@@ -18,6 +18,8 @@ export const usePatrols = () => {
         return "#0a5c0a";
       case 2:
         return "#ff0000";
+      case 3:
+        return "#7000ff";
       default:
         return "#949494";
     }
@@ -50,30 +52,32 @@ export const usePatrols = () => {
     });
   };
 
-  const syncPatrols = (dataArray) => {
+const syncPatrols = (dataArray) => {
     setPatrols((prevPatrols) => {
-      const updatedPatrols = new Map(prevPatrols);
-      dataArray.forEach((patrol) => {
-        let location = "";
-        try {
-          location =
-            JSON.parse(patrol.location.replace(/(\w+):/g, '"$1":')) || "";
-        } catch (error) {
-          console.error("Sync Reports, JSON Location parsing error:", error);
-        }
-        updatedPatrols.set(patrol.id, {
-          position: location,
-          status: patrol.statusCode !== null ? patrol.statusCode : 1,
-          name: patrol.name,
-          surname: patrol.surname,
-          phone: patrol.phone,
-          account_deleted: patrol.account_deleted,
+        const updatedPatrols = new Map(prevPatrols);
+        dataArray.forEach((patrol) => {
+            let location = null;
+            try {
+                location = JSON.parse(patrol.location.replace(/(\w+):/g, '"$1":')) || null; // Użycie null jako domyślna wartość
+            } catch (error) {
+                console.error("Sync Reports, JSON Location parsing error:", error);
+            }
+            if (patrol.id !== undefined) {
+                updatedPatrols.set(patrol.id, {
+                    position: location,
+                    status: patrol.statusCode !== null ? patrol.statusCode : 1,
+                    name: patrol.name,
+                    surname: patrol.surname,
+                    phone: patrol.phone,
+                    account_deleted: patrol.account_deleted,
+                });
+            } else {
+                console.warn("Invalid patrol ID:", patrol);
+            }
         });
-      });
-
-      return updatedPatrols;
+        return updatedPatrols;
     });
-  };
+};
 
   const removePatrol = (id) => {
     const newPatrols = new Map(patrols);
