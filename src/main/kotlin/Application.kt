@@ -24,9 +24,7 @@ val jwtExpirationSeconds=3600L
 val administrationQueryParams = mutableMapOf<DefaultWebSocketSession, QueryParams>()
 val administrationSelectedRowsIds = mutableMapOf<DefaultWebSocketSession, Array<Int>>()
 
-
 lateinit var guardTest:List<GuardInfo>
-
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -104,7 +102,7 @@ fun Application.module() {
         }
         //END TEST
 
-        SecurityDataViewModel.setReports(DaoMethods.getAllReports(true).associateBy { it.id})
+        SecurityDataViewModel.setReports(DaoMethods.getAllReports(true))
         SecurityDataViewModel.setGuards(guardTest)
     }
 

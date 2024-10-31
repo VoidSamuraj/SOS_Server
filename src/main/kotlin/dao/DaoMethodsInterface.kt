@@ -257,6 +257,15 @@ interface DaoMethodsInterface {
     suspend fun getIntervention(id: Int): Intervention?
 
     /**
+     * Retrieves an intervention by report's ID.
+     *
+     * @param reportId The ID of the report associated with intervention to retrieve.
+     *
+     * @return The Intervention object if found, or null if not found.
+     */
+    suspend fun getInterventionByReport(reportId: Int): Intervention?
+
+    /**
      * Check if guard with provided is assigned to active intervention
      *
      * @param guardId The ID of the guard.
@@ -339,9 +348,9 @@ interface DaoMethodsInterface {
      * @param id The ID of the report to update.
      * @param status The new status of the report.
      *
-     * @return Boolean indicating success (true if the status was successfully changed).
+     * @return Report indicating success, null in other cases.
      */
-    suspend fun changeReportStatus(id: Int, status: Report.ReportStatus): Boolean
+    suspend fun changeReportStatus(id: Int, status: Report.ReportStatus): Report?
 
     /**
      * Fetches a report by its ID.

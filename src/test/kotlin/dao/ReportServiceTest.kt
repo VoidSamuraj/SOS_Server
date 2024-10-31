@@ -56,7 +56,7 @@ class ReportServiceTest {
     fun `should change report status`() = runTest {
         DaoMethods.addReport(1, "Location1",  Clock.System.now().toLocalDateTime(TimeZone.UTC), Report.ReportStatus.WAITING)
         val result = DaoMethods.changeReportStatus(1, Report.ReportStatus.IN_PROGRESS)
-        assertTrue(result)
+        assertNotNull(result)
 
         val report =  DaoMethods.getReport(1)
         assertNotNull(report)

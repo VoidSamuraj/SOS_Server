@@ -10,7 +10,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.datetime.Clock
@@ -29,39 +28,52 @@ object SecurityDataViewModel {
     private val _guardsFlow = MutableStateFlow<List<GuardInfo>>(emptyList())
     val guardsFlow: Flow<List<GuardInfo>> get() = _guardsFlow.asStateFlow()
 
-    private val _reportsFlow = MutableStateFlow<MutableMap<Int, Report>>(mutableMapOf())
-    val reportsFlow: Flow<List<Report>> get() = _reportsFlow.map { it.values.toList() }
+    private val _reportsFlow = MutableStateFlow<List<Report>>(emptyList())
+    val reportsFlow: Flow<List<Report>> get() = _reportsFlow.asStateFlow()
 
     val clientSessions = mutableMapOf<Int, DefaultWebSocketSession>()
     val guardSessions = mutableMapOf<Int, DefaultWebSocketSession>()
 
-    suspend fun addReport(report: Report): Int {
+    suspend fun addReport(report: Report, clientSession: DefaultWebSocketSession): Int {
+        clientSessions.put(report.client_id, clientSession)
         val id = DaoMethods.addReport(report.client_id, report.location, report.date, report.status)
-        if (id != -1)
-            _reportsFlow.value.put(report.id, report)
+        if (id != -1) {
+            _reportsFlow.value = _reportsFlow.value + report.copy(id = id)
+        }
         return id
     }
 
     suspend fun finishReport(reportId: Int): Boolean {
-        val success = DaoMethods.changeReportStatus(reportId, Report.ReportStatus.FINISHED)
+        val report = DaoMethods.changeReportStatus(reportId, Report.ReportStatus.FINISHED)
         editReportStatus(reportId, Report.ReportStatus.FINISHED)
-        if (success) {
+        if (report != null) {
+            clientSessions[report.client_id]?.send(Frame.Text("""{"status": finished}"""))
             CoroutineScope(Dispatchers.IO).launch {
                 delay(10_000)
-                _reportsFlow.value.remove(reportId)
+                _reportsFlow.value = _reportsFlow.value.filter { report -> reportId != report.id }
             }
         }
-        return success
+        return report != null
     }
 
     suspend fun editReportStatus(id: Int, status: Report.ReportStatus) {
-        _reportsFlow.value = _reportsFlow.value.mapValues { (key, report) ->
-            if (key == id) {
-                report.copy(statusCode = status.status.toShort())
+        _reportsFlow.value = _reportsFlow.value.map { reportRow ->
+            if (reportRow.id == id) {
+                reportRow.copy(statusCode = status.status.toShort())
             } else {
-                report
+                reportRow
             }
-        }.toMutableMap()
+        }
+    }
+
+    suspend fun editReportLocation(id: Int, location: String) {
+        _reportsFlow.value = _reportsFlow.value.map { reportRow ->
+            if (reportRow.id == id) {
+                reportRow.copy(location = location)
+            } else {
+                reportRow
+            }
+        }
     }
 
     fun addGuard(guard: GuardInfo, guardSession: DefaultWebSocketSession) {
@@ -92,8 +104,8 @@ object SecurityDataViewModel {
         }
     }
 
-    fun setReports(reports: Map<Int, Report>) {
-        _reportsFlow.value = reports.toMutableMap()
+    fun setReports(reports: List<Report>) {
+        _reportsFlow.value = reports
     }
 
     fun setGuards(guards: List<GuardInfo>) {
@@ -105,6 +117,7 @@ object SecurityDataViewModel {
         guardId: Int,
         onConfirm: suspend () -> Unit,
         onCancel: suspend () -> Unit,
+        onReportCancel: suspend () -> Unit,
         onFailure: suspend () -> Unit
     ) {
         val report = DaoMethods.getReport(reportId)
@@ -122,11 +135,14 @@ object SecurityDataViewModel {
                     }
                 }
             } catch (_: TimeoutCancellationException) {
-                onFailure()
+                val report = DaoMethods.getReport(reportId)
+                if (report != null && report.status != Report.ReportStatus.FINISHED)
+                    onFailure()
+                else
+                    onReportCancel()
             }
 
-        } else
-            onFailure()
+        }
     }
 
     suspend fun addIntervention(reportId: Int, guardId: Int, employeeId: Int): Boolean {
@@ -150,9 +166,30 @@ object SecurityDataViewModel {
         return DaoMethods.editIntervention(reportId, startTime, endTime, status)
     }
 
+    //sends message if there is intervention
+    suspend fun finishInterventionByUser(
+        reportId: Int,
+    ): Boolean {
+        if (DaoMethods.editIntervention(
+                reportId,
+                null,
+                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+                Intervention.InterventionStatus.CANCELLED_BY_USER
+            )
+        ) {
+            DaoMethods.getInterventionByReport(reportId)?.let { intervention ->
+                guardSessions[intervention.guard_id]?.send(Frame.Text("""{"status": cancel}"""))
+                return (guardSessions[intervention.guard_id] != null)
+            }
+            return false
+        } else {
+            return false
+        }
+    }
+
     suspend fun callSupport(reportId: Int): Boolean {
         val ret = DaoMethods.changeReportStatus(reportId, Report.ReportStatus.WAITING)
-        return ret
+        return ret != null
     }
 
     suspend fun sendWarningToGuard(

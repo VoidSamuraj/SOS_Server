@@ -51,7 +51,13 @@ fun Route.actionRoutes() {
                         }, onCancel = {
                             SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.WAITING)
                             SecurityDataViewModel.editGuardStatus(id = guardId, status = Guard.GuardStatus.AVAILABLE)
-                        }, onFailure = {
+                        }, onReportCancel={
+                            SecurityDataViewModel.editGuardStatus(
+                                id = guardId,
+                                status = Guard.GuardStatus.UNAVAILABLE
+                            )
+                        },
+                        onFailure = {
                             SecurityDataViewModel.editReportStatus(reportId, status = Report.ReportStatus.WAITING)
                             SecurityDataViewModel.sendWarningToGuard(guardId = guardId)
                             SecurityDataViewModel.editGuardStatus(
@@ -67,7 +73,6 @@ fun Route.actionRoutes() {
             val formParameters = call.receiveParameters()
             val guardId = sanitizeHtml(formParameters.getOrFail("guardId")).toInt()
             val location = DaoMethods.isActiveInterventionAssignedToGuard(guardId)
-            println(location)
             if (location != null)
                 call.respond(HttpStatusCode.OK, location)
             else

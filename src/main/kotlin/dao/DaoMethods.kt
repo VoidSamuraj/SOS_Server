@@ -231,7 +231,7 @@ object DaoMethods : DaoMethodsInterface {
                 }
             } > 0
             if (result) {
-                val customer =Customers.selectAll().where({Customers.id eq id}).mapNotNull(::resultRowToClient)
+                val customer = Customers.selectAll().where({ Customers.id eq id }).mapNotNull(::resultRowToClient)
                     .singleOrNull()
                 notifyClientsAboutChanges("customers", id)
                 return@transaction "Customer updated successfully." to customer
@@ -452,13 +452,13 @@ object DaoMethods : DaoMethodsInterface {
         endTime: LocalDateTime?,
         status: Intervention.InterventionStatus?
     ): Boolean {
-       return transaction {
-           Interventions.update({ Interventions.report_id eq reportId }) {
-               startTime?.let { startTime -> it[Interventions.start_time] = startTime }
-               endTime?.let { endTime -> it[Interventions.end_time] = endTime }
-               status?.let { status -> it[Interventions.status] = status.status.toShort() }
-           } > 0
-       }
+        return transaction {
+            Interventions.update({ Interventions.report_id eq reportId }) {
+                startTime?.let { startTime -> it[Interventions.start_time] = startTime }
+                endTime?.let { endTime -> it[Interventions.end_time] = endTime }
+                status?.let { status -> it[Interventions.status] = status.status.toShort() }
+            } > 0
+        }
     }
 
     override suspend fun getIntervention(id: Int): Intervention? {
@@ -470,9 +470,18 @@ object DaoMethods : DaoMethodsInterface {
         }
     }
 
+    override suspend fun getInterventionByReport(reportId: Int): Intervention? {
+        return transaction {
+            Interventions
+                .selectAll().where { Interventions.report_id eq reportId }
+                .mapNotNull(::resultRowToIntervention)
+                .singleOrNull()
+        }
+    }
+
     override suspend fun isActiveInterventionAssignedToGuard(guardId: Int): String? {
         return transaction {
-            val response=(Interventions innerJoin Reports)
+            val response = (Interventions innerJoin Reports)
                 .select(Reports.location, Reports.id, Interventions.guard_id, Interventions.status)
                 .where {
                     (Interventions.guard_id) eq guardId and
@@ -483,8 +492,8 @@ object DaoMethods : DaoMethodsInterface {
 
                     val locationString = it[Reports.location].toString()
                     val id = it[Reports.id]
-                    val parser =JsonParser.parseString(locationString).asJsonObject
-                    parser.addProperty("reportId",id)
+                    val parser = JsonParser.parseString(locationString).asJsonObject
+                    parser.addProperty("reportId", id)
                     parser.toString()
                 }.singleOrNull()
             return@transaction response
@@ -569,7 +578,7 @@ object DaoMethods : DaoMethodsInterface {
                 it[Reports.date] = date
                 it[Reports.status] = status.status.toShort()
             }
-            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToReport)?.id ?:-1
+            insertStatement.resultedValues?.singleOrNull()?.let(::resultRowToReport)?.id ?: -1
         }
     }
 
@@ -585,11 +594,18 @@ object DaoMethods : DaoMethodsInterface {
         }
     }
 
-    override suspend fun changeReportStatus(id: Int, status: Report.ReportStatus): Boolean {
+    override suspend fun changeReportStatus(id: Int, status: Report.ReportStatus): Report? {
         return transaction {
-            Reports.update({ Reports.id eq id }) {
+            val success = Reports.update({ Reports.id eq id }) {
                 it[Reports.status] = status.status.toShort()
             } > 0
+            if (success) {
+                return@transaction Reports
+                    .selectAll().where { Reports.id eq id }
+                    .mapNotNull(::resultRowToReport)
+                    .singleOrNull()
+            }
+            return@transaction null
         }
     }
 
@@ -740,7 +756,7 @@ object DaoMethods : DaoMethodsInterface {
             if (login != null) {
                 val list = Guards.selectAll().where { Guards.login eq login }.mapNotNull(::resultRowToGuard)
                 if (list.count() > 0 && list.any { guard -> guard.id != id }) {
-                    return@transaction  "Login is already taken." to null
+                    return@transaction "Login is already taken." to null
                 }
             }
             if (phone != null) {
@@ -760,12 +776,12 @@ object DaoMethods : DaoMethodsInterface {
             } > 0
 
             if (updated) {
-                val guard =Guards.selectAll().where({Guards.id eq id}).mapNotNull(::resultRowToGuard)
+                val guard = Guards.selectAll().where({ Guards.id eq id }).mapNotNull(::resultRowToGuard)
                     .singleOrNull()
                 notifyClientsAboutChanges("guards", id)
                 return@transaction "Guard updated successfully." to guard
             }
-            return@transaction  "Failed to update guard." to null
+            return@transaction "Failed to update guard." to null
         }
     }
 

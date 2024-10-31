@@ -482,7 +482,7 @@ fun Route.databaseRoutes() {
                 }
 
                 val ret = DaoMethods.changeReportStatus(id, Report.ReportStatus.fromInt(status))
-                if (ret) {
+                if (ret!=null) {
                     call.respond(HttpStatusCode.OK, "The report's status has been edited.")
                 } else {
                     call.respond(HttpStatusCode.InternalServerError, "Failed to edit report's status.")
