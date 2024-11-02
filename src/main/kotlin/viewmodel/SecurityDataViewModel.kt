@@ -43,6 +43,10 @@ object SecurityDataViewModel {
         return id
     }
 
+    suspend fun addClientSession(clientId:Int,clientSession: DefaultWebSocketSession){
+        clientSessions.put(clientId, clientSession)
+    }
+
     suspend fun finishReport(reportId: Int): Boolean {
         val report = DaoMethods.changeReportStatus(reportId, Report.ReportStatus.FINISHED)
         editReportStatus(reportId, Report.ReportStatus.FINISHED)
@@ -57,6 +61,9 @@ object SecurityDataViewModel {
     }
 
     suspend fun editReportStatus(id: Int, status: Report.ReportStatus) {
+        println("EDITREPSTAT "+id+ ""+status.name)
+        val report = DaoMethods.changeReportStatus(id, status)
+        println(report)
         _reportsFlow.value = _reportsFlow.value.map { reportRow ->
             if (reportRow.id == id) {
                 reportRow.copy(statusCode = status.status.toShort())
@@ -123,8 +130,10 @@ object SecurityDataViewModel {
         val report = DaoMethods.getReport(reportId)
         if (report != null) {
             guardSessions[guardId]?.send(Frame.Text("""{"status":confirm, "reportId": ${report.id},"location": ${report.location}}"""))
-            if (guardSessions[guardId] == null)
+            if (guardSessions[guardId] == null) {
+                println("GUARDSESSION onfailure")
                 onFailure()
+            }
             try {
                 withTimeout(30_000) {
                     val response = interventionResponseChannel.receive()

@@ -149,13 +149,18 @@ fun Application.configureSockets() {
 
                                 val lat = jsonObject.get("latitude")
                                 val lng = jsonObject.get("longitude")
+                                val userId=jsonObject.get("userId").asInt
+                                //on reconnect
+                                if (jsonObject.has("reconnectMessage") && jsonObject.get("reconnectMessage").asBoolean == true){
+                                    SecurityDataViewModel.addClientSession(userId,this)
+                                    outgoing.send(Frame.Text("""{"status": reconnected}"""))
 
-                                if (jsonObject.has("callReport") && jsonObject.get("callReport").asBoolean == true) {
+                                }else if (jsonObject.has("callReport") && jsonObject.get("callReport").asBoolean == true) {
                                     CoroutineScope(Dispatchers.IO).launch {
                                         val reportId = SecurityDataViewModel.addReport(
                                             Report(
                                                 id = 0,
-                                                client_id = jsonObject.get("userId").asInt,
+                                                client_id = userId,
                                                 location = """{lat: ${lat}, lng: ${lng}}""",
                                                 date = Clock.System.now()
                                                     .toLocalDateTime(TimeZone.currentSystemDefault()),

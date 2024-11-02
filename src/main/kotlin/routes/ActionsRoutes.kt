@@ -7,6 +7,7 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.util.getOrFail
@@ -69,6 +70,10 @@ fun Route.actionRoutes() {
                 call.respond(HttpStatusCode.OK, "Success")
             }
         }
+        get("/checkConnection"){
+            call.respond(HttpStatusCode.OK)
+        }
+
         post("/getActiveInterventionLocationAssignedToGuard") {
             val formParameters = call.receiveParameters()
             val guardId = sanitizeHtml(formParameters.getOrFail("guardId")).toInt()
