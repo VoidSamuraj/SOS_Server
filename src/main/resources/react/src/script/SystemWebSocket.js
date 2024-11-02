@@ -7,14 +7,32 @@ class SystemWebSocket {
    *
    * @param {string} url - The URL for the WebSocket connection.
    * @param {function} onOpen - A function to be called when the connection is opened.
+   * @param {function} onClose - A function to be called when the connection is closed.
    */
-  constructor(url, onOpen) {
-    this.socket = new WebSocket(url);
+  constructor(url, onOpen, onClose) {
+    this.url = url; // Przechowuje URL dla połączenia
+    this.onOpen = onOpen; // Przechowuje referencję do funkcji onOpen
+    this.retryCount = 0;
+    this.executeOnLostConnection = onClose; // Używane w przypadku utraty połączenia
+    this.messageHandlers = [];
+    this.connect(); // Inicjalizuje połączenie
+  }
+
+  /**
+   * Connects the WebSocket.
+   */
+  connect() {
+    this.socket = new WebSocket(this.url);
     this.socket.onmessage = this.handleMessage.bind(this);
-    this.socket.onopen = onOpen;
+    this.socket.onopen = () => {
+      this.retryCount = 0; // Resetuje licznik prób przy pomyślnym połączeniu
+      if (this.onOpen) {
+        this.onOpen(); // Wywołuje funkcję onOpen
+      }
+      console.log("WebSocket connection opened");
+    };
     this.socket.onclose = this.handleClose.bind(this);
     this.socket.onerror = this.handleError.bind(this);
-    this.messageHandlers = [];
   }
 
   /**
@@ -28,32 +46,20 @@ class SystemWebSocket {
       this.messageHandlers.forEach((handler) => handler(message));
     } catch (error) {
       console.error("Error parsing JSON:", error);
-      return null;
     }
-  }
-
-  /**
-   * Handles the WebSocket connection open event.
-   */
-  handleOpen() {
-    console.log("WebSocket connection opened");
   }
 
   /**
    * Handles the WebSocket connection close event.
    */
   handleClose() {
-  // Tworzenie nowego obiektu Date
-  const now = new Date();
+    console.log("WebSocket connection closed");
+    this.executeOnLostConnection();
+    if (this.socket.readyState === WebSocket.CLOSED) {
+      this.retryCount++;
+      this.reconnect();
 
-  // Pobranie godzin
-  const hours = now.getHours();
-  const minutes = now.getMinutes();
-  const seconds = now.getSeconds();
-
-    // Wyświetlenie godziny w formacie HH:MM:SS
-    const currentTime = `${hours}:${minutes}:${seconds}`;
-    console.log("WebSocket connection closed"+currentTime);
+    }
   }
 
   /**
@@ -61,6 +67,11 @@ class SystemWebSocket {
    */
   handleError(error) {
     console.error("WebSocket error:", error);
+    this.executeOnLostConnection();
+    if (this.socket.readyState === WebSocket.CLOSED) {
+      this.retryCount++;
+      this.reconnect();
+    }
   }
 
   /**
@@ -97,6 +108,17 @@ class SystemWebSocket {
    */
   close() {
     this.socket.close();
+  }
+
+  /**
+   * Reconnects the WebSocket after a delay.
+   */
+  reconnect() {
+    const retryDelay = 10000;
+    setTimeout(() => {
+      console.log(`Reconnecting attempt ${this.retryCount} after ${retryDelay / 1000} seconds`);
+      this.connect(); // Ponownie łączy się
+    }, retryDelay);
   }
 }
 

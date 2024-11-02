@@ -20,6 +20,7 @@ function Administration() {
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [editedRecord, setEditedRecord] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
 
   let guards ={}
   const toggleDropdown = () => {
@@ -46,7 +47,8 @@ function Administration() {
         onEditedToggle={toggleEdited}
         canSetMapLoc={false}
       />
-      <ManageAccounts editedRecord={editedRecord} />
+      <ManageAccounts editedRecord={editedRecord} setIsLoading={setIsLoading}/>
+      <div class={isLoading ? "loader" : "hiddenLoader"}><div></div></div>
     </div>
   );
 }

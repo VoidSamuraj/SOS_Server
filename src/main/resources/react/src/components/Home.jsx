@@ -38,6 +38,8 @@ function Home() {
   const [isStatsVisible, setIsStatsVisible] = useState(false);
   const [navigateTo, setNavigateTo] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const mapSocketRef = useRef(null);
 
   useEffect(() => {
@@ -46,7 +48,8 @@ function Home() {
 
     mapSocketRef.current = new SystemWebSocket(
       "wss://"+config.ADDRESS+":"+config.PORT+"/mapSocket",
-      () => {}
+      () => {setIsLoading(false);},
+      () => {setIsLoading(true);}
     );
 
     const messageHandler = (data) => {
@@ -119,6 +122,7 @@ function Home() {
         setNavigateTo={setNavigateTo}
       />
       <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} locationJson={locationJson} />
+      <div class={isLoading ? "loader" : "hiddenLoader"}><div></div></div>
     </LoadScript>
   );
 }

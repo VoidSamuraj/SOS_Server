@@ -18,10 +18,11 @@ import config from "../config";
  * ManageAccounts component manages the display and editing of employee, guard, and customer accounts.
  *
  * @param {Object} props.editedRecord - flag used to download updated data.
+ * @param {Callback} props.setIsLoading - setter of property of boolean indicating if should show circular loading indicator.
  *
  * @returns {JSX.Element} The rendered component.
  */
-const ManageAccounts = ({ editedRecord }) => {
+const ManageAccounts = ({ editedRecord, setIsLoading }) => {
   const [clients, setClients] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [patrols, setPatrols] = useState([]);
@@ -43,7 +44,7 @@ const ManageAccounts = ({ editedRecord }) => {
   const administrationSocketRef = useRef(null);
 
   useEffect(() => {
-    administrationSocketRef.current = new SystemWebSocket("wss://"+config.ADDRESS+":"+config.PORT+"/adminPanelSocket",updatePaginatedData);
+    administrationSocketRef.current = new SystemWebSocket("wss://"+config.ADDRESS+":"+config.PORT+"/adminPanelSocket",()=>{setIsLoading(false); updatePaginatedData();},() => {setIsLoading(true);});
 
     const messageHandler = (data) => {
       if (Array.isArray(data.data)) {

@@ -305,7 +305,8 @@ fun Route.authRoutes() {
                 }
             }
         }
-
+        //todo
+        //remove userToken in
         route("/client") {
             get("/isLoginUsed") {
                 val login = call.request.queryParameters["login"]?.let { sanitizeHtml(it) }
@@ -334,7 +335,6 @@ fun Route.authRoutes() {
             }
 
             post("/logout") {
-                call.sessions.clear("userToken")
                 call.respond(HttpStatusCode.OK, "Success")
             }
 
@@ -531,7 +531,7 @@ fun Route.authRoutes() {
                     )
                 }
             }
-
+            //todo change for customer
             post("/reset-password") {
                 val formParameters = call.receiveParameters()
                 val newPassword = sanitizeHtml(formParameters.getOrFail("password"))
@@ -602,7 +602,7 @@ fun Route.authRoutes() {
             }
 
             post("/logout") {
-                call.sessions.clear("userToken")
+                //todo add status change
                 call.respond(HttpStatusCode.OK, "Success")
             }
 
@@ -780,7 +780,7 @@ fun Route.authRoutes() {
                     )
                 }
             }
-
+            //todo change for guard
             post("/reset-password") {
                 val formParameters = call.receiveParameters()
                 val newPassword = sanitizeHtml(formParameters.getOrFail("password"))
