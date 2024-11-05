@@ -78,9 +78,19 @@ tasks.withType<Test> {
     systemProperty("ktor.environment", "test")
 }
 tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
+    }
     if (project.hasProperty("test")) {
         isZip64 = true
     }
+}
+
+tasks.shadowJar {
+    manifest {
+        attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
+    }
+    isZip64 = true
 }
 /*
 tasks.register<Exec>("buildReact") {

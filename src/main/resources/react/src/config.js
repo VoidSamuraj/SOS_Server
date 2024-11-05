@@ -1,5 +1,5 @@
 const config = {
-  ADDRESS:"localhost",
+  ADDRESS:"0.0.0.0",
   PORT:"8443"
 };
 

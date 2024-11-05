@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo } from "react";
+import {useEffect, useMemo } from "react";
 import {useMap, useMapsLibrary} from '@vis.gl/react-google-maps';
 
 
@@ -9,7 +9,7 @@ const Heatmap = ({interventions, radius, opacity}) => {
   const heatmap = useMemo(() => {
     if (!visualization) return null;
 
-    return new google.maps.visualization.HeatmapLayer({
+    return new window.google.maps.visualization.HeatmapLayer({
       radius: radius,
       opacity: opacity
     });
@@ -23,7 +23,7 @@ try{
     let jsonStr = intervention.location.replace(/(\w+):/g, '"$1":');
           let jsonLocation = JSON.parse(jsonStr);
         return {
-          location: new google.maps.LatLng(jsonLocation.lat, jsonLocation.lng),
+          location: new window.google.maps.LatLng(jsonLocation.lat, jsonLocation.lng),
           weight: 1
         };
             } catch (error) {
