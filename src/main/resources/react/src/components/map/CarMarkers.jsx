@@ -13,10 +13,11 @@ import { fetchStreetName } from "../../script/ApiService.js";
  * It filters out invalid positions and uses the CarIcon component to display each marker.
  *
  * @param {Map} props.cars - A Map containing car data, including position, status, and identification information.
+ * @param {function} props.navToReport - Function to handle "Pokaż zgłoszenie" button click.
  *
  * @returns {JSX.Element} The rendered car markers.
  */
-const CarMarkers = ({ cars }) => {
+const CarMarkers = ({ cars, navToReport }) => {
   const { statusToCarColor } = usePatrols();
 
   // Memoize markers to avoid unnecessary re-renders
@@ -31,7 +32,9 @@ const CarMarkers = ({ cars }) => {
               color={statusToCarColor(status)}
               name={name}
               surname={surname}
+              status = {status}
               phone={phone}
+              navToReport={()=>{navToReport(id);}}
             />
           )
         )}
@@ -51,11 +54,13 @@ const CarMarkers = ({ cars }) => {
  * @param {string} props.color - The color of the car marker.
  * @param {string} props.name - The first name of the driver.
  * @param {string} props.surname - The surname of the driver.
+ * @param {string} props.status - The status of the driver.
  * @param {string} props.phone - The phone number of the driver.
+ * @param {function} props.navToReport - Function to handle "Pokaż zgłoszenie" button click.
  *
  * @returns {JSX.Element} The rendered car icon with an info window.
  */
-const CarIcon = ({ id, position, color, name, surname, phone }) => {
+const CarIcon = ({ id, position, color, name, surname,status, phone, navToReport }) => {
   const [infowindowOpen, setInfowindowOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [streetName, setStreetName] = useState(null);
@@ -129,6 +134,17 @@ const CarIcon = ({ id, position, color, name, surname, phone }) => {
               ""
             )}
           </div>
+                                  {status == 2 ? (
+                                            <input
+                                              type="button"
+                                              value={"Pokaż zgłoszenie"}
+                                              className="assignReportButton"
+                                              onClick={() => {
+                                                      navToReport();
+                                                  }}
+                                            />
+                                            ):("")
+                                        }
         </InfoWindow>
       )}
     </>

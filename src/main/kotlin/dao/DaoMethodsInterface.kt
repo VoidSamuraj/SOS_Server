@@ -266,6 +266,15 @@ interface DaoMethodsInterface {
     suspend fun getInterventionByReport(reportId: Int): Intervention?
 
     /**
+     * Retrieves an intervention by guard's ID.
+     *
+     * @param guardId The ID of the guard associated with intervention to retrieve.
+     *
+     * @return The Intervention object if found, or null if not found.
+     */
+    suspend fun getInterventionByGuard(guardId: Int): Intervention?
+
+    /**
      * Check if guard with provided is assigned to active intervention
      *
      * @param guardId The ID of the guard.

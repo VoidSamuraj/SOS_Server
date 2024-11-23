@@ -473,7 +473,16 @@ object DaoMethods : DaoMethodsInterface {
     override suspend fun getInterventionByReport(reportId: Int): Intervention? {
         return transaction {
             Interventions
-                .selectAll().where { Interventions.report_id eq reportId }
+                .selectAll().where { ((Interventions.status eq Intervention.InterventionStatus.CONFIRMED.status.toShort()) or (Interventions.status eq Intervention.InterventionStatus.IN_PROGRESS.status.toShort())) and (Interventions.report_id eq reportId) }
+                .mapNotNull(::resultRowToIntervention)
+                .singleOrNull()
+        }
+    }
+
+    override suspend fun getInterventionByGuard(guardId: Int): Intervention? {
+        return transaction {
+            Interventions
+                .selectAll().where { ((Interventions.status eq Intervention.InterventionStatus.CONFIRMED.status.toShort()) or (Interventions.status eq Intervention.InterventionStatus.IN_PROGRESS.status.toShort())) and (Interventions.guard_id eq guardId) }
                 .mapNotNull(::resultRowToIntervention)
                 .singleOrNull()
         }

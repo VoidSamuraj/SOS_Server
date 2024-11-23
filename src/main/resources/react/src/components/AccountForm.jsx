@@ -73,45 +73,75 @@ const AccountForm = ({
     setEmailError("");
     setRoleError("");
 
-    if (
-      (selectedTab == "employees" || selectedTab == "guards") &&
-      !name.trim()
-    ) {
-      setNameError("Imię jest wymagane.");
-      isValid = false;
+    if (selectedTab == "employees" || selectedTab == "guards") {
+      let username = name.trim();
+      if (!username || (username.length < 3 && username.length > 40)) {
+        setNameError("Imię musi mieć od 0 do 40 znaków.");
+        isValid = false;
+      }
     }
 
-    if (
-      (selectedTab == "employees" || selectedTab == "guards") &&
-      !surname.trim()
-    ) {
-      setSurnameError("Nazwisko jest wymagane.");
-      isValid = false;
+    if (selectedTab == "employees" || selectedTab == "guards") {
+      let usersurname = surname.trim();
+      if (!usersurname || (usersurname.length < 3 && usersurname.length > 40)) {
+        setSurnameError("Nazwisko musi mieć od 0 do 40 znaków.");
+        isValid = false;
+      }
     }
 
-    if (
-      (selectedTab == "employees" || selectedTab == "customers") &&
-      !phone.trim()
-    ) {
-      setPhoneError("Telefon jest wymagany.");
-      isValid = false;
+    if (selectedTab == "employees" || selectedTab == "customers") {
+      if (!phone.trim()) {
+        setPhoneError("Telefon jest wymagany.");
+        isValid = false;
+      } else {
+        const regex = /^[+]?[0-9]{9,13}$/;
+        if (!regex.test(phone)) {
+          setPhoneError("Telefon ma zły format.");
+          isValid = false;
+        }
+      }
     }
 
-    if (selectedTab == "customers" && !pesel.trim()) {
-      setPeselError("Pesel jest wymagany.");
-      isValid = false;
+    if (selectedTab == "customers") {
+      if (!pesel.trim()) {
+        setPeselError("Pesel jest wymagany.");
+        isValid = false;
+      } else {
+        if (pesel.length !== 11 || !/^\d+$/.test(pesel)) {
+          setPeselError("Niepoprawny pesel.");
+          isValid = false;
+        }
+
+        // Zamiana każdego znaku na liczbę
+        const digits = pesel.split("").map(Number);
+
+        // Wagi dla obliczania sumy kontrolnej
+        const weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3];
+
+        // Obliczenie sumy kontrolnej
+        const sum = digits
+          .slice(0, 10)
+          .reduce((acc, digit, index) => acc + digit * weights[index], 0);
+
+        // Porównanie ostatniej cyfry z cyfrą kontrolną
+        const controlDigit = (10 - (sum % 10)) % 10;
+        if (controlDigit != digits[10]) {
+          setPeselError("Niepoprawny pesel.");
+          isValid = false;
+        }
+      }
     }
 
     // TODO integrate with guards
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if(selectedTab == "employees" || selectedTab == "customers")
-        if (!email.trim()) {
-          setEmailError("Email jest wymagany.");
-          isValid = false;
-        } else if (!emailPattern.test(email)) {
-          setEmailError("Podaj poprawny adres email.");
-          isValid = false;
-        }
+    if (selectedTab == "employees" || selectedTab == "customers")
+      if (!email.trim()) {
+        setEmailError("Email jest wymagany.");
+        isValid = false;
+      } else if (!emailPattern.test(email)) {
+        setEmailError("Podaj poprawny adres email.");
+        isValid = false;
+      }
 
     if (selectedTab == "employees" && !role.trim()) {
       setRoleError("Rola jest wymagana");
@@ -132,13 +162,13 @@ const AccountForm = ({
   };
 
   const handleSave = () => {
-    if (!validateFields()) {
+    if (selectedTab == "employees" && !validateFields()) {
       return;
     }
 
+    const asyncOperations = [];
     if (editMode) {
       const isAccountActive = isActive == "true";
-      const asyncOperations = [];
       const wasAccountActive = Boolean(selectedParams.account_active ?? false);
       switch (selectedTab) {
         case "employees":
@@ -155,10 +185,10 @@ const AccountForm = ({
                 setAlertType("success");
                 setAlertMessage("Pomyślnie zaktualizowano dane ochroniarza.");
               },
-              () => {
+              (error) => {
                 setAlertType("error");
                 setAlertMessage(
-                  "Aktualozowanie danych ochroniarza nie powiodło się."
+                  "Aktualozowanie danych ochroniarza nie powiodło się. " + error
                 );
               }
             )
@@ -243,22 +273,25 @@ const AccountForm = ({
     } else {
       switch (selectedTab) {
         case "employees":
-          register(
-            name,
-            surname,
-            phone,
-            email,
-            RoleCodes[role],
-            () => {
-              setAlertType("success");
-              setAlertMessage("Pomyślnie dodano pracownika.");
-              handleClose();
-            },
-            (error) => {
-              setAlertType("error");
-              setAlertMessage("Dodanie nowego pracownika nie powiodło się.");
-              console.log(error);
-            }
+          asyncOperations.push(
+            register(
+              name,
+              surname,
+              phone,
+              email,
+              RoleCodes[role],
+              () => {
+                setAlertType("success");
+                setAlertMessage("Pomyślnie dodano pracownika.");
+              },
+              (error) => {
+                setAlertType("error");
+                setAlertMessage(
+                  "Dodanie nowego pracownika nie powiodło się. " + error
+                );
+                console.log(error);
+              }
+            )
           );
           break;
         case "guards":
@@ -270,6 +303,9 @@ const AccountForm = ({
         default:
           break;
       }
+      Promise.all(asyncOperations).then(() => {
+        handleClose();
+      });
     }
   };
 
@@ -280,7 +316,12 @@ const AccountForm = ({
     setPesel(selectedParams?.pesel || "");
     setEmail(selectedParams?.email || "");
     setRole(roleMapping[selectedParams?.role] || "");
-    setIsActive((selectedParams?.account_active === null || selectedParams?.account_active === undefined) ? "true" : selectedParams.account_active.toString());
+    setIsActive(
+      selectedParams?.account_active === null ||
+        selectedParams?.account_active === undefined
+        ? "true"
+        : selectedParams.account_active.toString()
+    );
   }, [selectedParams]);
   return (
     <Modal open={open} onClose={handleClose}>
@@ -297,7 +338,7 @@ const AccountForm = ({
         }}
       >
         <Typography variant="h6" component="h2" gutterBottom>
-          Edytuj{" "}
+          {editMode === true ? "Edytuj " : "Dodaj "}
           {selectedTab === "employees"
             ? "pracownika"
             : selectedTab === "guards"
@@ -305,7 +346,7 @@ const AccountForm = ({
             : "klienta"}
         </Typography>
 
-        {(selectedParams?.name || !editMode)? (
+        {selectedParams?.name || !editMode ? (
           <TextField
             fullWidth
             margin="normal"
@@ -321,7 +362,7 @@ const AccountForm = ({
           ""
         )}
 
-        {(selectedParams?.surname || !editMode) ? (
+        {selectedParams?.surname || !editMode ? (
           <TextField
             fullWidth
             margin="normal"
@@ -367,7 +408,7 @@ const AccountForm = ({
           ""
         )}
 
-        {(selectedParams?.email || !editMode) ? (
+        {selectedParams?.email || !editMode ? (
           <TextField
             fullWidth
             margin="normal"

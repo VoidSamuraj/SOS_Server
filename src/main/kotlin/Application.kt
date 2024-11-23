@@ -14,6 +14,7 @@ import models.entity.Employee
 import models.entity.Intervention
 import models.entity.Report
 import plugins.*
+import security.Keys
 import viewmodel.SecurityDataViewModel
 import kotlin.random.Random
 import kotlin.time.DurationUnit
@@ -31,8 +32,14 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    DatabaseFactory.init("jdbc:h2:file:./build/db", "org.h2.Driver", "root", "password")
-    //DatabaseFactory.init("jdbc:mariadb://localhost:3306/mydatabase", "org.mariadb.jdbc.Driver", "root", "password")
+
+    DatabaseFactory.init(
+        jdbcURL = dbAddress,
+        driverClassName = "org.postgresql.Driver",
+        user = Keys.dbLogin,
+        password = Keys.dbPassword
+    )
+
     CoroutineScope(Dispatchers.IO).launch {
         //TEST
         if(DaoMethods.getEmployees(1, 10).isEmpty()) {
@@ -42,7 +49,7 @@ fun Application.module() {
                 "Jan",
                 "Kowalski",
                 "123456789",
-                "zenusma4@gmail.com",
+                "jannow@gmail.com",
                 Employee.Role.DISPATCHER
             )
             DaoMethods.addEmployee(
@@ -51,19 +58,16 @@ fun Application.module() {
                 "Jan",
                 "Kowalski",
                 "92345657892",
-                "dupa@gmail.com",
+                "JohnPaul@gmail.com",
                 Employee.Role.ADMIN
             )
         }
         if(DaoMethods.getGuards(1, 10).isEmpty()) {
-            DaoMethods.addGuard("JAN", "qwerty", "Jan", "Pawel", "2221", "jan1@wp.pl")
-            DaoMethods.addGuard("JANn", "12we", "Jana", "Pawela", "222137", "john2@wp.pl")
+            DaoMethods.addGuard("JAN", "qwerty", "Jan", "Kowalski", "2221", "jan1@wp.pl")
                 DaoMethods.addGuard("Miroslaw", "qwerty", "Miroslaw", "Zelent", "221421", "miro@wp.pl")
         }
         if(DaoMethods.getCustomers(1, 10).isEmpty()) {
-            DaoMethods.addCustomer("Olorin","qwerty", "Olorin", "MySurname", "1234522", "2137", "lll@ll.pl")
-            DaoMethods.addCustomer("Olorin1","qwerty", "Olorin1", "MySurname1","12345222", "21372", "lll@lll.pl")
-            DaoMethods.addCustomer("Andrzej","qwerty", "Andrzej", "Andrzej's Surname","15342", "21345672", "andr@lll.pl")
+            DaoMethods.addCustomer("Andrzej","qwerty", "Andrzej", "Kowalski", "1234522", "2137", "lll@ll.pl")
             DaoMethods.addCustomer("Jan","qwerty", "Jan", "Nowak", "13232", "21556372", "jan@lll.pl")
         }
 
@@ -74,20 +78,6 @@ fun Application.module() {
             DaoMethods.addReport(3,"{lat: 51.1079, lng: 17.0385 }",  Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.WAITING)
         }
 
-        if(DaoMethods.getInterventions(1, 10).isEmpty()) {
-            DaoMethods.addIntervention(3, 3,2,
-                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
-                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
-                Intervention.InterventionStatus.FINISHED)
-            DaoMethods.addIntervention(1, 1,1,
-                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
-                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
-                Intervention.InterventionStatus.FINISHED)
-            DaoMethods.addIntervention(2, 2,2,
-                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
-                Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()),
-                Intervention.InterventionStatus.FINISHED)
-        }
         fun randomLocationInPoland(): String {
             val lat = Random.nextDouble(49.0, 54.83)
             val lng = Random.nextDouble(14.12, 24.15)

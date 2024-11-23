@@ -6,7 +6,7 @@ import ReportMarkers from "./ReportMarkers.jsx";
 import homeImg from "../../icons/home.svg";
 import AssignTaskBox from "../AssignTaskBox";
 import MapController from "./MapController.jsx";
-
+import { cancelIntervention, getAssignedGuardLocation, getAssignedReportLocation } from "../../script/ApiService.js";
 /**
  * MyMap component renders a Google Map with car markers and report markers.
  * It provides functionalities to assign tasks based on selected reports,
@@ -24,14 +24,24 @@ import MapController from "./MapController.jsx";
  * coordinates (latitude and longitude) to navigate to now.
  * @param {function} props.setNavigateTo - Function to set JSON string representing the location
  * coordinates (latitude and longitude) to navigate to now.
+ * @param {function} props.setIsTooltipVisible - Function to set boolean state to show or hide tooltip for default location input setter.
  *
  * @returns {JSX.Element} The rendered map component.
  */
-function MyMap({ patrols, reports, locationHome, onAssignTask, navigateTo, setNavigateTo}) {
+function MyMap({
+  patrols,
+  reports,
+  locationHome,
+  onAssignTask,
+  navigateTo,
+  setNavigateTo,
+  setIsTooltipVisible,
+}) {
   const [hideBell, setHideBell] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPatrol, setSelectedPatrol] = useState(null);
   const [nrOfMenu, setNrOfMenu] = useState(1);
+  const [initialized, setInitialized] = useState(false);
 
   const selectReport = (id) => {
     setSelectedReport(id);
@@ -39,20 +49,42 @@ function MyMap({ patrols, reports, locationHome, onAssignTask, navigateTo, setNa
     setHideBell(true);
   };
 
+  const navToGuard = (reportId)=>{
+      getAssignedGuardLocation(reportId, (location)=>{
+            setNavigateTo(location);
+          });
+  };
+  const navToReport=(guardId)=>{;
+      getAssignedReportLocation(guardId, (location)=>{
+                  setNavigateTo(location);
+                });
+      };
+
+
+  const onCancelInterventionClick = (id) =>{
+    cancelIntervention(id, ()=>{
+
+        });
+  };
+
   const [buttonState, setButtonState] = useState(true);
   const toggleButton = () => {
-    setButtonState(!buttonState);
+    if (locationHome === null) setIsTooltipVisible();
+    else setButtonState(!buttonState);
   };
+
   const selectReportInBox = (report, location) => {
     setSelectedReport(report);
     setNavigateTo(location);
   };
+
   const selectPatrolInBox = (patrol, location) => {
     setSelectedPatrol(patrol);
     setNavigateTo(location);
   };
   useEffect(() => {
-    toggleButton();
+    if (initialized) toggleButton();
+    else setInitialized(true);
   }, [locationHome]);
 
   return (
@@ -63,8 +95,8 @@ function MyMap({ patrols, reports, locationHome, onAssignTask, navigateTo, setNa
           defaultCenter={{ lat: 51.9189046, lng: 19.1343786 }}
           mapId={keys.MAP_ID}
         >
-          <CarMarkers cars={patrols} />
-          <ReportMarkers reports={reports} selectReport={selectReport} />
+          <CarMarkers cars={patrols} navToReport={navToReport} />
+          <ReportMarkers reports={reports} selectReport={selectReport} selectGuard={navToGuard} cancelIntervention={onCancelInterventionClick}/>
           <MapController
             locationJson={locationHome}
             refreshFlag={buttonState}

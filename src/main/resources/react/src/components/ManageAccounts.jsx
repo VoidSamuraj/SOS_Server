@@ -8,11 +8,9 @@ import xCircle from "../icons/x-circle.svg";
 import checkCircle from "../icons/check-circle.svg";
 import x from "../icons/x.svg";
 import { plLanguage } from "../script/plLanguage.js";
-import { getClients, getEmployees, getGuards } from "../script/ApiService.js";
 import AccountForm from "./AccountForm";
 import SystemAlert from "./SystemAlert";
 import SystemWebSocket from "../script/SystemWebSocket";
-import config from "../config";
 
 /**
  * ManageAccounts component manages the display and editing of employee, guard, and customer accounts.
@@ -44,24 +42,34 @@ const ManageAccounts = ({ editedRecord, setIsLoading }) => {
   const administrationSocketRef = useRef(null);
 
   useEffect(() => {
-    administrationSocketRef.current = new SystemWebSocket("wss://"+config.ADDRESS+":"+config.PORT+"/adminPanelSocket",()=>{setIsLoading(false); updatePaginatedData();},() => {setIsLoading(true);});
+    administrationSocketRef.current = new SystemWebSocket(
+      "wss://" + window.location.host + "/adminPanelSocket",
+      () => {
+        setIsLoading(false);
+        updatePaginatedData();
+      },
+      () => {
+        setIsLoading(true);
+      }
+    );
 
     const messageHandler = (data) => {
+      console.log(data);
       if (Array.isArray(data.data)) {
-        if(data.columnName == selectedTabRef.current)
-            switch (selectedTabRef.current) {
-              case "employees":
-                setEmployees(data.data);
-                break;
-              case "guards":
-                setPatrols(data.data);
-                break;
-              case "customers":
-                setClients(data.data);
-                break;
-              default:
-                break;
-            }
+        if (data.columnName == selectedTabRef.current)
+          switch (selectedTabRef.current) {
+            case "employees":
+              setEmployees(data.data);
+              break;
+            case "guards":
+              setPatrols(data.data);
+              break;
+            case "customers":
+              setClients(data.data);
+              break;
+            default:
+              break;
+          }
       }
     };
 
@@ -335,26 +343,38 @@ const ManageAccounts = ({ editedRecord, setIsLoading }) => {
           : [];
       case "guards":
         return patrols && patrols.length > 0
-          ? patrols.map(({ id, name, surname, phone, email, account_deleted }) => ({
-              id,
-              name,
-              surname,
-              phone,
-              email,
-              account_active: !account_deleted,
-            }))
+          ? patrols.map(
+              ({ id, name, surname, phone, email, account_deleted }) => ({
+                id,
+                name,
+                surname,
+                phone,
+                email,
+                account_active: !account_deleted,
+              })
+            )
           : [];
       case "customers":
         return clients && clients.length > 0
-          ? clients.map(({ id, name, surname, phone, pesel, email, account_deleted }) => ({
-              id,
-              name,
-              surname,
-              phone,
-              pesel,
-              email,
-              account_active: !account_deleted,
-            }))
+          ? clients.map(
+              ({
+                id,
+                name,
+                surname,
+                phone,
+                pesel,
+                email,
+                account_deleted,
+              }) => ({
+                id,
+                name,
+                surname,
+                phone,
+                pesel,
+                email,
+                account_active: !account_deleted,
+              })
+            )
           : [];
       default:
         return [];
@@ -389,7 +409,7 @@ const ManageAccounts = ({ editedRecord, setIsLoading }) => {
             ""
           )}
         </Box>
-        <Box sx={{ marginTop: 2, height: 400 }}>
+        <Box sx={{ marginTop: 2, height: "80vh" }}>
           <DataGrid
             rows={getRows()}
             columns={getColumns()}

@@ -10,18 +10,26 @@ import car from "../icons/car.svg";
  * sort patrols by ID or status, and displays detailed information for each patrol.
  *
  * @param {Map} props.patrols - A map containing patrol data, where each entry is a patrol ID and its associated details.
+ * @param {boolean} props.isPatrolListVisible - Boolean representing if menu is visible.
+ * @param {function} props.setIsPatrolListVisible - Function to set is menu visibility.
+ * @param {function} props.hideOtherMenu - Function to hide other menus.
  * @param {function} props.setNavigateTo - Function to set location to center in map.
  *
  * @returns {JSX.Element} The rendered patrols menu.
  */
-function PatrolsMenu({ patrols, setNavigateTo }) {
+function PatrolsMenu({
+  patrols,
+  isPatrolListVisible,
+  setIsPatrolListVisible,
+  hideOtherMenu,
+  setNavigateTo,
+}) {
   const [sortByStatus, setSortByStatus] = useState(true);
   const [sortedPatrols, setSortedPatrols] = useState([]);
-  const [isPatrolListVisible, setIsPatrolListVisible] = useState(false);
 
   const [expandedItem, setExpandedItem] = useState(null);
 
-  const { statusToColor, statusToCarColor } = usePatrols();
+  const { statusToColorCarMenu, statusToCarColor } = usePatrols();
 
   const togglePatrolList = () => {
     setIsPatrolListVisible(!isPatrolListVisible);
@@ -44,7 +52,14 @@ function PatrolsMenu({ patrols, setNavigateTo }) {
 
   return (
     <>
-      <div id="patrolsButton" onClick={togglePatrolList} title="Lista patroli">
+      <div
+        id="patrolsButton"
+        onClick={() => {
+          hideOtherMenu();
+          togglePatrolList();
+        }}
+        title="Lista patroli"
+      >
         <img src={car} alt="patrols" />
       </div>
       <div
@@ -54,7 +69,10 @@ function PatrolsMenu({ patrols, setNavigateTo }) {
         }`}
       >
         <img
-          onClick={togglePatrolList}
+          onClick={() => {
+            hideOtherMenu();
+            togglePatrolList();
+          }}
           id="patrolsClose"
           src={leftarrow}
           alt="close"
@@ -80,7 +98,7 @@ function PatrolsMenu({ patrols, setNavigateTo }) {
                 ([id, { position, status, name, surname, phone }]) => (
                   <div
                     className={expandedItem == id ? "expandedMenu" : ""}
-                    style={{ backgroundColor: statusToColor(status) }}
+                    style={{ backgroundColor: statusToColorCarMenu(status) }}
                     onClick={(event) => setExpandedItem(id)}
                   >
                     <div key={id} className="patrol-item">

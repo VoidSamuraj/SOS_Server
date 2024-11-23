@@ -81,6 +81,14 @@
   text-align: center;
   transition: height 0.3s ease;
 }
+#interventionsList input {
+  align-self: center;
+  border-radius: 5px;
+}
+#interventionsList input:hover {
+  filter: brightness(0.8);
+}
+
 .expandedMenu {
   height: 150px !important;
 }
@@ -109,3 +117,4 @@
   background-color: #535770;
   border-color: #535770;
 }
+

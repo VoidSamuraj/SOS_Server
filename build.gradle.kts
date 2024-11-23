@@ -4,7 +4,7 @@ val logback_version: String by project
 val ktor_version: String by project
 val exposed_version: String by project
 val h2_version: String by project
-val mariaDB_version: String by project
+val postgreSQL_version: String by project
 
 plugins {
     kotlin("jvm") version "2.0.10"
@@ -59,8 +59,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposed_version")
 
-    //TODO replace h2 with mariadb for release
-    implementation("org.mariadb.jdbc:mariadb-java-client:$mariaDB_version")
+    implementation("org.postgresql:postgresql:$postgreSQL_version")
     implementation("com.h2database:h2:$h2_version")
 
     implementation("com.google.code.gson:gson:2.10.1")
@@ -74,12 +73,16 @@ dependencies {
 
     implementation("org.simplejavamail:simple-java-mail:8.11.3")
 }
+
+val env = System.getenv("ENV") ?: "dev"
+
 tasks.withType<Test> {
     systemProperty("ktor.environment", "test")
 }
 tasks.jar {
     manifest {
         attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
+        attributes["Env"] = env
     }
     if (project.hasProperty("test")) {
         isZip64 = true
@@ -89,6 +92,7 @@ tasks.jar {
 tasks.shadowJar {
     manifest {
         attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
+        attributes["Env"] = env
     }
     isZip64 = true
 }

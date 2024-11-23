@@ -75,12 +75,12 @@ fun Application.configureSockets() {
                         for (frame in incoming) {
                             if (frame is Frame.Text) {
                                 val newParams = Json.decodeFromString<QueryParams>(frame.readText())
-                                val previousParams = administrationQueryParams[this]
+                             //   val previousParams = administrationQueryParams[this]
 
-                                if (previousParams == null || previousParams != newParams) {
+                              //  if (newParams.force == true || previousParams == null || previousParams != newParams) {
                                     loadDataAccordingToParams(this, newParams)
                                     administrationQueryParams[this] = newParams
-                                }
+                         //       }
                             }
 
                             if (frame is Frame.Close) {
@@ -309,6 +309,8 @@ fun Application.configureSockets() {
                 e.printStackTrace()
             } catch (e: Exception) {
                 e.printStackTrace()
+            }finally {
+                SecurityDataViewModel.editGuardStatus(this, Guard.GuardStatus.UNAVAILABLE)
             }
         }
     }

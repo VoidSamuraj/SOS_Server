@@ -949,3 +949,74 @@ export const fetchStreetName = async (
     console.error("Error fetching geocoding data: ", error);
   }
 };
+export const cancelIntervention = async(reportId, onSuccess) =>{
+      try {
+        const formData = new URLSearchParams();
+        formData.append("reportId", reportId);
+
+        const response = await fetch("/action/cancelIntervention", {
+          method: "POST",
+          credentials: "include",
+           headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+           },
+           body: formData,
+        });
+
+        if (response.ok) {
+            onSuccess();
+        } else {
+          console.error("Fetch error :", response.statusText);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+}
+export const getAssignedGuardLocation = async(reportId, onSuccess) =>{
+      try {
+        const formData = new URLSearchParams();
+        formData.append("reportId", reportId);
+
+        const response = await fetch("/action/getAssignedGuardLocation", {
+          method: "POST",
+          credentials: "include",
+           headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+           },
+           body: formData,
+        });
+
+        if (response.ok) {
+            const location = await response.json();
+            onSuccess(location);
+        } else {
+          console.error("Fetch error :", response.statusText);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+}
+export const getAssignedReportLocation = async(guardId, onSuccess) =>{
+      try {
+        const formData = new URLSearchParams();
+        formData.append("guardId", guardId);
+
+        const response = await fetch("/action/getAssignedReportLocation", {
+          method: "POST",
+          credentials: "include",
+           headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+           },
+           body: formData,
+        });
+
+        if (response.ok) {
+            const location = await response.json();
+            onSuccess(location);
+        } else {
+          console.error("Fetch error :", response.statusText);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+}

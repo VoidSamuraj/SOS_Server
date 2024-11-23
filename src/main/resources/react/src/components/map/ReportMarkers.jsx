@@ -16,10 +16,13 @@ import reportImageDot from "../../icons/sosdot.svg";
  * and the value is an object with position, date, and status.
  * @param {function} props.selectReport - Function to handle report selection when the
  * "Przydziel zgłoszenie" button is clicked.
+ * @param {function} props.selectGuard - Function to handle "Pokaż patrol" button click.
+ * @param {function} props.cancelIntervention - Function to handle cancel intervention when the
+ * "Anuluj interwencję" button is clicked.
  *
  * @returns {JSX.Element} The rendered report markers component.
  */
-const ReportMarkers = ({ reports, selectReport }) => {
+const ReportMarkers = ({ reports, selectReport, selectGuard, cancelIntervention }) => {
   return useMemo(
     () => (
       <>
@@ -31,6 +34,8 @@ const ReportMarkers = ({ reports, selectReport }) => {
               date={date}
               status={status}
               selectReport={selectReport}
+              cancelIntervention={cancelIntervention}
+              selectGuard={selectGuard}
             />
           )
         )}
@@ -55,10 +60,13 @@ const ReportMarkers = ({ reports, selectReport }) => {
  * FINISHED(2);
  * @param {function} props.selectReport - Function to handle report selection when the
  * "Przydziel zgłoszenie" button is clicked.
+ * @param {function} props.selectGuard - Function to handle "Pokaż patrol" button click.
+ * @param {function} props.cancelIntervention - Function to handle cancel intervention when the
+ * "Anuluj interwencję" button is clicked.
  *
  * @returns {JSX.Element} The rendered alert icon component.
  */
-const AlertIcon = ({ id, position, date, status, selectReport }) => {
+const AlertIcon = ({ id, position, date, status, selectReport, selectGuard, cancelIntervention }) => {
   const [infowindowOpen, setInfowindowOpen] = useState(false);
   const [markerRef, marker] = useAdvancedMarkerRef();
   const [passedTime, setPassedTime] = useState(calculatePassedTime(date));
@@ -123,11 +131,22 @@ const AlertIcon = ({ id, position, date, status, selectReport }) => {
             className="assignReportButton"
             onClick={() => {
                 if(status == 0)
-                selectReport(id)
-                //TODO
-                //else
+                    selectReport(id)
+                else
+                    cancelIntervention(id)
                 }}
           />
+          {status == 1 ? (
+                    <input
+                      type="button"
+                      value={"Pokaż patrol"}
+                      className="assignReportButton"
+                      onClick={() => {
+                              selectGuard(id)
+                          }}
+                    />
+                    ):("")
+                }
         </InfoWindow>
       )}
     </>

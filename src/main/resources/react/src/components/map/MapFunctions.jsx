@@ -2,16 +2,38 @@ import React, { useState } from "react";
 
 export const usePatrols = () => {
   const [patrols, setPatrols] = useState(new Map());
-  const statusToColor = (status) => {
+  const statusToColorReportMenu = (status) => {
     switch (status) {
       case 0:
-        return "#00ff00";
-      case 2:
-        return "#ff0000";
+        return "#FF8C42";
+      case 1:
+        return "#C4B7AC";
       default:
         return "#cccccc";
     }
   };
+    const statusToReportColor = (status) => {
+      switch (status) {
+        case 0:
+          return "#f7690d";
+        case 1:
+          return "#949494";
+        default:
+          return "#949494";
+      }
+    };
+    const statusToColorCarMenu = (status) => {
+      switch (status) {
+        case 0:
+           return "#00ff00";
+        case 2:
+           return "#d62222";
+        case 3:
+           return "#6625b9";
+        default:
+          return "#cccccc";
+      }
+    };
   const statusToCarColor = (status) => {
     switch (status) {
       case 0:
@@ -103,7 +125,9 @@ const syncPatrols = (dataArray) => {
 
   return {
     patrols,
-    statusToColor,
+    statusToColorReportMenu,
+    statusToReportColor,
+    statusToColorCarMenu,
     statusToCarColor,
     setPatrols,
     addPatrol,

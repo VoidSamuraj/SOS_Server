@@ -5,7 +5,6 @@ import {
   Box,
   Typography,
   TextField,
-  MenuItem,
   Button,
 } from "@mui/material";
 
@@ -30,7 +29,6 @@ const EditAccountData = memo(
     const [newPassword, setNewPassword] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
-    const [selectedParams, setSelectedParams] = useState({});
 
     const [passwordError, setPasswordError] = useState("");
     const [newPasswordError, setNewPasswordError] = useState("");

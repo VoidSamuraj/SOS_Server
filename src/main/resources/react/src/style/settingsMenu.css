@@ -24,30 +24,45 @@
   border-top: 1px solid white;
 }
 #locationBox {
+  background-color: #232b54;
   border-top: 1px solid white;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 2;
 }
+#locationBox > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#locationBox > * {
+  z-index: 2;
+  background-color: #232b54;
+}
+
 #locationBox > label {
   align-self: start;
   margin-left: 2px;
 }
-#locationBox  input {
+#locationBox input {
   width: 210px;
   margin: 6px;
 }
-#locationBox > input[type="button"], #editAccount {
+#locationBox > input[type="button"],
+#editAccount {
   transition: background-color 0.2s ease-in-out;
   margin-top: 0;
   width: 230px;
 }
-#locationBox > input[type="button"]:hover, #editAccount:hover{
+#locationBox > input[type="button"]:hover,
+#editAccount:hover {
   background-color: #40476b;
 }
-.pac-container{
-    flex-direction:column;
-    height: auto;
+.pac-container {
+  flex-direction: column;
+  height: auto;
 }
 
 .settingsMenuVisible {
@@ -56,10 +71,43 @@
 .settingsMenuHidden {
   right: -100%;
 }
-#editAccount{
+#editAccount {
   transition: background-color 0.2s ease-in-out;
-  margin:6px;
+  margin: 6px;
   width: 230px;
   border-top: 1px solid white;
   align-items: center;
+}
+
+#locationBox > div.tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background-color: #232b54;
+  color: #fff;
+  text-align: center;
+  padding: 14px;
+  border-radius: 5px;
+  position: absolute;
+  left: 0%;
+  transform: translateX(-50%);
+  width: 200px;
+  z-index: 1 !important;
+  transition: left 0.3s ease-in-out, opacity 0.3s ease-in-out,
+    visibility 0.6s ease-in-out;
+}
+
+#locationBox > div.tooltip.visible {
+  left: -52%;
+  visibility: visible;
+  opacity: 1;
+}
+#locationBox > div.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 47px;
+  left: 99.5%;
+  transform: translateY(-50%);
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent transparent transparent #232b54;
 }

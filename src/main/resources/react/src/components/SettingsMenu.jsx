@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import { Autocomplete } from "@react-google-maps/api";
 import rightarrow from "../icons/right-arrow.svg";
 import EditAccountData from "./EditAccountData";
 import SystemAlert from "./SystemAlert";
@@ -9,6 +9,7 @@ import SystemAlert from "./SystemAlert";
  * including theme toggles, contrast adjustments, and location settings.
  *
  * @param {boolean} props.isVisible - Determines if the settings menu is visible.
+ * @param {boolean} props.isTooltipVisible - Determines if the tooltip correlated with location input is visible.
  * @param {Function} props.onSettingsToggle - Function to be called when the settings toggle is activated.
  * @param {Function} props.onEditedToggle - Function to be called when the account editing window is toggled.
  * @param {string} props.locationJson - JSON string representing the current location data.
@@ -19,6 +20,7 @@ import SystemAlert from "./SystemAlert";
  */
 function SettingsMenu({
   isVisible,
+  isTooltipVisible,
   onSettingsToggle,
   onEditedToggle,
   locationJson,
@@ -76,33 +78,39 @@ function SettingsMenu({
         </div>
         {canSetMapLoc && (
           <div id="locationBox">
-            <label htmlFor="loc">Lokalizacja domyślna</label>
-            <Autocomplete
-              onLoad={(autocomplete) => {
-                setAutocomplete(autocomplete);
-              }}
-              onPlaceChanged={handlePlaceChanged}
-            >
+            <div>
+              <label htmlFor="loc">Lokalizacja domyślna</label>
+              <Autocomplete
+                onLoad={(autocomplete) => {
+                  setAutocomplete(autocomplete);
+                }}
+                onPlaceChanged={handlePlaceChanged}
+              >
+                <input
+                  type="text"
+                  id="locationInput"
+                  placeholder="Wpisz adres..."
+                  title="Lokalizacja domyślna służąca do szybkiego nawigowania na mapie"
+                  value={location}
+                  onChange={(event) => setLocation(event.target.value)}
+                />
+              </Autocomplete>
               <input
-                type="text"
-                placeholder="Wpisz adres..."
-                title="Lokalizacja domyślna służąca do szybkiego nawigowania na mapie"
-                value={location}
-                onChange={(event) => setLocation(event.target.value)}
+                type="button"
+                id="saveLocation"
+                value="Zapisz Lokalizację"
+                placeholder="Zapisz Lokalizację"
+                title="Zapisz lokalizację domyślna służąca do szybkiego nawigowania na mapie"
+                onClick={() => {
+                  localStorage.setItem("HomeLocation", locationJson);
+                  setAlertType("success");
+                  setAlertMessage("Zaktualizowano domyślną lokalizację.");
+                }}
               />
-            </Autocomplete>
-            <input
-              type="button"
-              id="saveLocation"
-              value="Zapisz Lokalizację"
-              placeholder="Zapisz Lokalizację"
-              title="Zapisz lokalizację domyślna służąca do szybkiego nawigowania na mapie"
-              onClick={() => {
-                localStorage.setItem("HomeLocation", locationJson);
-                setAlertType("success");
-                setAlertMessage("Zaktualizowano domyślną lokalizację.");
-              }}
-            />
+            </div>
+            <div className={`tooltip ${isTooltipVisible ? "visible" : ""}`}>
+              Należy najpierw podać i zapisać lokalizację domyślną
+            </div>
           </div>
         )}
         <input

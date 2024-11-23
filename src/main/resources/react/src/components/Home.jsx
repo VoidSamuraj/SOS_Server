@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import TopBar from "./TopBar";
 import DropdownMenu from "./DropdownMenu";
 import SettingsMenu from "./SettingsMenu";
@@ -7,11 +7,9 @@ import InterventionsMenu from "./InterventionsMenu";
 import MyMap from "./map/MyMap";
 import StatsOverlay from "./StatsOverlay";
 import { useReports, usePatrols } from "./map/MapFunctions";
-import { getAllGuards } from "../script/ApiService.js";
 import SystemWebSocket from "../script/SystemWebSocket.js";
-import { LoadScript, Autocomplete } from "@react-google-maps/api";
+import { LoadScript } from "@react-google-maps/api";
 import keys from "../keys";
-import config from "../config";
 
 const libraries = ["places"];
 
@@ -25,10 +23,8 @@ const libraries = ["places"];
  * @returns {JSX.Element} The rendered component.
  */
 function Home() {
-  const { patrols, editPatrol, syncPatrols, convertArrayToPatrolMap } =
-    usePatrols();
-  const { reports, addReport, editReport, syncReports, removeReport } =
-    useReports();
+  const { patrols, editPatrol, syncPatrols } = usePatrols();
+  const { reports, editReport, syncReports } = useReports();
   const [locationJson, setLocationJson] = useState(
     localStorage.getItem("HomeLocation")
   );
@@ -36,7 +32,12 @@ function Home() {
   const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isStatsVisible, setIsStatsVisible] = useState(false);
+  const [isPatrolListVisible, setIsPatrolListVisible] = useState(false);
+  const [isInterventionListVisible, setIsInterventionListVisible] =
+    useState(false);
   const [navigateTo, setNavigateTo] = useState(false);
+
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,11 +46,14 @@ function Home() {
   useEffect(() => {
     document.documentElement.classList.add("indexStyle");
     document.body.classList.add("indexStyle");
-
     mapSocketRef.current = new SystemWebSocket(
-      "wss://"+config.ADDRESS+":"+config.PORT+"/mapSocket",
-      () => {setIsLoading(false);},
-      () => {setIsLoading(true);}
+      "wss://" + window.location.host + "/mapSocket",
+      () => {
+        setIsLoading(false);
+      },
+      () => {
+        setIsLoading(true);
+      }
     );
 
     const messageHandler = (data) => {
@@ -72,6 +76,13 @@ function Home() {
     };
   }, []);
 
+  useEffect(() => {
+    if (isTooltipVisible) {
+      setIsDropdownVisible(true);
+      setIsSettingsVisible(true);
+    }
+  }, [isTooltipVisible]);
+
   const assignTask = (patrolId, reportId) => {
     editPatrol(patrolId, 2, null);
     editReport(reportId, null, null, 1);
@@ -88,42 +99,76 @@ function Home() {
     setIsStatsVisible(!isStatsVisible);
   };
 
-
   return (
-    <LoadScript googleMapsApiKey={keys.GOOGLE_API_KEY} libraries={libraries}>
-      <TopBar onDropdownToggle={toggleDropdown} guards={patrols}/>
-      <DropdownMenu
-        isVisible={isDropdownVisible}
-        onSettingsToggle={toggleSettings}
-        onStatsToggle={toggleStats}
-        onAdminClick={() => (window.location.href = "/administration")}
-      />
-      <SettingsMenu
-        isVisible={isSettingsVisible}
-        onSettingsToggle={toggleSettings}
-        locationJson={locationJson}
-        setLocationJson={setLocationJson}
-        canSetMapLoc={true}
-      />
+    <>
+      <LoadScript googleMapsApiKey={keys.GOOGLE_API_KEY} libraries={libraries}>
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            pointerEvents: isLoading ? "none" : "auto",
+            filter: isLoading ? "grayscale(80%) brightness(80%)" : "none",
+          }}
+        >
+          <TopBar onDropdownToggle={toggleDropdown} guards={patrols} />
+          <DropdownMenu
+            isVisible={isDropdownVisible}
+            onSettingsToggle={toggleSettings}
+            onStatsToggle={toggleStats}
+            onAdminClick={() => (window.location.href = "/administration")}
+          />
+          <SettingsMenu
+            isVisible={isSettingsVisible}
+            isTooltipVisible={isTooltipVisible}
+            onSettingsToggle={toggleSettings}
+            locationJson={locationJson}
+            setLocationJson={setLocationJson}
+            canSetMapLoc={true}
+          />
 
-      <PatrolsMenu
-        patrols={patrols}
-        setNavigateTo={setNavigateTo}
-      />
-      <InterventionsMenu
-        patrols={patrols}
-      />
-      <MyMap
-        patrols={patrols}
-        reports={reports}
-        locationHome={locationJson}
-        onAssignTask={assignTask}
-        navigateTo={navigateTo}
-        setNavigateTo={setNavigateTo}
-      />
-      <StatsOverlay isVisible={isStatsVisible} onStatsToggle={toggleStats} locationJson={locationJson} />
-      <div class={isLoading ? "loader" : "hiddenLoader"}><div></div></div>
-    </LoadScript>
+          <PatrolsMenu
+            patrols={patrols}
+            isPatrolListVisible={isPatrolListVisible}
+            setIsPatrolListVisible={setIsPatrolListVisible}
+            hideOtherMenu={() => {
+              setIsInterventionListVisible(false);
+            }}
+            setNavigateTo={setNavigateTo}
+          />
+          <InterventionsMenu
+            interventions={reports}
+            isInterventionListVisible={isInterventionListVisible}
+            setIsInterventionListVisible={setIsInterventionListVisible}
+            hideOtherMenu={() => {
+              setIsPatrolListVisible(false);
+            }}
+            setNavigateTo={setNavigateTo}
+          />
+          <MyMap
+            patrols={patrols}
+            reports={reports}
+            locationHome={locationJson}
+            onAssignTask={assignTask}
+            navigateTo={navigateTo}
+            setNavigateTo={setNavigateTo}
+            setIsTooltipVisible={() => {
+              setIsTooltipVisible(true);
+              setTimeout(() => {
+                setIsTooltipVisible(false);
+              }, 5000);
+            }}
+          />
+          <StatsOverlay
+            isVisible={isStatsVisible}
+            onStatsToggle={toggleStats}
+            locationJson={locationJson}
+          />
+        </div>
+      </LoadScript>
+      <div class={isLoading ? "loader" : "hiddenLoader"}>
+        <div></div>
+      </div>
+    </>
   );
 }
 

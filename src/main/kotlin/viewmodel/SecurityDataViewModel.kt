@@ -100,7 +100,12 @@ object SecurityDataViewModel {
             }
         }
     }
-
+    fun editGuardStatus(guardSession: DefaultWebSocketSession, status: Guard.GuardStatus){
+        val guardKey = guardSessions.entries.firstOrNull { it.value == guardSession }?.key
+        if(guardKey!=null){
+            editGuardStatus(guardKey, status)
+        }
+    }
     fun editGuardStatus(id: Int, status: Guard.GuardStatus) {
         _guardsFlow.value = _guardsFlow.value.map { guardRow ->
             if (guardRow.id == id) {
@@ -118,7 +123,12 @@ object SecurityDataViewModel {
     fun setGuards(guards: List<GuardInfo>) {
         _guardsFlow.value = guards
     }
-
+    fun getGuardLocationById(guardId: Int): String? {
+        return _guardsFlow.value.find { it.id == guardId }?.location
+    }
+    fun getReportsLocationById(reportId: Int): String? {
+        return _reportsFlow.value.find { it.id == reportId }?.location
+    }
     suspend fun assignReportToGuard(
         reportId: Int,
         guardId: Int,

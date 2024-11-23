@@ -1,6 +1,8 @@
 package routes
 
 import dao.DaoMethods
+import dao.DaoMethods.getInterventionByGuard
+import dao.DaoMethods.getInterventionByReport
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
@@ -70,6 +72,48 @@ fun Route.actionRoutes() {
                 call.respond(HttpStatusCode.OK, "Success")
             }
         }
+
+        post("/cancelIntervention"){
+            val formParameters = call.receiveParameters()
+            val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
+            val intervention = getInterventionByReport(reportId = reportId)
+            SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.WAITING)
+            intervention?.let{
+                SecurityDataViewModel.editGuardStatus(id = it.guard_id, status = Guard.GuardStatus.AVAILABLE)
+            }
+            call.respond(HttpStatusCode.OK)
+        }
+
+        post("/getAssignedGuardLocation"){
+            val formParameters = call.receiveParameters()
+            val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
+            val intervention = getInterventionByReport(reportId = reportId)
+            if(intervention!=null){
+                val location = SecurityDataViewModel.getGuardLocationById(intervention.guard_id)?.replace("lat", "\"lat\"")?.replace("lng", "\"lng\"")
+                if(location!=null)
+                    call.respond(HttpStatusCode.OK,location)
+                else
+                    call.respond(HttpStatusCode.NoContent)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+
+        post("/getAssignedReportLocation"){
+            val formParameters = call.receiveParameters()
+            val guardId = sanitizeHtml(formParameters.getOrFail("guardId")).toInt()
+            val intervention = getInterventionByGuard(guardId = guardId)
+            if(intervention!=null){
+                val location = SecurityDataViewModel.getReportsLocationById(intervention.report_id)?.replace("lat", "\"lat\"")?.replace("lng", "\"lng\"")
+                if(location!=null)
+                    call.respond(HttpStatusCode.OK,location)
+                else
+                    call.respond(HttpStatusCode.NoContent)
+            }
+            call.respond(HttpStatusCode.NoContent)
+        }
+
+
+
         get("/checkConnection"){
             call.respond(HttpStatusCode.OK)
         }

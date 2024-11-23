@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import ManageAccounts from "./ManageAccounts";
 import TopBar from "./TopBar";
 import DropdownMenu from "./DropdownMenu";
 import SettingsMenu from "./SettingsMenu";
-
 
 /**
  * Administration component serves as a control panel for managing settings,
@@ -22,7 +21,7 @@ function Administration() {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  let guards ={}
+  let guards = {};
   const toggleDropdown = () => {
     setIsDropdownVisible(!isDropdownVisible);
     if (isSettingsVisible) setIsSettingsVisible(false);
@@ -34,22 +33,36 @@ function Administration() {
     setEditedRecord(!editedRecord);
   };
   return (
-    <div id="StatsBox">
-      <TopBar onDropdownToggle={toggleDropdown} />
-      <DropdownMenu
-        isVisible={isDropdownVisible}
-        onSettingsToggle={toggleSettings}
-        onMapClick={() =>  window.location.href = "/map"}
-      />
-      <SettingsMenu
-        isVisible={isSettingsVisible}
-        onSettingsToggle={toggleSettings}
-        onEditedToggle={toggleEdited}
-        canSetMapLoc={false}
-      />
-      <ManageAccounts editedRecord={editedRecord} setIsLoading={setIsLoading}/>
-      <div class={isLoading ? "loader" : "hiddenLoader"}><div></div></div>
-    </div>
+    <>
+      <div
+        id="StatsBox"
+        style={{
+          pointerEvents: isLoading ? "none" : "auto",
+          filter: isLoading ? "grayscale(80%) brightness(80%)" : "none",
+        }}
+      >
+        <TopBar onDropdownToggle={toggleDropdown} />
+        <DropdownMenu
+          isVisible={isDropdownVisible}
+          onSettingsToggle={toggleSettings}
+          onMapClick={() => (window.location.href = "/map")}
+        />
+        <SettingsMenu
+          isVisible={isSettingsVisible}
+          isTooltipVisible={false}
+          onSettingsToggle={toggleSettings}
+          onEditedToggle={toggleEdited}
+          canSetMapLoc={false}
+        />
+        <ManageAccounts
+          editedRecord={editedRecord}
+          setIsLoading={setIsLoading}
+        />
+      </div>
+      <div class={isLoading ? "loader" : "hiddenLoader"}>
+        <div></div>
+      </div>
+    </>
   );
 }
 

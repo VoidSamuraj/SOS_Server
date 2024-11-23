@@ -110,7 +110,7 @@ fun isPasswordValid(password: String): Boolean {
  * @return True if the phone number is valid; otherwise, false.
  */
 fun isPhoneValid(phoneNumber: String): Boolean {
-    val regex = "^[+]?[0-9]{10,13}$".toRegex()
+    val regex = "^[+]?[0-9]{9,13}$".toRegex()
     return regex.matches(phoneNumber)
 }
 
