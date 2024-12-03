@@ -48,8 +48,9 @@ suspend fun checkPermission(
     }
     val id = getAccountId(decodedToken)
     val audience = decodedToken.audience?.firstOrNull()
+    val isDeleted = decodedToken.getClaim("isDeleted").asBoolean()
 
-    if (id != null)
+    if (id != null && !isDeleted)
         when (audience) {
             "employee" -> {
                 val expireTime = getTokenExpirationDate(decodedToken)
@@ -116,6 +117,7 @@ fun createToken(customer: Customer, longTime: Boolean=false): Pair<JWTToken, Lon
         .withClaim("surname", customer.surname)
         .withClaim("phone", customer.phone)
         .withClaim("email", customer.email)
+        .withClaim("isDeleted",customer.account_deleted)
         .withExpiresAt(tokenExp)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
     return Pair(JWTToken(token), Long.MAX_VALUE)
@@ -147,6 +149,7 @@ fun createToken(guard: Guard, longTime: Boolean=false): Pair<JWTToken, Long> {
         .withClaim("surname", guard.surname)
         .withClaim("phone", guard.phone)
         .withClaim("email", guard.email)
+        .withClaim("isDeleted",guard.account_deleted)
         .withExpiresAt(tokenExp)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
     return Pair(JWTToken(token), Long.MAX_VALUE)
@@ -180,6 +183,7 @@ fun createToken(employee: Employee): Pair<JWTToken, Long> {
         .withClaim("phone", employee.phone)
         .withClaim("email", employee.email)
         .withClaim("roleCode", employee.roleCode.toInt())
+        .withClaim("isDeleted",employee.account_deleted)
         .withExpiresAt(tokenExp)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
     return Pair(JWTToken(token), tokenExp.time)
