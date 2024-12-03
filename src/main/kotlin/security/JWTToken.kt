@@ -5,8 +5,9 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import dao.DaoMethods
-import jwtExpirationSeconds
+import jwtExpirationMilliSeconds
 import kotlinx.serialization.Serializable
+import longTokenExpirationTime
 import models.dto.CustomerInfo
 import models.dto.GuardInfo
 import models.entity.Customer
@@ -101,9 +102,11 @@ suspend fun checkPermission(
  * - `email`: The email address of the customer.
  *
  * @param customer The employee for whom the token is created.
+ * @param longTime The boolean deciding if token should have longer expiration time [longTokenExpirationTime] or [jwtExpirationMilliSeconds].
  * @return A Pair containing JWTToken and expiration date.
  */
-fun createToken(customer: Customer): Pair<JWTToken, Long> {
+fun createToken(customer: Customer, longTime: Boolean=false): Pair<JWTToken, Long> {
+    val tokenExp = Date(System.currentTimeMillis() + if(longTime) longTokenExpirationTime else jwtExpirationMilliSeconds)
     val token = JWT.create()
         .withIssuer(ISS)
         .withAudience("customer")
@@ -113,6 +116,7 @@ fun createToken(customer: Customer): Pair<JWTToken, Long> {
         .withClaim("surname", customer.surname)
         .withClaim("phone", customer.phone)
         .withClaim("email", customer.email)
+        .withExpiresAt(tokenExp)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
     return Pair(JWTToken(token), Long.MAX_VALUE)
 }
@@ -129,9 +133,11 @@ fun createToken(customer: Customer): Pair<JWTToken, Long> {
  * - `email`: The email address of the guard.
  *
  * @param guard The employee for whom the token is created.
+ * @param longTime The boolean deciding if token should have longer expiration time [longTokenExpirationTime] or [jwtExpirationMilliSeconds].
  * @return A Pair containing JWTToken and expiration date.
  */
-fun createToken(guard: Guard): Pair<JWTToken, Long> {
+fun createToken(guard: Guard, longTime: Boolean=false): Pair<JWTToken, Long> {
+    val tokenExp = Date(System.currentTimeMillis() + if(longTime) longTokenExpirationTime else jwtExpirationMilliSeconds)
     val token = JWT.create()
         .withIssuer(ISS)
         .withAudience("guard")
@@ -141,6 +147,7 @@ fun createToken(guard: Guard): Pair<JWTToken, Long> {
         .withClaim("surname", guard.surname)
         .withClaim("phone", guard.phone)
         .withClaim("email", guard.email)
+        .withExpiresAt(tokenExp)
         .sign(Algorithm.HMAC256(Keys.JWTSecret))
     return Pair(JWTToken(token), Long.MAX_VALUE)
 }
@@ -162,7 +169,7 @@ fun createToken(guard: Guard): Pair<JWTToken, Long> {
  * @return A Pair containing JWTToken and expiration date.
  */
 fun createToken(employee: Employee): Pair<JWTToken, Long> {
-    val tokenExp = Date(System.currentTimeMillis() + jwtExpirationSeconds * 1000)
+    val tokenExp = Date(System.currentTimeMillis() + jwtExpirationMilliSeconds)
     val token = JWT.create()
         .withIssuer(ISS)
         .withAudience("employee")

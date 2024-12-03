@@ -11,17 +11,17 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import models.dto.GuardInfo
 import models.entity.Employee
-import models.entity.Intervention
 import models.entity.Report
 import plugins.*
-import security.Keys
 import viewmodel.SecurityDataViewModel
 import kotlin.random.Random
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 
-val jwtExpirationSeconds=3600L
+const val jwtExpirationMilliSeconds=3600_000L //hour
+const val longTokenExpirationTime =  2592_000_000 // month
+
 val administrationQueryParams = mutableMapOf<DefaultWebSocketSession, QueryParams>()
 val administrationSelectedRowsIds = mutableMapOf<DefaultWebSocketSession, Array<Int>>()
 
@@ -32,13 +32,13 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-
-    DatabaseFactory.init(
-        jdbcURL = dbAddress,
+    DatabaseFactory.init("jdbc:h2:file:./build/db", "org.h2.Driver", "root", "password")
+  /*  DatabaseFactory.init(
+        jdbcURL = Keys.dbAddress,
         driverClassName = "org.postgresql.Driver",
         user = Keys.dbLogin,
         password = Keys.dbPassword
-    )
+    )*/
 
     CoroutineScope(Dispatchers.IO).launch {
         //TEST
@@ -75,7 +75,6 @@ fun Application.module() {
             DaoMethods.addReport(1,"{lat: 52.2297, lng: 21.0122 }",  Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.WAITING)
             DaoMethods.addReport(1,"{lat: 50.0647, lng: 19.9450 }",  Clock.System.now().plus(2.toDuration(DurationUnit.SECONDS)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.WAITING)
             DaoMethods.addReport(2,"{lat: 54.3520, lng: 18.6466 }",  Clock.System.now().minus(2.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.IN_PROGRESS)
-            DaoMethods.addReport(3,"{lat: 51.1079, lng: 17.0385 }",  Clock.System.now().minus(5.toDuration(DurationUnit.MINUTES)).toLocalDateTime(TimeZone.currentSystemDefault()), Report.ReportStatus.WAITING)
         }
 
         fun randomLocationInPoland(): String {

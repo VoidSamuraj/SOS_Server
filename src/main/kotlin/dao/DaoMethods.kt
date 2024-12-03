@@ -450,14 +450,23 @@ object DaoMethods : DaoMethodsInterface {
         reportId: Int,
         startTime: LocalDateTime?,
         endTime: LocalDateTime?,
-        status: Intervention.InterventionStatus?
+        status: Intervention.InterventionStatus?,
+        filterActive: Boolean
     ): Boolean {
         return transaction {
-            Interventions.update({ Interventions.report_id eq reportId }) {
+
+            val condition = if (filterActive) {
+                (Interventions.report_id eq reportId) and ((Interventions.status eq Intervention.InterventionStatus.CONFIRMED.status.toShort()) or (Interventions.status eq Intervention.InterventionStatus.IN_PROGRESS.status.toShort()))
+            } else {
+                Interventions.report_id eq reportId
+            }
+            val liczba = Interventions.update({ condition }) {
                 startTime?.let { startTime -> it[Interventions.start_time] = startTime }
                 endTime?.let { endTime -> it[Interventions.end_time] = endTime }
                 status?.let { status -> it[Interventions.status] = status.status.toShort() }
-            } > 0
+            }
+            liczba  > 0
+
         }
     }
 

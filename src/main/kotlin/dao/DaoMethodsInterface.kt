@@ -242,10 +242,11 @@ interface DaoMethodsInterface {
      * @param startTime Optional parameter for the intervention's start time. If provided, it will update the record.
      * @param endTime Optional parameter for the intervention's end time. If provided, it will update the record.
      * @param status Optional status update for the intervention, indicating the current state (e.g., IN_PROGRESS, COMPLETED).
+     * @param filterActive Boolean representing if should filter [Intervention.InterventionStatus.IN_PROGRESS] or [Intervention.InterventionStatus.CONFIRMED].
      *
      * @return `true` if the update was successful; `false` otherwise (e.g., if the record does not exist or cannot be updated).
      */
-    suspend fun editIntervention(reportId:Int, startTime: LocalDateTime?, endTime: LocalDateTime?, status: Intervention.InterventionStatus?): Boolean
+    suspend fun editIntervention(reportId:Int, startTime: LocalDateTime?, endTime: LocalDateTime?, status: Intervention.InterventionStatus?,filterActive: Boolean): Boolean
 
     /**
      * Retrieves an intervention by its ID.

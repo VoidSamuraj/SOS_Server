@@ -33,14 +33,15 @@ data class Intervention(
     /**
      * Enum representing status of Intervention.
      *
-     * Contains 5 states: [InterventionStatus.CANCELLED_BY_USER], [InterventionStatus.CANCELLED_BY_GUARD], [InterventionStatus.FINISHED], [InterventionStatus.IN_PROGRESS], [InterventionStatus.CONFIRMED]
+     * Contains 5 states: [InterventionStatus.CANCELLED_BY_USER], [InterventionStatus.CANCELLED_BY_GUARD], [InterventionStatus.CANCELLED_BY_DISPATCHER], [InterventionStatus.FINISHED], [InterventionStatus.IN_PROGRESS], [InterventionStatus.CONFIRMED]
      */
     enum class InterventionStatus(val status: Int) {
         CANCELLED_BY_USER(0),
         CANCELLED_BY_GUARD(1),
-        FINISHED(2),
-        IN_PROGRESS(3),
-        CONFIRMED(4);
+        CANCELLED_BY_DISPATCHER(2),
+        FINISHED(3),
+        IN_PROGRESS(4),
+        CONFIRMED(5);
 
         companion object {
             /**

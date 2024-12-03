@@ -43,7 +43,7 @@ object SecurityDataViewModel {
         return id
     }
 
-    suspend fun addClientSession(clientId:Int,clientSession: DefaultWebSocketSession){
+    suspend fun addClientSession(clientId: Int, clientSession: DefaultWebSocketSession) {
         clientSessions.put(clientId, clientSession)
     }
 
@@ -61,9 +61,7 @@ object SecurityDataViewModel {
     }
 
     suspend fun editReportStatus(id: Int, status: Report.ReportStatus) {
-        println("EDITREPSTAT "+id+ ""+status.name)
-        val report = DaoMethods.changeReportStatus(id, status)
-        println(report)
+        DaoMethods.changeReportStatus(id, status)
         _reportsFlow.value = _reportsFlow.value.map { reportRow ->
             if (reportRow.id == id) {
                 reportRow.copy(statusCode = status.status.toShort())
@@ -100,12 +98,14 @@ object SecurityDataViewModel {
             }
         }
     }
-    fun editGuardStatus(guardSession: DefaultWebSocketSession, status: Guard.GuardStatus){
+
+    fun editGuardStatus(guardSession: DefaultWebSocketSession, status: Guard.GuardStatus) {
         val guardKey = guardSessions.entries.firstOrNull { it.value == guardSession }?.key
-        if(guardKey!=null){
+        if (guardKey != null) {
             editGuardStatus(guardKey, status)
         }
     }
+
     fun editGuardStatus(id: Int, status: Guard.GuardStatus) {
         _guardsFlow.value = _guardsFlow.value.map { guardRow ->
             if (guardRow.id == id) {
@@ -123,12 +123,15 @@ object SecurityDataViewModel {
     fun setGuards(guards: List<GuardInfo>) {
         _guardsFlow.value = guards
     }
+
     fun getGuardLocationById(guardId: Int): String? {
         return _guardsFlow.value.find { it.id == guardId }?.location
     }
+
     fun getReportsLocationById(reportId: Int): String? {
         return _reportsFlow.value.find { it.id == reportId }?.location
     }
+
     suspend fun assignReportToGuard(
         reportId: Int,
         guardId: Int,
@@ -141,7 +144,6 @@ object SecurityDataViewModel {
         if (report != null) {
             guardSessions[guardId]?.send(Frame.Text("""{"status":confirm, "reportId": ${report.id},"location": ${report.location}}"""))
             if (guardSessions[guardId] == null) {
-                println("GUARDSESSION onfailure")
                 onFailure()
             }
             try {
@@ -182,21 +184,23 @@ object SecurityDataViewModel {
         endTime: LocalDateTime? = null,
         status: Intervention.InterventionStatus? = null
     ): Boolean {
-        return DaoMethods.editIntervention(reportId, startTime, endTime, status)
+        return DaoMethods.editIntervention(reportId, startTime, endTime, status, true)
     }
 
     //sends message if there is intervention
     suspend fun finishInterventionByUser(
         reportId: Int,
     ): Boolean {
+        val intervention = DaoMethods.getInterventionByReport(reportId)
         if (DaoMethods.editIntervention(
                 reportId,
                 null,
                 Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-                Intervention.InterventionStatus.CANCELLED_BY_USER
+                Intervention.InterventionStatus.CANCELLED_BY_USER,
+                true
             )
         ) {
-            DaoMethods.getInterventionByReport(reportId)?.let { intervention ->
+            intervention?.let { intervention ->
                 guardSessions[intervention.guard_id]?.send(Frame.Text("""{"status": cancel}"""))
                 return (guardSessions[intervention.guard_id] != null)
             }
@@ -204,6 +208,30 @@ object SecurityDataViewModel {
         } else {
             return false
         }
+    }
+
+    suspend fun finishInterventionByDispatcher(
+        reportId: Int,
+    ): Boolean {
+        val intervention = DaoMethods.getInterventionByReport(reportId)
+        if (
+            DaoMethods.editIntervention(
+                reportId,
+                null,
+                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
+                Intervention.InterventionStatus.CANCELLED_BY_DISPATCHER,
+                true
+            )
+        ) {
+            intervention?.let { intervention ->
+                guardSessions[intervention.guard_id]?.send(Frame.Text("""{"status": cancel}"""))
+                return (guardSessions[intervention.guard_id] != null)
+            }
+            return false
+        } else {
+            return false
+        }
+
     }
 
     suspend fun callSupport(reportId: Int): Boolean {

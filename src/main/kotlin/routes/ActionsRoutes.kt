@@ -18,10 +18,34 @@ import kotlinx.coroutines.launch
 import models.entity.Guard
 import models.entity.Report
 import plugins.sanitizeHtml
+import security.JWTToken
 import viewmodel.SecurityDataViewModel
 
 fun Route.actionRoutes() {
     route("/action") {
+        intercept(ApplicationCallPipeline.Plugins) {
+            val authHeader = call.request.headers["Authorization"]
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
+                finish()
+            } else {
+                val token = authHeader.removePrefix("Bearer ")
+                try {
+                    checkUserPermission(
+                        JWTToken(token),
+                        onSuccess = {
+                            proceed()
+                        },
+                        onFailure = {
+                            call.respond(HttpStatusCode.Unauthorized, "Invalid token")
+                            finish()
+                        })
+                } catch (_: Exception) {
+                    call.respond(HttpStatusCode.Unauthorized, "Invalid token")
+                    finish()
+                }
+            }
+        }
 
         route("/assignGuardToReport") {
             intercept(ApplicationCallPipeline.Plugins) {
@@ -39,7 +63,8 @@ fun Route.actionRoutes() {
                 val employeeId = sanitizeHtml(formParameters.getOrFail("employeeId")).toInt()
                 launch(Dispatchers.Default) {
                     SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.IN_PROGRESS)
-                    SecurityDataViewModel.assignReportToGuard(reportId = reportId, guardId = guardId,
+                    SecurityDataViewModel.assignReportToGuard(
+                        reportId = reportId, guardId = guardId,
                         onConfirm = {
                             SecurityDataViewModel.editReportStatus(
                                 id = reportId,
@@ -54,7 +79,7 @@ fun Route.actionRoutes() {
                         }, onCancel = {
                             SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.WAITING)
                             SecurityDataViewModel.editGuardStatus(id = guardId, status = Guard.GuardStatus.AVAILABLE)
-                        }, onReportCancel={
+                        }, onReportCancel = {
                             SecurityDataViewModel.editGuardStatus(
                                 id = guardId,
                                 status = Guard.GuardStatus.UNAVAILABLE
@@ -73,39 +98,44 @@ fun Route.actionRoutes() {
             }
         }
 
-        post("/cancelIntervention"){
+        post("/cancelIntervention") {
             val formParameters = call.receiveParameters()
             val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
             val intervention = getInterventionByReport(reportId = reportId)
             SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.WAITING)
-            intervention?.let{
+            intervention?.let {
                 SecurityDataViewModel.editGuardStatus(id = it.guard_id, status = Guard.GuardStatus.AVAILABLE)
             }
+            SecurityDataViewModel.finishInterventionByDispatcher(reportId = reportId)
             call.respond(HttpStatusCode.OK)
         }
 
-        post("/getAssignedGuardLocation"){
+        post("/getAssignedGuardLocation") {
             val formParameters = call.receiveParameters()
             val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
             val intervention = getInterventionByReport(reportId = reportId)
-            if(intervention!=null){
-                val location = SecurityDataViewModel.getGuardLocationById(intervention.guard_id)?.replace("lat", "\"lat\"")?.replace("lng", "\"lng\"")
-                if(location!=null)
-                    call.respond(HttpStatusCode.OK,location)
+            if (intervention != null) {
+                val location =
+                    SecurityDataViewModel.getGuardLocationById(intervention.guard_id)?.replace("lat", "\"lat\"")
+                        ?.replace("lng", "\"lng\"")
+                if (location != null)
+                    call.respond(HttpStatusCode.OK, location)
                 else
                     call.respond(HttpStatusCode.NoContent)
             }
             call.respond(HttpStatusCode.NoContent)
         }
 
-        post("/getAssignedReportLocation"){
+        post("/getAssignedReportLocation") {
             val formParameters = call.receiveParameters()
             val guardId = sanitizeHtml(formParameters.getOrFail("guardId")).toInt()
             val intervention = getInterventionByGuard(guardId = guardId)
-            if(intervention!=null){
-                val location = SecurityDataViewModel.getReportsLocationById(intervention.report_id)?.replace("lat", "\"lat\"")?.replace("lng", "\"lng\"")
-                if(location!=null)
-                    call.respond(HttpStatusCode.OK,location)
+            if (intervention != null) {
+                val location =
+                    SecurityDataViewModel.getReportsLocationById(intervention.report_id)?.replace("lat", "\"lat\"")
+                        ?.replace("lng", "\"lng\"")
+                if (location != null)
+                    call.respond(HttpStatusCode.OK, location)
                 else
                     call.respond(HttpStatusCode.NoContent)
             }
@@ -114,7 +144,7 @@ fun Route.actionRoutes() {
 
 
 
-        get("/checkConnection"){
+        get("/checkConnection") {
             call.respond(HttpStatusCode.OK)
         }
 

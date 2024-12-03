@@ -26,9 +26,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 import models.dto.Credentials
-import models.entity.Customer
+import models.dto.TokenResponse
 import models.entity.Employee
-import models.entity.Guard
 import plugins.Mailer
 import plugins.generateRandomLogin
 import plugins.generateRandomPassword
@@ -56,7 +55,6 @@ fun scheduleTokenCleanup() {
         while (true) {
             delay(3600_000L)
             remindPasswordTokens.removeIf { it.second < System.currentTimeMillis() }
-            println("Token cleanup completed")
         }
     }
 }
@@ -66,7 +64,8 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(
     onFailure: (suspend () -> Unit)? = null
 ) {
     val token = call.sessions.get("userToken") as JWTToken?
-    checkPermission(token = token,
+    checkPermission(
+        token = token,
         onSuccess = {
             onSuccess()
         },
@@ -78,6 +77,22 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(
         })
 }
 
+suspend fun checkUserPermission(
+    refreshToken: JWTToken,
+    onSuccess: suspend () -> Unit,
+    onFailure: (suspend () -> Unit)? = null
+) {
+
+    checkPermission(
+        token = refreshToken,
+        onSuccess = {
+            onSuccess()
+        },
+        onFailure = {
+            onFailure?.invoke()
+        })
+}
+
 /**
  * Creates JWTToken and save it in session
  *
@@ -86,30 +101,6 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(
  */
 fun PipelineContext<Unit, ApplicationCall>.generateAndSetToken(employee: Employee): JWTToken? {
     val token = createToken(employee).first
-    call.sessions.set(token)
-    return token
-}
-
-/**
- * Creates JWTToken and save it in session
- *
- * @param customer
- * @return JWTToken?
- */
-fun PipelineContext<Unit, ApplicationCall>.generateAndSetToken(customer: Customer): JWTToken? {
-    val token = createToken(customer).first
-    call.sessions.set(token)
-    return token
-}
-
-/**
- * Creates JWTToken and save it in session
- *
- * @param guard
- * @return JWTToken?
- */
-fun PipelineContext<Unit, ApplicationCall>.generateAndSetToken(guard: Guard): JWTToken? {
-    val token = createToken(guard).first
     call.sessions.set(token)
     return token
 }
@@ -132,7 +123,8 @@ fun Route.authRoutes() {
             }
             post("/refresh-token-expiration") {
                 val token = call.sessions.get("userToken") as JWTToken?
-                checkPermission(token = token,
+                checkPermission(
+                    token = token,
                     onSuccess = {
                         val decodedToken = decodeToken(token?.token)
 
@@ -326,9 +318,10 @@ fun Route.authRoutes() {
                 val customer = DaoMethods.getCustomer(login, password)
                 if (customer.second != null) {
                     val token = createToken(customer.second!!).first
+                    val longToken = createToken(customer.second!!, longTime = true).first
                     val client = customer.second!!.toCustomerInfo()
                     client.token = token.token
-                    call.respond(HttpStatusCode.OK, Pair(customer.second!!.login, client))
+                    call.respond(HttpStatusCode.OK, Triple(customer.second!!.login, client, longToken))
                 } else {
                     call.respond(HttpStatusCode.Unauthorized, "Wrong credentials")
                 }
@@ -338,9 +331,48 @@ fun Route.authRoutes() {
                 call.respond(HttpStatusCode.OK, "Success")
             }
 
+            post("/refresh_token") {
+                val refreshToken = JWTToken(call.receive<String>())
+                checkUserPermission(
+                    refreshToken = refreshToken,
+                    onSuccess = {
+                        val customer =
+                            getAccountId(refreshToken)?.let { customerId -> DaoMethods.getCustomer(customerId) }
+                        if (customer != null) {
+                            val token = createToken(customer).first
+                            call.respond(HttpStatusCode.OK, TokenResponse(token.token, null))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, "Failed to refresh token")
+                        }
+                    },
+                    onFailure = {
+                        call.respond(HttpStatusCode.Unauthorized, "Failed to refresh token")
+                    })
+            }
+
+            post("/refresh_refresh_token") {
+                val refreshToken = JWTToken(call.receive<String>())
+                checkUserPermission(
+                    refreshToken = refreshToken,
+                    onSuccess = {
+                        val customer =
+                            getAccountId(refreshToken)?.let { customerId -> DaoMethods.getCustomer(customerId) }
+                        if (customer != null) {
+                            val token = createToken(customer).first
+                            val refreshToken = createToken(customer, longTime = true).first
+                            call.respond(HttpStatusCode.OK, TokenResponse(token.token, refreshToken.token))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, "Failed to refresh token")
+                        }
+                    },
+                    onFailure = {
+                        call.respond(HttpStatusCode.Unauthorized, "Failed to refresh token")
+                    })
+            }
             post("/checkToken") {
                 val token = JWTToken(call.receive<String>())
-                checkPermission(token,
+                checkPermission(
+                    token,
                     onSuccess = {
                         val customer = getAccountId(token)?.let { id ->
                             DaoMethods.getCustomer(id)
@@ -416,9 +448,10 @@ fun Route.authRoutes() {
 
                 if (ret.first && ret.third != null) {
                     val token = createToken(ret.third!!).first
+                    val longToken = createToken(ret.third!!, longTime = true).first
                     val client = ret.third!!.toCustomerInfo()
                     client.token = token.token
-                    call.respond(HttpStatusCode.OK, Pair(ret.third!!.login, client))
+                    call.respond(HttpStatusCode.OK, Triple(ret.third!!.login, client, longToken))
                 } else {
                     call.respond(
                         HttpStatusCode.InternalServerError,
@@ -453,83 +486,107 @@ fun Route.authRoutes() {
             }
 
             patch("/edit") {
-                try {
-                    val formParameters = call.receiveParameters()
-                    val id = formParameters["id"]?.toIntOrNull()
-                    val login = formParameters["login"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val password = formParameters["password"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val newPassword =
-                        formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val name = formParameters["name"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val surname = formParameters["surname"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val phone = formParameters["phone"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val pesel = formParameters["pesel"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val email = formParameters["email"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val protectionExpirationDate =
-                        formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
-                    val protectionExpirationDateTime =
-                        protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
+                val authHeader = call.request.headers["Authorization"]
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    val token = authHeader.removePrefix("Bearer ")
+                    checkPermission(
+                        JWTToken(token),
+                        onSuccess = {
+                            try {
+                                val formParameters = call.receiveParameters()
+                                val id = formParameters["id"]?.toIntOrNull()
+                                val login =
+                                    formParameters["login"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val password =
+                                    formParameters["password"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val newPassword =
+                                    formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val name = formParameters["name"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val surname =
+                                    formParameters["surname"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val phone =
+                                    formParameters["phone"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val pesel =
+                                    formParameters["pesel"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val email =
+                                    formParameters["email"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val protectionExpirationDate =
+                                    formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
+                                val protectionExpirationDateTime =
+                                    protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
 
-                    if (id == null || password.isNullOrEmpty()) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                        return@patch
-                    }
-                    if (!login.isNullOrEmpty() && !isLoginValid(login)) {
-                        call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
-                        return@patch
-                    }
-                    if (!phone.isNullOrEmpty() && !isPhoneValid(phone)) {
-                        call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
-                        return@patch
-                    }
-                    if (!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)) {
-                        call.respond(
-                            HttpStatusCode.BadRequest,
-                            "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8"
-                        )
-                        return@patch
-                    }
-                    if (!email.isNullOrEmpty() && !isEmailValid(email)) {
-                        call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
-                        return@patch
-                    }
-                    if (!pesel.isNullOrEmpty() && !isPeselValid(pesel)) {
-                        call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
-                        return@patch
-                    }
-                    if (!name.isNullOrEmpty() && !isUsernameValid(name)) {
-                        call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
-                        return@patch
-                    }
-                    if (!surname.isNullOrEmpty() && !isUsernameValid(surname)) {
-                        call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
-                        return@patch
-                    }
-                    val ret = DaoMethods.editCustomer(
-                        id,
-                        login,
-                        password.toString(),
-                        newPassword,
-                        name,
-                        surname,
-                        phone,
-                        pesel,
-                        email,
-                        protectionExpirationDateTime
-                    )
-                    if (ret.second != null) {
-                        val token = createToken(ret.second!!).first
-                        val client = ret.second!!.toCustomerInfo()
-                        client.token = token.token
-                        call.respond(HttpStatusCode.OK, Pair(ret.second!!.login, client))
-                    } else {
-                        call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.first}")
-                    }
-                } catch (e: Error) {
-                    call.respond(
-                        HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
-                    )
+                                if (id == null || password.isNullOrEmpty()) {
+                                    call.respond(
+                                        HttpStatusCode.BadRequest,
+                                        "Invalid input: required fields are missing or null."
+                                    )
+                                    return@checkPermission
+                                }
+                                if (!login.isNullOrEmpty() && !isLoginValid(login)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                                    return@checkPermission
+                                }
+                                if (!phone.isNullOrEmpty() && !isPhoneValid(phone)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                                    return@checkPermission
+                                }
+                                if (!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)) {
+                                    call.respond(
+                                        HttpStatusCode.BadRequest,
+                                        "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8"
+                                    )
+                                    return@checkPermission
+                                }
+                                if (!email.isNullOrEmpty() && !isEmailValid(email)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                                    return@checkPermission
+                                }
+                                if (!pesel.isNullOrEmpty() && !isPeselValid(pesel)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Pesel is in wrong format")
+                                    return@checkPermission
+                                }
+                                if (!name.isNullOrEmpty() && !isUsernameValid(name)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                                    return@checkPermission
+                                }
+                                if (!surname.isNullOrEmpty() && !isUsernameValid(surname)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                                    return@checkPermission
+                                }
+                                val ret = DaoMethods.editCustomer(
+                                    id,
+                                    login,
+                                    password.toString(),
+                                    newPassword,
+                                    name,
+                                    surname,
+                                    phone,
+                                    pesel,
+                                    email,
+                                    protectionExpirationDateTime
+                                )
+                                if (ret.second != null) {
+                                    val token = createToken(ret.second!!).first
+                                    val client = ret.second!!.toCustomerInfo()
+                                    client.token = token.token
+                                    call.respond(HttpStatusCode.OK, Pair(ret.second!!.login, client))
+                                } else {
+                                    call.respond(
+                                        HttpStatusCode.InternalServerError,
+                                        "Failed to edit client. ${ret.first}"
+                                    )
+                                }
+                            } catch (e: Error) {
+                                call.respond(
+                                    HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
+                                )
+                            }
+                        },
+                        onFailure = {
+                            call.respond(HttpStatusCode.Unauthorized, "Failed to edit client.")
+                        })
                 }
+
             }
             //todo change for customer
             post("/reset-password") {
@@ -575,6 +632,9 @@ fun Route.authRoutes() {
 
         route("/guard") {
 
+            /**
+             * Route to check if there is an account with specified Login in DB
+             */
             get("/isLoginUsed") {
                 val login = call.request.queryParameters["login"]?.let { sanitizeHtml(it) }
                 if (login != null) {
@@ -593,9 +653,10 @@ fun Route.authRoutes() {
                 val guard = DaoMethods.getGuard(login, password)
                 if (guard.second != null) {
                     val token = createToken(guard.second!!).first
+                    val longToken = createToken(guard.second!!, longTime = true).first
                     val editedGuard = guard.second!!.toGuardInfo()
                     editedGuard.token = token.token
-                    call.respond(HttpStatusCode.OK, Pair(guard.second!!.login, editedGuard))
+                    call.respond(HttpStatusCode.OK, Triple(guard.second!!.login, editedGuard, longToken))
                 } else {
                     call.respond(HttpStatusCode.Unauthorized, "Wrong credentials")
                 }
@@ -608,7 +669,8 @@ fun Route.authRoutes() {
 
             post("/checkToken") {
                 val token = JWTToken(call.receive<String>())
-                checkPermission(token,
+                checkPermission(
+                    token,
                     onSuccess = {
                         val guard = getAccountId(token)?.let { id ->
                             DaoMethods.getGuard(id)
@@ -616,7 +678,7 @@ fun Route.authRoutes() {
                         val token = guard?.let { guard -> createToken(guard).first }
                         if (token != null) {
                             val editedGuard = guard.toGuardInfo()
-                            editedGuard.token  = token.token
+                            editedGuard.token = token.token
                             call.respond(HttpStatusCode.OK, Pair(guard.login, editedGuard))
                         } else
                             call.respond(HttpStatusCode.Unauthorized, "Unauthorized")
@@ -626,7 +688,42 @@ fun Route.authRoutes() {
                     }
                 )
             }
+            post("/refresh_token") {
+                val refreshToken = JWTToken(call.receive<String>())
+                checkUserPermission(
+                    refreshToken = refreshToken,
+                    onSuccess = {
+                        val guard = getAccountId(refreshToken)?.let { guardId -> DaoMethods.getGuard(guardId) }
+                        if (guard != null) {
+                            val token = createToken(guard).first
+                            call.respond(HttpStatusCode.OK, TokenResponse(token.token, null))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, "Failed to refresh token")
+                        }
+                    },
+                    onFailure = {
+                        call.respond(HttpStatusCode.Unauthorized, "Failed to refresh token")
+                    })
+            }
 
+            post("/refresh_refresh_token") {
+                val refreshToken = JWTToken(call.receive<String>())
+                checkUserPermission(
+                    refreshToken = refreshToken,
+                    onSuccess = {
+                        val guard = getAccountId(refreshToken)?.let { guardId -> DaoMethods.getGuard(guardId) }
+                        if (guard != null) {
+                            val token = createToken(guard).first
+                            val refreshToken = createToken(guard, longTime = true).first
+                            call.respond(HttpStatusCode.OK, TokenResponse(token.token, refreshToken.token))
+                        } else {
+                            call.respond(HttpStatusCode.BadRequest, "Failed to refresh token")
+                        }
+                    },
+                    onFailure = {
+                        call.respond(HttpStatusCode.Unauthorized, "Failed to refresh token")
+                    })
+            }
             post("/register") {
                 val formParameters = call.receiveParameters()
                 val login = sanitizeHtml(formParameters.getOrFail("login"))
@@ -679,9 +776,10 @@ fun Route.authRoutes() {
 
                 if (ret.first && ret.third != null) {
                     val token = createToken(ret.third!!).first
+                    val longToken = createToken(ret.third!!, longTime = true).first
                     val editedGuard = ret.third!!.toGuardInfo()
                     editedGuard.token = token.token
-                    call.respond(HttpStatusCode.OK, Pair(ret.third!!.login, editedGuard))
+                    call.respond(HttpStatusCode.OK, Triple(ret.third!!.login, editedGuard, longToken))
                 } else {
                     call.respond(
                         HttpStatusCode.InternalServerError,
@@ -716,69 +814,98 @@ fun Route.authRoutes() {
             }
 
             patch("/edit") {
-                try {
-                    val formParameters = call.receiveParameters()
-                    val id = formParameters["id"]?.toIntOrNull()
-                    val login = formParameters["login"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val password = formParameters["password"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val newPassword =
-                        formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val name = formParameters["name"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val surname = formParameters["surname"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val phone = formParameters["phone"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val email = formParameters["email"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
-                    val protectionExpirationDate =
-                        formParameters["protection_expiration_date"]?.let { sanitizeHtml(it) }
-                    val protectionExpirationDateTime =
-                        protectionExpirationDate?.let { LocalDateTime.parse(it.toString()) }
+                val authHeader = call.request.headers["Authorization"]
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    val token = authHeader.removePrefix("Bearer ")
+                    checkPermission(
+                        JWTToken(token),
+                        onSuccess = {
+                            try {
+                                val formParameters = call.receiveParameters()
+                                val id = formParameters["id"]?.toIntOrNull()
+                                val login =
+                                    formParameters["login"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val password =
+                                    formParameters["password"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val newPassword =
+                                    formParameters["newPassword"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val name = formParameters["name"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val surname =
+                                    formParameters["surname"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val phone =
+                                    formParameters["phone"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
+                                val email =
+                                    formParameters["email"]?.let { sanitizeHtml(it) }?.takeIf { it.isNotEmpty() }
 
-                    if (id == null || password.isNullOrEmpty()) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid input: required fields are missing or null.")
-                        return@patch
-                    }
-                    if (!login.isNullOrEmpty() && !isLoginValid(login)) {
-                        call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
-                        return@patch
-                    }
-                    if (!phone.isNullOrEmpty() && !isPhoneValid(phone)) {
-                        call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
-                        return@patch
-                    }
-                    if (!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)) {
-                        call.respond(
-                            HttpStatusCode.BadRequest,
-                            "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8"
-                        )
-                        return@patch
-                    }
-                    if (!email.isNullOrEmpty() && !isEmailValid(email)) {
-                        call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
-                        return@patch
-                    }
+                                if (id == null || password.isNullOrEmpty()) {
+                                    call.respond(
+                                        HttpStatusCode.BadRequest,
+                                        "Invalid input: required fields are missing or null."
+                                    )
+                                    return@checkPermission
+                                }
+                                if (!login.isNullOrEmpty() && !isLoginValid(login)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Login should have length between 3 and 20")
+                                    return@checkPermission
+                                }
+                                if (!phone.isNullOrEmpty() && !isPhoneValid(phone)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Phone is in wrong format")
+                                    return@checkPermission
+                                }
+                                if (!newPassword.isNullOrEmpty() && !isPasswordValid(newPassword)) {
+                                    call.respond(
+                                        HttpStatusCode.BadRequest,
+                                        "Password should contain one one upper and one lower case letter, one number, one special character and have min length 8"
+                                    )
+                                    return@checkPermission
+                                }
+                                if (!email.isNullOrEmpty() && !isEmailValid(email)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Email is in wrong format")
+                                    return@checkPermission
+                                }
 
-                    if (!name.isNullOrEmpty() && !isUsernameValid(name)) {
-                        call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
-                        return@patch
-                    }
-                    if (!surname.isNullOrEmpty() && !isUsernameValid(surname)) {
-                        call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
-                        return@patch
-                    }
-                    val ret =
-                        DaoMethods.editGuard(id, login, password.toString(), newPassword, name, surname, phone, email)
-                    if (ret.second != null) {
-                        val token = createToken(ret.second!!).first
-                        val guard = ret.second!!.toGuardInfo()
-                        guard.token = token.token
-                        call.respond(HttpStatusCode.OK, Pair(ret.second!!.login, guard))
-                    } else {
-                        call.respond(HttpStatusCode.InternalServerError, "Failed to edit client. ${ret.first}")
-                    }
-                } catch (e: Error) {
-                    call.respond(
-                        HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
-                    )
+                                if (!name.isNullOrEmpty() && !isUsernameValid(name)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Name is in wrong format")
+                                    return@checkPermission
+                                }
+                                if (!surname.isNullOrEmpty() && !isUsernameValid(surname)) {
+                                    call.respond(HttpStatusCode.BadRequest, "Surname is in wrong format")
+                                    return@checkPermission
+                                }
+                                val ret =
+                                    DaoMethods.editGuard(
+                                        id,
+                                        login,
+                                        password.toString(),
+                                        newPassword,
+                                        name,
+                                        surname,
+                                        phone,
+                                        email
+                                    )
+                                if (ret.second != null) {
+                                    val token = createToken(ret.second!!).first
+                                    val guard = ret.second!!.toGuardInfo()
+                                    guard.token = token.token
+                                    call.respond(HttpStatusCode.OK, Pair(ret.second!!.login, guard))
+                                } else {
+                                    call.respond(
+                                        HttpStatusCode.InternalServerError,
+                                        "Failed to edit client. ${ret.first}"
+                                    )
+                                }
+                            } catch (e: Error) {
+                                call.respond(
+                                    HttpStatusCode.InternalServerError, "Failed to edit client. ${e.message}"
+                                )
+                            }
+                        },
+                        onFailure = {
+                            call.respond(HttpStatusCode.Unauthorized, "Failed to edit client.")
+
+                        })
                 }
+
             }
             //todo change for guard
             post("/reset-password") {
