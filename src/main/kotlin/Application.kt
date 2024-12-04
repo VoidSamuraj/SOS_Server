@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import models.dto.GuardInfo
@@ -15,6 +16,7 @@ import models.entity.Report
 import plugins.*
 import viewmodel.SecurityDataViewModel
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -67,8 +69,10 @@ fun Application.module() {
                 DaoMethods.addGuard("Miroslaw", "qwerty", "Miroslaw", "Zelent", "221421", "miro@wp.pl")
         }
         if(DaoMethods.getCustomers(1, 10).isEmpty()) {
-            DaoMethods.addCustomer("Andrzej","qwerty", "Andrzej", "Kowalski", "1234522", "2137", "lll@ll.pl")
-            DaoMethods.addCustomer("Jan","qwerty", "Jan", "Nowak", "13232", "21556372", "jan@lll.pl")
+            val time: LocalDateTime =  Clock.System.now().plus(2.hours).toLocalDateTime(TimeZone.currentSystemDefault())
+            DaoMethods.addCustomer("Andrzej","qwerty", "Andrzej", "Kowalski", "1234522", "2137", "lll@ll.pl", protectionExpirationDate =time)
+
+            DaoMethods.addCustomer("Jan","qwerty", "Jan", "Nowak", "13232", "21556372", "jan@lll.pl", protectionExpirationDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()))
         }
 
         if(DaoMethods.getReports(1, 10).isEmpty()) {

@@ -48,7 +48,7 @@ suspend fun checkPermission(
     }
     val id = getAccountId(decodedToken)
     val audience = decodedToken.audience?.firstOrNull()
-    val isDeleted = decodedToken.getClaim("isDeleted").asBoolean()
+    val isDeleted = decodedToken.getClaim("isDeleted")?.asBoolean() != false
 
     if (id != null && !isDeleted)
         when (audience) {

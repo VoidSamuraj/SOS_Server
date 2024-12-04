@@ -1,7 +1,6 @@
 package models.dto
 
 import io.ktor.server.auth.Principal
-import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -29,6 +28,6 @@ data class CustomerInfo(
     val pesel: String,
     val email: String,
     val account_deleted: Boolean,
-    val protection_expiration_date: LocalDateTime? = null,
+    val protection_expiration_date: String? = null,
     var token: String? = null
 ) : Principal

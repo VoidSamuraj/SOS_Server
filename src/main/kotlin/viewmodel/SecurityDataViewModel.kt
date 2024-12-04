@@ -72,6 +72,10 @@ object SecurityDataViewModel {
     }
 
     suspend fun editReportLocation(id: Int, location: String) {
+        DaoMethods.getInterventionByReport(id)?.let{intervention->
+            guardSessions[intervention.guard_id]?.send(Frame.Text("""{"status":update, "reportId": ${intervention.report_id},"location": ${location}}"""))
+        }
+
         _reportsFlow.value = _reportsFlow.value.map { reportRow ->
             if (reportRow.id == id) {
                 reportRow.copy(location = location)
@@ -152,6 +156,7 @@ object SecurityDataViewModel {
                     if (response == "cancel")
                         onCancel()
                     else if (response == "accept") {
+                        clientSessions[report.client_id]?.send(Frame.Text("""{"status": confirmed}"""))
                         onConfirm()
                     }
                 }

@@ -36,6 +36,7 @@ import routes.GuardField
 import security.JWTToken
 import security.checkPermission
 import viewmodel.SecurityDataViewModel
+import viewmodel.SecurityDataViewModel.clientSessions
 
 
 @Serializable
@@ -270,6 +271,9 @@ fun Application.configureSockets() {
                                                     status = Intervention.InterventionStatus.CANCELLED_BY_GUARD
                                                 )
                                                 SecurityDataViewModel.editReportStatus(reportId, Report.ReportStatus.WAITING)
+                                                DaoMethods.getReport(reportId)?.let{
+                                                    clientSessions[it.client_id]?.send(Frame.Text("""{"status": waiting}"""))
+                                                }
                                             } else if (intervention == "supportNeeded") {
                                                 SecurityDataViewModel.callSupport(reportId)
                                             }

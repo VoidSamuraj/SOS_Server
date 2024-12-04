@@ -328,6 +328,7 @@ fun Route.authRoutes() {
             }
 
             post("/logout") {
+                //todo add status change
                 call.respond(HttpStatusCode.OK, "Success")
             }
 

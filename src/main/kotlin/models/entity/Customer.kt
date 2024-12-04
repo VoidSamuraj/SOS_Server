@@ -42,6 +42,6 @@ data class Customer(
      * @return An CustomerInfo instance containing the customer's details.
      */
     fun toCustomerInfo(): CustomerInfo {
-        return CustomerInfo(id, name, surname, phone, pesel, email, account_deleted, protection_expiration_date)
+        return CustomerInfo(id, name, surname, phone, pesel, email, account_deleted, protection_expiration_date?.toString())
     }
 }

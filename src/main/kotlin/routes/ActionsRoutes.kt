@@ -24,13 +24,17 @@ import viewmodel.SecurityDataViewModel
 fun Route.actionRoutes() {
     route("/action") {
         intercept(ApplicationCallPipeline.Plugins) {
-            val authHeader = call.request.headers["Authorization"]
-            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
-                finish()
-            } else {
-                val token = authHeader.removePrefix("Bearer ")
-                try {
+            try {
+                val authHeader = call.request.headers["Authorization"]
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                    checkUserPermission(onSuccess = {
+                        proceed()
+                    }, onFailure = {
+                        call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
+                        finish()
+                    })
+                } else {
+                    val token = authHeader.removePrefix("Bearer ")
                     checkUserPermission(
                         JWTToken(token),
                         onSuccess = {
@@ -39,23 +43,17 @@ fun Route.actionRoutes() {
                         onFailure = {
                             call.respond(HttpStatusCode.Unauthorized, "Invalid token")
                             finish()
-                        })
-                } catch (_: Exception) {
-                    call.respond(HttpStatusCode.Unauthorized, "Invalid token")
-                    finish()
+                        }
+                    )
                 }
+            } catch (e: Exception) {
+                println("Wystąpił błąd w interceptorze: ${e.message}")
+                call.respond(HttpStatusCode.Unauthorized, "Invalid token")
+                finish()
             }
         }
 
         route("/assignGuardToReport") {
-            intercept(ApplicationCallPipeline.Plugins) {
-                checkUserPermission(onSuccess = {
-                    proceed()
-                }, onFailure = {
-                    call.respond(HttpStatusCode.Unauthorized, "You do not have permission to perform this action.")
-                    finish()
-                })
-            }
             post {
                 val formParameters = call.receiveParameters()
                 val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
