@@ -18,7 +18,6 @@ import io.ktor.server.routing.route
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.ktor.server.util.getOrFail
-import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -115,8 +114,8 @@ fun Route.authRoutes() {
                 val password = sanitizeHtml(formParameters.getOrFail("password"))
                 val employee = DaoMethods.getEmployee(login, password)
                 if (employee.second != null) {
-                    generateAndSetToken(employee.second!!)
-                    call.respond(HttpStatusCode.OK, employee.second!!.toEmployeeInfo())
+                    val exp = getTokenExpirationDate(generateAndSetToken(employee.second!!))?.time
+                    call.respond(HttpStatusCode.OK, Pair(employee.second!!.toEmployeeInfo(),exp))
                 } else {
                     call.respond(HttpStatusCode.Unauthorized, "Wrong credentials")
                 }
@@ -143,16 +142,16 @@ fun Route.authRoutes() {
                             decodedToken.claims["roleCode"]!!.asInt().toShort(),
                             false
                         )
-                        getTokenExpirationDate(generateAndSetToken(employee))?.time?.let { it1 ->
-                            call.attributes.put(
-                                AttributeKey("exp"),
-                                it1.toString()
-                            )
-                        }
+                        val exp = getTokenExpirationDate(generateAndSetToken(employee))?.time
+                        if(exp!=null)
+                            call.respond(HttpStatusCode.OK, exp)
+                        else
+                            call.respond(HttpStatusCode.Unauthorized)
 
-                        call.respond(HttpStatusCode.OK, "Success")
                     },
-                    onFailure = { }
+                    onFailure = {
+                        call.respond(HttpStatusCode.Unauthorized)
+                    }
                 )
             }
             post("/logout") {
@@ -219,7 +218,6 @@ fun Route.authRoutes() {
                         login,
                         password
                     )
-
                     call.respond(HttpStatusCode.OK, "Employee added to database.")
                 } else {
                     call.respond(

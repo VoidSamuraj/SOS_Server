@@ -219,6 +219,32 @@ export const register = async (
     console.error("Error:", error);
   }
 };
+/**
+ * Refreshes access token in local storage.
+ *
+ * @param {function} onSuccess - The callback function to execute upon success.
+ * @param {function} onFailure - The callback function to execute upon login failure.
+ */
+export const refreshToken = async () => {
+
+  fetch("/auth/employee/refresh-token-expiration", {
+    method: "POST",
+    credentials: "include"
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then((data) => {
+      if (data) {
+        localStorage.setItem("tokenExp", data);
+      } else {
+        console.error("User data is not available");
+      }
+    })
+    .catch((error) => console.error("Error:", error));
+};
 
 /**
  * Logs in the employee and stores their data (id, phone, email).
@@ -251,7 +277,8 @@ export const login = async (login, password, onSuccess, onFailure) => {
     })
     .then((data) => {
       if (data) {
-        saveUserData(data.id);
+        localStorage.setItem("tokenExp", data.second);
+        saveUserData(data.first.id);
         onSuccess();
       } else {
         console.error("User data is not available");

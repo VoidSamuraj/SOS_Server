@@ -8,6 +8,7 @@ import MyMap from "./map/MyMap";
 import StatsOverlay from "./StatsOverlay";
 import { useReports, usePatrols } from "./map/MapFunctions";
 import SystemWebSocket from "../script/SystemWebSocket.js";
+import { refreshToken } from "../script/ApiService.js";
 import { LoadScript } from "@react-google-maps/api";
 import keys from "../keys";
 
@@ -68,11 +69,38 @@ function Home() {
 
     mapSocketRef.current.addMessageHandler(messageHandler);
 
+    const checkTokenExpiration = () => {
+      const currentTimestamp = Date.now();
+      const exp = localStorage.getItem("tokenExp");
+      console.log(exp);
+
+      if (exp) {
+        const expTimestamp = parseInt(exp, 10);
+        const timeDifference = expTimestamp - currentTimestamp;
+
+        if (timeDifference <= 0) {
+          window.location.reload();
+        } else if (timeDifference < 300000) {
+          // Less than 5 minutes to expire
+          refreshToken();
+        }
+      } else {
+        console.error("Expiration date not found in localStorage");
+      }
+    };
+
+    checkTokenExpiration();
+
+    const intervalId = setInterval(() => {
+      checkTokenExpiration();
+    }, 30000); // 30s
+
     return () => {
       document.documentElement.classList.remove("indexStyle");
       document.body.classList.remove("indexStyle");
       mapSocketRef.current.removeMessageHandler(messageHandler);
       mapSocketRef.current.close();
+      clearInterval(intervalId);
     };
   }, []);
 

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ManageAccounts from "./ManageAccounts";
 import TopBar from "./TopBar";
 import DropdownMenu from "./DropdownMenu";
 import SettingsMenu from "./SettingsMenu";
+import { refreshToken } from "../script/ApiService.js";
 
 /**
  * Administration component serves as a control panel for managing settings,
@@ -32,6 +33,38 @@ function Administration() {
   const toggleEdited = () => {
     setEditedRecord(!editedRecord);
   };
+
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const currentTimestamp = Date.now();
+      const exp = localStorage.getItem("tokenExp");
+
+      if (exp) {
+        const expTimestamp = parseInt(exp, 10);
+        const timeDifference = expTimestamp - currentTimestamp;
+
+        if (timeDifference <= 0) {
+          window.location.reload();
+        } else if (timeDifference < 300000) {
+          // Less than 5 minutes to expire
+          refreshToken();
+        }
+      } else {
+        console.error("Expiration date not found in localStorage");
+      }
+    };
+
+    checkTokenExpiration();
+
+    const intervalId = setInterval(() => {
+      checkTokenExpiration();
+    }, 30000); // 30s
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
   return (
     <>
       <div
