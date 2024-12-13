@@ -25,7 +25,6 @@ const ResetPassword = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
     if (tokenFromUrl) {
-      console.log(tokenFromUrl);
       setToken(tokenFromUrl);
     }
   }, []);

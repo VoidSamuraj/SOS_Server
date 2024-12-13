@@ -78,7 +78,7 @@ fun Application.module() {
                 DaoMethods.addGuard("Miroslaw", "qwerty", "Miroslaw", "Zelent", "221421", "miro@wp.pl")
         }
         if(DaoMethods.getCustomers(1, 10).isEmpty()) {
-            val time: LocalDateTime =  Clock.System.now().plus(2.hours).toLocalDateTime(TimeZone.currentSystemDefault())
+            val time: LocalDateTime =  Clock.System.now().plus(6.hours).toLocalDateTime(TimeZone.currentSystemDefault())
             DaoMethods.addCustomer("Andrzej","qwerty", "Andrzej", "Kowalski", "1234522", "2137", "lll@ll.pl", protectionExpirationDate =time)
 
             DaoMethods.addCustomer("Jan","qwerty", "Jan", "Nowak", "13232", "21556372", "jan@lll.pl", protectionExpirationDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()))

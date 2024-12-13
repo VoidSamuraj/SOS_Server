@@ -57,7 +57,7 @@ function AssignTaskBox({
   const [sortedPatrols, setSortedPatrols] = useState([]);
   const [sortedReports, setSortedReports] = useState([]);
 
-  const { statusToColorReportMenu } = usePatrols();
+  const { statusToColorCarMenu } = usePatrols();
 
   function onBack() {
     if (nrOfMenu >= 2) setNrOfMenu(nrOfMenu - 1);
@@ -200,7 +200,7 @@ function AssignTaskBox({
                   setSelectedPatrol(id, position);
                 }}
                 className={`${id == selectedPatrol ? "selected" : ""}`}
-                style={{ backgroundColor: statusToColorReportMenu(status) }}
+                style={{ backgroundColor: statusToColorCarMenu(status) }}
               >
                 {id}
               </div>

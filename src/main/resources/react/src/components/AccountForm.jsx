@@ -289,7 +289,7 @@ const AccountForm = ({
                 setAlertMessage(
                   "Dodanie nowego pracownika nie powiodło się. " + error
                 );
-                console.log(error);
+                console.error(error);
               }
             )
           );

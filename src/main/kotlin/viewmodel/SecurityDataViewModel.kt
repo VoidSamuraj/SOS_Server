@@ -111,6 +111,9 @@ object SecurityDataViewModel {
     }
 
     fun editGuardStatus(id: Int, status: Guard.GuardStatus) {
+        println("BEFOREANDAFTER")
+        println(status)
+        println(_guardsFlow.value)
         _guardsFlow.value = _guardsFlow.value.map { guardRow ->
             if (guardRow.id == id) {
                 guardRow.copy(statusCode = status.status)
@@ -118,6 +121,11 @@ object SecurityDataViewModel {
                 guardRow
             }
         }
+        println(_guardsFlow.value)
+    }
+
+    suspend fun getAssignedGuardIdByReportId(reportId:Int):Int?{
+        return DaoMethods.getInterventionByReport(reportId)?.guard_id
     }
 
     fun setReports(reports: List<Report>) {

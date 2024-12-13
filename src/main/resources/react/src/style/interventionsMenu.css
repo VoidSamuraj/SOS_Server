@@ -66,12 +66,14 @@
 }
 #interventionsList {
   display: flex;
+  overflow-y: scroll;
   flex-direction: column;
 }
 #interventionsList > div {
   display: flex;
   flex-direction: column;
   width: clac(100% - 16px);
+  min-height: 60px;
   height: 60px;
   margin: 4px 8px;
   color: black;
@@ -90,6 +92,7 @@
 }
 
 .expandedMenu {
+  min-height: 150px !important;
   height: 150px !important;
 }
 

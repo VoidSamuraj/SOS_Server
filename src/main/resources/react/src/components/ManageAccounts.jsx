@@ -54,7 +54,6 @@ const ManageAccounts = ({ editedRecord, setIsLoading }) => {
     );
 
     const messageHandler = (data) => {
-      console.log(data);
       if (Array.isArray(data.data)) {
         if (data.columnName == selectedTabRef.current)
           switch (selectedTabRef.current) {

@@ -211,6 +211,13 @@ fun Application.configureSockets() {
                                 if (jsonObject.has("reportId")) {
                                     val reportId = jsonObject.get("reportId").asInt
                                     if (reportId != -1) {
+                                        val guardId = SecurityDataViewModel.getAssignedGuardIdByReportId(reportId)
+                                        if (guardId != null) {
+                                            SecurityDataViewModel.editGuardStatus(
+                                                guardId,
+                                                Guard.GuardStatus.UNAVAILABLE
+                                            )
+                                        }
                                         SecurityDataViewModel.finishInterventionByUser(
                                             reportId = reportId
                                         )
@@ -248,7 +255,8 @@ fun Application.configureSockets() {
                                             }
                                         if (jsonObject.has("reportId") && jsonObject.get("reportId").asInt != -1) {
                                             val reportId = jsonObject.get("reportId").asInt
-                                            val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+                                            val now =
+                                                Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
                                             if (intervention == "confirmArrival") {
                                                 SecurityDataViewModel.editIntervention(
                                                     reportId = reportId,
@@ -270,8 +278,11 @@ fun Application.configureSockets() {
                                                     endTime = now,
                                                     status = Intervention.InterventionStatus.CANCELLED_BY_GUARD
                                                 )
-                                                SecurityDataViewModel.editReportStatus(reportId, Report.ReportStatus.WAITING)
-                                                DaoMethods.getReport(reportId)?.let{
+                                                SecurityDataViewModel.editReportStatus(
+                                                    reportId,
+                                                    Report.ReportStatus.WAITING
+                                                )
+                                                DaoMethods.getReport(reportId)?.let {
                                                     clientSessions[it.client_id]?.send(Frame.Text("""{"status": waiting}"""))
                                                 }
                                             } else if (intervention == "supportNeeded") {
@@ -291,7 +302,10 @@ fun Application.configureSockets() {
                                                         """{lat: ${jsonObject.get("latitude")}, lng: ${jsonObject.get("longitude")}}""".trim()
                                                     guard?.statusCode = jsonObject.get("status").asInt
                                                     if (guard != null) {
-                                                        SecurityDataViewModel.addGuard(guard.toGuardInfo(), this@webSocket)
+                                                        SecurityDataViewModel.addGuard(
+                                                            guard.toGuardInfo(),
+                                                            this@webSocket
+                                                        )
                                                         outgoing.send(Frame.Text("""{"status": connected}"""))
                                                     }
                                                 }
