@@ -63,6 +63,15 @@ fun Application.module() {
                 "JohnPaul@gmail.com",
                 Employee.Role.ADMIN
             )
+            DaoMethods.addEmployee(
+                "JanKm",
+                "qwerty",
+                "Jan",
+                "Kowalski",
+                "92345657894",
+                "JohnPaul2@gmail.com",
+                Employee.Role.MANAGER
+            )
         }
         if(DaoMethods.getGuards(1, 10).isEmpty()) {
             DaoMethods.addGuard("JAN", "qwerty", "Jan", "Kowalski", "2221", "jan1@wp.pl")

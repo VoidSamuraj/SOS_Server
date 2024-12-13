@@ -8,7 +8,7 @@ import MyMap from "./map/MyMap";
 import StatsOverlay from "./StatsOverlay";
 import { useReports, usePatrols } from "./map/MapFunctions";
 import SystemWebSocket from "../script/SystemWebSocket.js";
-import { refreshToken } from "../script/ApiService.js";
+import { refreshToken, getEmployee } from "../script/ApiService.js";
 import { LoadScript } from "@react-google-maps/api";
 import keys from "../keys";
 
@@ -44,6 +44,13 @@ function Home() {
 
   const mapSocketRef = useRef(null);
 
+  const [loggedInEmployee, setLoggedInEmployee] = useState(null);
+
+  const loadEmployeeInfo = async (id) => {
+    let employee = await getEmployee(id);
+    setLoggedInEmployee(employee);
+  };
+
   useEffect(() => {
     document.documentElement.classList.add("indexStyle");
     document.body.classList.add("indexStyle");
@@ -72,7 +79,6 @@ function Home() {
     const checkTokenExpiration = () => {
       const currentTimestamp = Date.now();
       const exp = localStorage.getItem("tokenExp");
-      console.log(exp);
 
       if (exp) {
         const expTimestamp = parseInt(exp, 10);
@@ -94,6 +100,10 @@ function Home() {
     const intervalId = setInterval(() => {
       checkTokenExpiration();
     }, 30000); // 30s
+
+
+    let id = localStorage.getItem("userData");
+    if (id) loadEmployeeInfo(id);
 
     return () => {
       document.documentElement.classList.remove("indexStyle");
@@ -143,7 +153,7 @@ function Home() {
             isVisible={isDropdownVisible}
             onSettingsToggle={toggleSettings}
             onStatsToggle={toggleStats}
-            onAdminClick={() => (window.location.href = "/administration")}
+            onAdminClick={(loggedInEmployee!=null && loggedInEmployee.roleCode == 2)? () => (window.location.href = "/administration"):null}
           />
           <SettingsMenu
             isVisible={isSettingsVisible}

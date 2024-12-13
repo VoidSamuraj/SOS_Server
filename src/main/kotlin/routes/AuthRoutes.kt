@@ -59,14 +59,16 @@ fun scheduleTokenCleanup() {
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(
-    onSuccess: suspend () -> Unit,
-    onFailure: (suspend () -> Unit)? = null
+    onSuccess: suspend (role: Employee.Role? ) -> Unit,
+    onFailure: (suspend () -> Unit)? = null,
+    roles: List<Employee.Role>?=null
 ) {
     val token = call.sessions.get("userToken") as JWTToken?
     checkPermission(
         token = token,
-        onSuccess = {
-            onSuccess()
+        roles = roles,
+        onSuccess = { role->
+            onSuccess(role)
         },
         onFailure = {
             if (onFailure != null)
@@ -78,14 +80,14 @@ suspend fun PipelineContext<Unit, ApplicationCall>.checkUserPermission(
 
 suspend fun checkUserPermission(
     refreshToken: JWTToken,
-    onSuccess: suspend () -> Unit,
+    onSuccess: suspend (role: Employee.Role? ) -> Unit,
     onFailure: (suspend () -> Unit)? = null
 ) {
 
     checkPermission(
         token = refreshToken,
-        onSuccess = {
-            onSuccess()
+        onSuccess = {role->
+            onSuccess(role)
         },
         onFailure = {
             onFailure?.invoke()

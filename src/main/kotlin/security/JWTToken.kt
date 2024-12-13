@@ -25,13 +25,14 @@ data class JWTToken(val token: String)
  * if the associated account (employee, customer, or guard) has valid permissions.
  *
  * @param token The JWT token to validate.
- * @param onSuccess A suspend function to execute if the token is valid and the account exists.
+ * @param onSuccess A suspend function to execute if the token is valid and the account exists, contains [Employee.Role] parameter.
  * @param onFailure A suspend function to execute if the token is invalid, expired, or not authorized.
  */
 suspend fun checkPermission(
     token: JWTToken?,
-    onSuccess: suspend () -> Unit,
-    onFailure: suspend () -> Unit
+    onSuccess: suspend (role: Employee.Role?) -> Unit,
+    onFailure: suspend () -> Unit,
+    roles: List<Employee.Role>?=null
 ) {
 
     if (token == null) {
@@ -58,9 +59,9 @@ suspend fun checkPermission(
                     onFailure()
                     return
                 }
-
-                if (DaoMethods.getEmployee(id) != null) {
-                    onSuccess()
+                val employee = DaoMethods.getEmployee(id)
+                if ((employee != null) && (roles == null || roles.contains(employee.role))) {
+                    onSuccess(employee.role)
                 } else {
                     onFailure()
                 }
@@ -68,7 +69,7 @@ suspend fun checkPermission(
 
             "customer" -> {
                 if (DaoMethods.getCustomer(id) != null) {
-                    onSuccess()
+                    onSuccess(null)
                 } else {
                     onFailure()
                 }
@@ -76,7 +77,7 @@ suspend fun checkPermission(
 
             "guard" -> {
                 if (DaoMethods.getGuard(id) != null) {
-                    onSuccess()
+                    onSuccess(null)
                 } else {
                     onFailure()
                 }

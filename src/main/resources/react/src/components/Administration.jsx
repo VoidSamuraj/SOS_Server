@@ -3,7 +3,7 @@ import ManageAccounts from "./ManageAccounts";
 import TopBar from "./TopBar";
 import DropdownMenu from "./DropdownMenu";
 import SettingsMenu from "./SettingsMenu";
-import { refreshToken } from "../script/ApiService.js";
+import { refreshToken, getEmployee } from "../script/ApiService.js";
 
 /**
  * Administration component serves as a control panel for managing settings,
@@ -34,6 +34,13 @@ function Administration() {
     setEditedRecord(!editedRecord);
   };
 
+  const [loggedInEmployee, setLoggedInEmployee] = useState(null);
+
+  const loadEmployeeInfo = async (id) => {
+    let employee = await getEmployee(id);
+    setLoggedInEmployee(employee);
+  };
+
   useEffect(() => {
     const checkTokenExpiration = () => {
       const currentTimestamp = Date.now();
@@ -60,6 +67,9 @@ function Administration() {
       checkTokenExpiration();
     }, 30000); // 30s
 
+    let id = localStorage.getItem("userData");
+    if (id) loadEmployeeInfo(id);
+
     return () => {
       clearInterval(intervalId);
     };
@@ -78,7 +88,7 @@ function Administration() {
         <DropdownMenu
           isVisible={isDropdownVisible}
           onSettingsToggle={toggleSettings}
-          onMapClick={() => (window.location.href = "/map")}
+          onMapClick={(loggedInEmployee!=null && loggedInEmployee.roleCode == 2)? () => (window.location.href = "/map"):null}
         />
         <SettingsMenu
           isVisible={isSettingsVisible}
