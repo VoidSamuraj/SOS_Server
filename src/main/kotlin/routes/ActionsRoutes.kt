@@ -1,8 +1,8 @@
 package routes
 
 import dao.DaoMethods
+import dao.DaoMethods.getActiveInterventionByReport
 import dao.DaoMethods.getInterventionByGuard
-import dao.DaoMethods.getInterventionByReport
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
@@ -99,19 +99,19 @@ fun Route.actionRoutes() {
         post("/cancelIntervention") {
             val formParameters = call.receiveParameters()
             val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
-            val intervention = getInterventionByReport(reportId = reportId)
+            val intervention = getActiveInterventionByReport(reportId = reportId)
+            SecurityDataViewModel.finishInterventionByDispatcher(reportId = reportId)
             SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.WAITING)
             intervention?.let {
                 SecurityDataViewModel.editGuardStatus(id = it.guard_id, status = Guard.GuardStatus.AVAILABLE)
             }
-            SecurityDataViewModel.finishInterventionByDispatcher(reportId = reportId)
             call.respond(HttpStatusCode.OK)
         }
 
         post("/getAssignedGuardLocation") {
             val formParameters = call.receiveParameters()
             val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
-            val intervention = getInterventionByReport(reportId = reportId)
+            val intervention = getActiveInterventionByReport(reportId = reportId)
             if (intervention != null) {
                 val location =
                     SecurityDataViewModel.getGuardLocationById(intervention.guard_id)?.replace("lat", "\"lat\"")
@@ -155,5 +155,17 @@ fun Route.actionRoutes() {
             else
                 call.respond(HttpStatusCode.NotFound)
         }
+
+        post("/checkIfReportIsAvailable") {
+            val formParameters = call.receiveParameters()
+            val reportId = sanitizeHtml(formParameters.getOrFail("reportId")).toInt()
+            val report = DaoMethods.getReport(reportId)
+            if (report == null) {
+                call.respond(HttpStatusCode.NotFound)
+            } else
+                call.respond(HttpStatusCode.OK, report.status == Report.ReportStatus.WAITING)
+
+        }
+
     }
 }

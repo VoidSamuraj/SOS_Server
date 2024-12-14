@@ -72,7 +72,7 @@ object SecurityDataViewModel {
     }
 
     suspend fun editReportLocation(id: Int, location: String) {
-        DaoMethods.getInterventionByReport(id)?.let{intervention->
+        DaoMethods.getActiveInterventionByReport(id)?.let{intervention->
             guardSessions[intervention.guard_id]?.send(Frame.Text("""{"status":update, "reportId": ${intervention.report_id},"location": ${location}}"""))
         }
 
@@ -111,9 +111,6 @@ object SecurityDataViewModel {
     }
 
     fun editGuardStatus(id: Int, status: Guard.GuardStatus) {
-        println("BEFOREANDAFTER")
-        println(status)
-        println(_guardsFlow.value)
         _guardsFlow.value = _guardsFlow.value.map { guardRow ->
             if (guardRow.id == id) {
                 guardRow.copy(statusCode = status.status)
@@ -121,11 +118,10 @@ object SecurityDataViewModel {
                 guardRow
             }
         }
-        println(_guardsFlow.value)
     }
 
     suspend fun getAssignedGuardIdByReportId(reportId:Int):Int?{
-        return DaoMethods.getInterventionByReport(reportId)?.guard_id
+        return DaoMethods.getActiveInterventionByReport(reportId)?.guard_id
     }
 
     fun setReports(reports: List<Report>) {
@@ -204,7 +200,7 @@ object SecurityDataViewModel {
     suspend fun finishInterventionByUser(
         reportId: Int,
     ): Boolean {
-        val intervention = DaoMethods.getInterventionByReport(reportId)
+        val intervention = DaoMethods.getActiveInterventionByReport(reportId,filterActive = false)
         if (DaoMethods.editIntervention(
                 reportId,
                 null,
@@ -226,7 +222,7 @@ object SecurityDataViewModel {
     suspend fun finishInterventionByDispatcher(
         reportId: Int,
     ): Boolean {
-        val intervention = DaoMethods.getInterventionByReport(reportId)
+        val intervention = DaoMethods.getActiveInterventionByReport(reportId, filterActive = false)
         if (
             DaoMethods.editIntervention(
                 reportId,
@@ -249,6 +245,9 @@ object SecurityDataViewModel {
 
     suspend fun callSupport(reportId: Int): Boolean {
         val ret = DaoMethods.changeReportStatus(reportId, Report.ReportStatus.WAITING)
+        if(ret!=null){
+            editReportStatus(reportId, Report.ReportStatus.WAITING)
+        }
         return ret != null
     }
 

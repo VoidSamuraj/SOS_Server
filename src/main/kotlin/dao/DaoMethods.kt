@@ -568,12 +568,17 @@ object DaoMethods : DaoMethodsInterface {
     }
     }
 
-    override suspend fun getInterventionByReport(reportId: Int): Intervention? {
+    override suspend fun getActiveInterventionByReport(reportId: Int, filterActive: Boolean): Intervention? {
         return try{
             transaction {
+                val condition = if (filterActive) {
+                    ((Interventions.status eq Intervention.InterventionStatus.CONFIRMED.status.toShort()) or (Interventions.status eq Intervention.InterventionStatus.IN_PROGRESS.status.toShort())) and (Interventions.report_id eq reportId)
+                } else {
+                    (Interventions.report_id eq reportId)
+                }
                 Interventions
                     .selectAll()
-                    .where { ((Interventions.status eq Intervention.InterventionStatus.CONFIRMED.status.toShort()) or (Interventions.status eq Intervention.InterventionStatus.IN_PROGRESS.status.toShort())) and (Interventions.report_id eq reportId) }
+                    .where { condition }
                     .mapNotNull(::resultRowToIntervention)
                     .singleOrNull()
             }

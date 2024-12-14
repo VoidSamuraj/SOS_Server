@@ -261,10 +261,11 @@ interface DaoMethodsInterface {
      * Retrieves an intervention by report's ID.
      *
      * @param reportId The ID of the report associated with intervention to retrieve.
+     * @param filterActive frag to indicating if active status are filtered
      *
      * @return The Intervention object if found, or null if not found.
      */
-    suspend fun getInterventionByReport(reportId: Int): Intervention?
+    suspend fun getActiveInterventionByReport(reportId: Int, filterActive: Boolean=true): Intervention?
 
     /**
      * Retrieves an intervention by guard's ID.
