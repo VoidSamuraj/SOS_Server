@@ -161,6 +161,7 @@ object SecurityDataViewModel {
                     if (response == "cancel")
                         onCancel()
                     else if (response == "accept") {
+                        editReportStatus(id = reportId, status = Report.ReportStatus.IN_PROGRESS)
                         clientSessions[report.client_id]?.send(Frame.Text("""{"status": confirmed}"""))
                         onConfirm()
                     }
