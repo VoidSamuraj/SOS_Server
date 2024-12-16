@@ -60,8 +60,9 @@ object SecurityDataViewModel {
         return report != null
     }
 
-    suspend fun editReportStatus(id: Int, status: Report.ReportStatus) {
-        DaoMethods.changeReportStatus(id, status)
+    suspend fun editReportStatus(id: Int, status: Report.ReportStatus, saveInDB: Boolean=true) {
+        if(saveInDB)
+            DaoMethods.changeReportStatus(id, status)
         _reportsFlow.value = _reportsFlow.value.map { reportRow ->
             if (reportRow.id == id) {
                 reportRow.copy(statusCode = status.status.toShort())

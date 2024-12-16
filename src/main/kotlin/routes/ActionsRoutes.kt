@@ -60,7 +60,7 @@ fun Route.actionRoutes() {
                 val guardId = sanitizeHtml(formParameters.getOrFail("guardId")).toInt()
                 val employeeId = sanitizeHtml(formParameters.getOrFail("employeeId")).toInt()
                 launch(Dispatchers.Default) {
-                    SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.IN_PROGRESS)
+                    SecurityDataViewModel.editReportStatus(id = reportId, status = Report.ReportStatus.IN_PROGRESS, saveInDB = false)
                     SecurityDataViewModel.assignReportToGuard(
                         reportId = reportId, guardId = guardId,
                         onConfirm = {
