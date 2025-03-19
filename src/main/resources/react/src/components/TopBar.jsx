@@ -46,7 +46,7 @@ function TopBar({ onDropdownToggle, guards }) {
               &nbsp; Niedostępne:
               {
                 Array.from(guards.values()).filter(
-                  (guard) => guard.status === 1
+                  (guard) => guard.status === 1 || guard.status === 3
                 ).length
               }
             </div>
