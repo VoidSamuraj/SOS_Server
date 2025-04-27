@@ -169,4 +169,9 @@ You can also run the server inside Docker:
 docker build -t sos-server .
 docker run -p 3000:3000 sos-server
 ```
+## License
+
+---
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
