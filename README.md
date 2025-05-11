@@ -124,7 +124,7 @@ Run inside `src/main/resources/react`.
 npm run webpackbuild
 ```
 Also run inside `src/main/resources/react`.
-
+> **Note:** You may need to update kotlin version.  
 ---
 
 ### 4. Adjust Configuration (Optional)
@@ -163,7 +163,6 @@ DatabaseFactory.init(
 )
 */
 ```
-
 ---
 
 ### 5. Run with Docker (Optional)
